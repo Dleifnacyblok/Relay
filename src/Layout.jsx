@@ -127,7 +127,7 @@ export default function Layout({ children }) {
 
       {/* Mobile Header */}
       <div className="lg:hidden sticky top-0 z-40 bg-white" style={{borderBottom: '1px solid rgba(0,0,0,0.06)'}}>
-        <div className="relative flex items-center justify-center px-4 py-6">
+        <div className="relative flex items-center justify-center px-4 py-4">
           <div style={{
             width: '110px',
             height: '110px',
@@ -150,6 +150,7 @@ export default function Layout({ children }) {
             variant="ghost"
             size="icon"
             className="absolute right-4 text-black hover:bg-gray-100"
+            style={{top: '50%', transform: 'translateY(-50%)'}}
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           >
             {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
