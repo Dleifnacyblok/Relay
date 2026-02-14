@@ -90,26 +90,32 @@ export default function ImportData() {
         throw new Error("No valid data found in the file");
       }
 
-      // Upsert loaners based on etch_id
+      // Upsert loaners based on etch_id, or fallback to set_id + expected_return_date
       let createdCount = 0;
       let updatedCount = 0;
       
       for (const record of extractedData) {
+        let existing = null;
+        
+        // Try to find by etch_id first
         if (record.etch_id) {
-          // Find existing loaner by etch_id
-          const existing = existingLoaners.find(l => l.etch_id === record.etch_id);
-          
-          if (existing) {
-            // Update existing record
-            await base44.entities.Loaners.update(existing.id, record);
-            updatedCount++;
-          } else {
-            // Create new record
-            await base44.entities.Loaners.create(record);
-            createdCount++;
-          }
+          existing = existingLoaners.find(l => l.etch_id === record.etch_id);
+        }
+        
+        // Fallback: match by set_id + expected_return_date for backfill
+        if (!existing && record.set_id && record.expected_return_date) {
+          existing = existingLoaners.find(l => 
+            l.set_id === record.set_id && 
+            l.expected_return_date === record.expected_return_date
+          );
+        }
+        
+        if (existing) {
+          // Update existing record
+          await base44.entities.Loaners.update(existing.id, record);
+          updatedCount++;
         } else {
-          // No etch_id, create new record
+          // Create new record
           await base44.entities.Loaners.create(record);
           createdCount++;
         }

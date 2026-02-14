@@ -131,7 +131,7 @@ export default function LoanerDetail() {
           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
             <div>
               <h1 className="text-2xl font-bold text-slate-900">{loaner.set_name}</h1>
-              <p className="text-slate-500 mt-1">Etch ID: {loaner.etch_id || loaner.set_id}</p>
+              <p className="text-slate-500 mt-1">Etch ID: {loaner.etch_id || "(missing)"}</p>
             </div>
             <RiskBadge riskStatus={loaner.risk_status} />
           </div>
