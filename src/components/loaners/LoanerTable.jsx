@@ -34,17 +34,25 @@ export default function LoanerTable({ loaners, compact = false }) {
   return (
     <div className="overflow-x-auto">
       {/* Mobile Card View */}
-      <div className="md:hidden space-y-3">
+      <div className="md:hidden space-y-4">
         {loaners.map((loaner) => (
           <Link
             key={loaner.id}
             to={createPageUrl("LoanerDetail") + `?id=${loaner.id}`}
-            className="block bg-white border border-gray-200 rounded-xl p-4 hover:border-blue-300 transition-all shadow-sm"
+            className="block rounded-xl py-5 px-4 hover:border-blue-300 transition-all"
+            style={{
+              backgroundColor: '#FFFFFF',
+              border: '1px solid #EEEEEE',
+              boxShadow: '0px 8px 24px rgba(0, 0, 0, 0.06)'
+            }}
           >
             <div className="flex items-start justify-between mb-3">
               <div className="flex-1 min-w-0">
-                <h3 className="font-semibold text-black truncate">{loaner.set_name}</h3>
-                <p className="text-xs text-gray-500">Etch ID: {loaner.etch_id || "(missing)"}</p>
+                <h3 className="font-bold truncate" style={{color: '#000000'}}>{loaner.set_name}</h3>
+                <p className="text-xs mt-0.5">
+                  <span style={{color: '#777777'}}>Etch ID: </span>
+                  <span style={{color: '#222222', letterSpacing: '0.02em'}}>{loaner.etch_id || "(missing)"}</span>
+                </p>
               </div>
               <RiskBadge riskStatus={loaner.risk_status} />
             </div>
@@ -95,12 +103,15 @@ export default function LoanerTable({ loaners, compact = false }) {
               >
                 <TableCell>
                   <Link 
-                    to={createPageUrl("LoanerDetail") + `?id=${loaner.id}`}
-                    className="hover:text-black"
-                  >
-                    <div className="font-medium text-black">{loaner.set_name}</div>
-                    <div className="text-xs text-gray-500">Etch ID: {loaner.etch_id || "(missing)"}</div>
-                  </Link>
+                      to={createPageUrl("LoanerDetail") + `?id=${loaner.id}`}
+                      className="hover:text-black"
+                    >
+                      <div className="font-bold" style={{color: '#000000'}}>{loaner.set_name}</div>
+                      <div className="text-xs mt-0.5">
+                        <span style={{color: '#777777'}}>Etch ID: </span>
+                        <span style={{color: '#222222', letterSpacing: '0.02em'}}>{loaner.etch_id || "(missing)"}</span>
+                      </div>
+                    </Link>
                 </TableCell>
                 <TableCell className="text-gray-900">{loaner.account_name || "—"}</TableCell>
                 {!compact && (
