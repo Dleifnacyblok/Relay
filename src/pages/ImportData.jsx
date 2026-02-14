@@ -78,20 +78,20 @@ export default function ImportData() {
       // Upload file
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
 
-      // Extract data with exact column header mapping
+      // Extract data with direct snake_case mapping and no transformations
       const extractionSchema = {
         type: "array",
         items: {
           type: "object",
           properties: {
-            "Set Name": { type: "string" },
-            "Etch Id": { type: "string" },
-            "Current Field Sales Name": { type: "string" },
-            "Associate Sales Rep Name": { type: "string" },
-            "Account Name": { type: "string" },
-            "Status": { type: "string" },
-            "Loaned Date": { type: "date" },
-            "Expected Return Date": { type: "date" }
+            set_name: { type: "string", description: "Set Name" },
+            etch_id: { type: "string", description: "Etch Id" },
+            primary_rep: { type: "string", description: "Current Field Sales Name" },
+            associate_rep: { type: "string", description: "Associate Sales Rep Name" },
+            account_name: { type: "string", description: "Account Name" },
+            status: { type: "string", description: "Status" },
+            loaned_date: { type: "string", description: "Loaned Date" },
+            expected_return_date: { type: "string", description: "Expected Return Date" }
           }
         }
       };
@@ -105,23 +105,11 @@ export default function ImportData() {
         throw new Error(result.details || "Failed to extract data from file");
       }
 
-      let extractedData = result.output;
+      const extractedData = result.output;
       
       if (!Array.isArray(extractedData) || extractedData.length === 0) {
         throw new Error("No valid data found in the file");
       }
-
-      // Map exact column names to table field names
-      extractedData = extractedData.map(row => ({
-        set_name: row["Set Name"],
-        etch_id: row["Etch Id"],
-        primary_rep: row["Current Field Sales Name"],
-        associate_rep: row["Associate Sales Rep Name"],
-        account_name: row["Account Name"],
-        status: row["Status"],
-        loaned_date: row["Loaned Date"],
-        expected_return_date: row["Expected Return Date"]
-      }));
 
       // Call backend function for bulk upsert
       const response = await fetch('/api/bulkImportLoaners', {
