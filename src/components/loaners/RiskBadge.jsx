@@ -3,21 +3,21 @@ import { cn } from "@/lib/utils";
 export default function RiskBadge({ riskStatus }) {
   const config = {
     Overdue: {
-      bg: "bg-red-950/50",
+      bg: "bg-red-950/70",
       text: "text-red-400",
-      border: "border-red-900/50",
+      border: "border-red-500/50",
       dot: "bg-red-500"
     },
     "Due Soon": {
-      bg: "bg-amber-950/50",
+      bg: "bg-amber-950/70",
       text: "text-amber-400",
-      border: "border-amber-900/50",
+      border: "border-amber-500/50",
       dot: "bg-amber-500"
     },
     Safe: {
-      bg: "bg-emerald-950/50",
+      bg: "bg-emerald-950/70",
       text: "text-emerald-400",
-      border: "border-emerald-900/50",
+      border: "border-emerald-500/50",
       dot: "bg-emerald-500"
     }
   };

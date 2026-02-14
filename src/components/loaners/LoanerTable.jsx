@@ -39,7 +39,7 @@ export default function LoanerTable({ loaners, compact = false }) {
           <Link
             key={loaner.id}
             to={createPageUrl("LoanerDetail") + `?id=${loaner.id}`}
-            className="block bg-[#1A1D23] border border-slate-800 rounded-xl p-4 hover:border-slate-700 transition-all"
+            className="block bg-[#121621] border border-slate-800/50 rounded-xl p-4 hover:border-[#4F8CFF]/40 transition-all"
           >
             <div className="flex items-start justify-between mb-3">
               <div className="flex-1 min-w-0">
@@ -76,7 +76,7 @@ export default function LoanerTable({ loaners, compact = false }) {
       <div className="hidden md:block">
         <Table>
           <TableHeader>
-            <TableRow className="border-slate-800 hover:bg-transparent">
+            <TableRow className="border-slate-800/50 hover:bg-transparent">
               <TableHead className="font-semibold text-slate-400">Set</TableHead>
               <TableHead className="font-semibold text-slate-400">Account</TableHead>
               {!compact && <TableHead className="font-semibold text-slate-400">Reps</TableHead>}
@@ -91,7 +91,7 @@ export default function LoanerTable({ loaners, compact = false }) {
             {loaners.map((loaner) => (
               <TableRow 
                 key={loaner.id} 
-                className="border-slate-800 hover:bg-slate-800/30 transition-colors cursor-pointer"
+                className="border-slate-800/50 hover:bg-[#4F8CFF]/5 transition-colors cursor-pointer"
               >
                 <TableCell>
                   <Link 
@@ -112,7 +112,7 @@ export default function LoanerTable({ loaners, compact = false }) {
                   </TableCell>
                 )}
                 <TableCell>
-                  <span className="px-2 py-1 bg-slate-800 text-slate-300 rounded text-xs font-medium">
+                  <span className="px-2 py-1 bg-slate-800/50 text-slate-300 rounded text-xs font-medium border border-slate-700/50">
                     {loaner.status || "—"}
                   </span>
                 </TableCell>
