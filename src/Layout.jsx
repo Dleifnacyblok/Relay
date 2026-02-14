@@ -119,8 +119,8 @@ export default function Layout({ children }) {
             <img 
               src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/698fe9d012ce3a450807fc7e/9d5cf87f9_IMG_3258.jpg" 
               alt="Relay Logo" 
-              className="h-16 w-auto object-contain bg-white rounded-lg p-2"
-              style={{boxShadow: '0 0 30px rgba(79, 140, 255, 0.5), 0 0 50px rgba(157, 78, 221, 0.3)'}}
+              className="h-20 w-auto object-contain"
+              style={{filter: 'drop-shadow(0 0 20px rgba(79, 140, 255, 0.3)) drop-shadow(0 0 40px rgba(157, 78, 221, 0.2))'}}
             />
           </div>
           <Button
