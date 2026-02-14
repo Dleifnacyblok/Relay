@@ -105,11 +105,23 @@ export default function ImportData() {
         throw new Error(result.details || "Failed to extract data from file");
       }
 
-      const extractedData = result.output;
+      let extractedData = result.output;
       
       if (!Array.isArray(extractedData) || extractedData.length === 0) {
         throw new Error("No valid data found in the file");
       }
+
+      // Map exact column names to table field names
+      extractedData = extractedData.map(row => ({
+        set_name: row["Set Name"],
+        etch_id: row["Etch Id"],
+        primary_rep: row["Current Field Sales Name"],
+        associate_rep: row["Associate Sales Rep Name"],
+        account_name: row["Account Name"],
+        status: row["Status"],
+        loaned_date: row["Loaned Date"],
+        expected_return_date: row["Expected Return Date"]
+      }));
 
       // Call backend function for bulk upsert
       const response = await fetch('/api/bulkImportLoaners', {
