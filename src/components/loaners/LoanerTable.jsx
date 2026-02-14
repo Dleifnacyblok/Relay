@@ -59,7 +59,7 @@ export default function LoanerTable({ loaners, compact = false }) {
               </div>
               <div>
                 <span className="text-slate-500">Rep:</span>
-                <p className="font-medium text-slate-300 truncate">{loaner.primary_rep || "—"}</p>
+                <p className="font-medium text-slate-300 truncate">{loaner.associate_rep || loaner.primary_rep || "—"}</p>
               </div>
               {loaner.fine_exposure > 0 && (
                 <div>
@@ -105,9 +105,9 @@ export default function LoanerTable({ loaners, compact = false }) {
                 <TableCell className="text-slate-300">{loaner.account_name || "—"}</TableCell>
                 {!compact && (
                   <TableCell>
-                    <div className="text-slate-300">{loaner.primary_rep || "—"}</div>
-                    {loaner.associate_rep && (
-                      <div className="text-xs text-slate-500">{loaner.associate_rep_display}</div>
+                    <div className="text-slate-300">{loaner.associate_rep || loaner.primary_rep || "—"}</div>
+                    {loaner.associate_rep && loaner.primary_rep && (
+                      <div className="text-xs text-slate-500">{loaner.primary_rep}</div>
                     )}
                   </TableCell>
                 )}
