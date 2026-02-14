@@ -45,13 +45,7 @@ export default function ImportData() {
     queryFn: () => base44.auth.me(),
   });
 
-  const { data: appSetting } = useQuery({
-    queryKey: ["appSetting"],
-    queryFn: async () => {
-      const result = await base44.entities.AppSetting.filter({ key: 'import_metadata' });
-      return result?.[0] || null;
-    }
-  });
+
 
   const { data: existingLoaners = [] } = useQuery({
     queryKey: ["loaners"],
@@ -81,121 +75,72 @@ export default function ImportData() {
 
     try {
       // Upload file
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+            const { file_url } = await base44.integrations.Core.UploadFile({ file });
 
-      // Extract data - capture all columns, we'll filter in backend
-      const extractionSchema = {
-        type: "array",
-        items: {
-          type: "object",
-          properties: {
-            "Set Name": { type: "string" },
-            "Etch Id": { type: "string" },
-            "Account Name": { type: "string" },
-            "Associate Sales Rep Name": { type: "string" },
-            "Current Field Sales Name": { type: "string" },
-            "Expected Return Date": { type: "string" }
-          }
-        }
-      };
+            // Extract data - capture required columns
+            const extractionSchema = {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  "Set Name": { type: "string" },
+                  "Etch Id": { type: "string" },
+                  "Account Name": { type: "string" },
+                  "Associate Sales Rep Name": { type: "string" },
+                  "Current Field Sales Name": { type: "string" },
+                  "Expected Return Date": { type: "string" }
+                }
+              }
+            };
 
-      const result = await base44.integrations.Core.ExtractDataFromUploadedFile({
-        file_url,
-        json_schema: extractionSchema
-      });
+            const result = await base44.integrations.Core.ExtractDataFromUploadedFile({
+              file_url,
+              json_schema: extractionSchema
+            });
 
-      if (result.status === "error") {
-        throw new Error(result.details || "Failed to extract data from file");
-      }
+            if (result.status === "error") {
+              throw new Error(result.details || "Failed to extract data from file");
+            }
 
-      const extractedData = result.output;
-      
-      if (!Array.isArray(extractedData) || extractedData.length === 0) {
-        throw new Error("No valid data found in the file");
-      }
+            const extractedData = result.output;
 
-      // Process in batches of 50
-      const BATCH_SIZE = 50;
-      const totalBatches = Math.ceil(extractedData.length / BATCH_SIZE);
-      let totalImported = 0;
-      const failures = [];
+            if (!Array.isArray(extractedData) || extractedData.length === 0) {
+              throw new Error("No valid data found in the file");
+            }
 
-      for (let i = 0; i < extractedData.length; i += BATCH_SIZE) {
-        const batchIndex = Math.floor(i / BATCH_SIZE);
-        setUploadProgress({
-          current: batchIndex,
-          total: totalBatches,
-          percent: Math.round((batchIndex / totalBatches) * 100)
-        });
+            // Send directly to backend for processing
+            const response = await fetch('/api/bulkImportLoaners', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ data: extractedData })
+            });
 
-        const batch = extractedData.slice(i, i + BATCH_SIZE);
+            if (!response.ok) {
+              const errorData = await response.json();
+              throw new Error(errorData.error || "Failed to import data");
+            }
 
-        try {
-          const response = await fetch('/api/bulkImportLoaners', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ data: batch })
-          });
+            const importResult = await response.json();
+            setFailedRows(importResult.failures || []);
 
-          if (response.status === 429) {
-            const errorData = await response.json();
-            const retryAfter = errorData.retryAfter || 30;
-            setRetryCountdown(retryAfter);
-            throw new Error(`Rate limited. Please try again in ${retryAfter} seconds.`);
-          }
-
-          if (!response.ok) {
-            const errorData = await response.json();
-            // Track failed batch rows
-            batch.forEach((row, idx) => {
-              failures.push({
-                rowIndex: i + idx + 2, // +2 for header row and 0-indexing
-                data: row,
-                error: errorData.error || 'Failed to import'
+            if (importResult.success) {
+              setImportResult({
+                success: true,
+                count: importResult.recordCount
               });
-            });
-          } else {
-            const result = await response.json();
-            totalImported += result.recordCount || batch.length;
-          }
-        } catch (err) {
-          // If batch fails, track all rows in batch as failed
-          batch.forEach((row, idx) => {
-            failures.push({
-              rowIndex: i + idx + 2,
-              data: row,
-              error: err.message
-            });
-          });
-        }
+              queryClient.invalidateQueries({ queryKey: ["loaners"] });
+              setFile(null);
+              } else {
+              setError(`${importResult.failureCount} rows failed. ${importResult.recordCount} rows imported successfully.`);
+              }
 
-        // Delay between batches (200ms to avoid rate limits)
-        if (i + BATCH_SIZE < extractedData.length) {
-          await delay(200);
-        }
-      }
-
-      setUploadProgress(null);
-      setFailedRows(failures);
-
-      if (failures.length === 0) {
-        setImportResult({
-          success: true,
-          count: totalImported
-        });
-        queryClient.invalidateQueries(["loaners"]);
-        queryClient.invalidateQueries(["appSetting"]);
-        setFile(null);
-      } else {
-        setError(`Completed with ${failures.length} failed rows. ${totalImported} rows imported successfully.`);
-      }
-
-    } catch (err) {
-      setError(err.message || "Failed to import data");
-    } finally {
-      setIsUploading(false);
-    }
-  };
+              } catch (err) {
+              setError(err.message || "Failed to import data");
+              } finally {
+              setIsUploading(false);
+              setUploadProgress(null);
+              }
+              };
 
   const handleCleanupDuplicates = async () => {
     setIsCleaning(true);
