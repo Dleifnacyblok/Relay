@@ -89,16 +89,18 @@ export default function ImportData() {
         throw new Error("No valid data found in the file");
       }
 
-      // Upsert loaners based on etch_id
+      // Upsert loaners based on composite key: etch_id + set_name
       let createdCount = 0;
       let updatedCount = 0;
       
       for (const record of extractedData) {
         let existing = null;
         
-        // Find by etch_id
-        if (record.etch_id) {
-          existing = existingLoaners.find(l => l.etch_id === record.etch_id);
+        // Find by composite key: etch_id + set_name
+        if (record.etch_id && record.set_name) {
+          existing = existingLoaners.find(l => 
+            l.etch_id === record.etch_id && l.set_name === record.set_name
+          );
         }
         
         if (existing) {
