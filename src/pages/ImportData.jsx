@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
-import { Upload, FileSpreadsheet, AlertCircle, CheckCircle, Loader2, Trash2 } from "lucide-react";
+import { Upload, FileSpreadsheet, AlertCircle, CheckCircle, Loader2, Trash2, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -21,6 +21,8 @@ export default function ImportData() {
   const [error, setError] = useState(null);
   const [showClearDialog, setShowClearDialog] = useState(false);
   const [isClearing, setIsClearing] = useState(false);
+  const [isCleaning, setIsCleaning] = useState(false);
+  const [cleanupResult, setCleanupResult] = useState(null);
   
   const queryClient = useQueryClient();
 
@@ -131,6 +133,68 @@ export default function ImportData() {
     }
   };
 
+  const handleCleanupDuplicates = async () => {
+    setIsCleaning(true);
+    setCleanupResult(null);
+    setError(null);
+    
+    try {
+      // Group loaners by (etch_id + set_name)
+      const groups = {};
+      
+      for (const loaner of existingLoaners) {
+        const key = `${loaner.etch_id || ''}|${loaner.set_name || ''}`;
+        if (!groups[key]) {
+          groups[key] = [];
+        }
+        groups[key].push(loaner);
+      }
+      
+      let deletedCount = 0;
+      
+      // Process each group
+      for (const key in groups) {
+        const group = groups[key];
+        
+        // Remove records with blank etch_id
+        const withEtchId = group.filter(l => l.etch_id && l.etch_id.trim() !== '');
+        const withoutEtchId = group.filter(l => !l.etch_id || l.etch_id.trim() === '');
+        
+        // Delete all records without etch_id
+        for (const loaner of withoutEtchId) {
+          await base44.entities.Loaners.delete(loaner.id);
+          deletedCount++;
+        }
+        
+        // If multiple records with etch_id exist, keep the most recent
+        if (withEtchId.length > 1) {
+          // Sort by updated_date descending
+          const sorted = [...withEtchId].sort((a, b) => 
+            new Date(b.updated_date) - new Date(a.updated_date)
+          );
+          
+          // Delete all except the first (most recent)
+          for (let i = 1; i < sorted.length; i++) {
+            await base44.entities.Loaners.delete(sorted[i].id);
+            deletedCount++;
+          }
+        }
+      }
+      
+      setCleanupResult({
+        success: true,
+        deletedCount
+      });
+      
+      queryClient.invalidateQueries(["loaners"]);
+      
+    } catch (err) {
+      setError("Failed to cleanup duplicates: " + err.message);
+    } finally {
+      setIsCleaning(false);
+    }
+  };
+
   const handleClearAll = async () => {
     setIsClearing(true);
     try {
@@ -179,17 +243,47 @@ export default function ImportData() {
               <p className="text-2xl font-bold text-slate-900">{existingLoaners.length}</p>
             </div>
             {existingLoaners.length > 0 && (
-              <Button 
-                variant="outline" 
-                className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                onClick={() => setShowClearDialog(true)}
-              >
-                <Trash2 className="w-4 h-4 mr-2" />
-                Clear All
-              </Button>
+              <div className="flex gap-2">
+                <Button 
+                  variant="outline" 
+                  className="text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50"
+                  onClick={handleCleanupDuplicates}
+                  disabled={isCleaning}
+                >
+                  {isCleaning ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Cleaning...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="w-4 h-4 mr-2" />
+                      Clean Duplicates
+                    </>
+                  )}
+                </Button>
+                <Button 
+                  variant="outline" 
+                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                  onClick={() => setShowClearDialog(true)}
+                >
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Clear All
+                </Button>
+              </div>
             )}
           </div>
         </div>
+
+        {/* Cleanup Result */}
+        {cleanupResult?.success && (
+          <Alert className="mb-6 border-green-200 bg-green-50">
+            <CheckCircle className="h-4 w-4 text-green-600" />
+            <AlertDescription className="text-green-800">
+              Cleanup complete! Removed {cleanupResult.deletedCount} duplicate/blank records.
+            </AlertDescription>
+          </Alert>
+        )}
 
         {/* Upload Card */}
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
