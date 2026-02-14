@@ -48,7 +48,7 @@ export default function Layout({ children }) {
       <aside className="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-64 lg:flex-col">
         <div className="flex flex-col flex-grow bg-white border-r border-gray-200">
           {/* Logo */}
-          <div className="flex items-center gap-4 px-6 py-6 border-b border-gray-200">
+          <div className="flex items-center gap-4 px-6 py-6" style={{borderBottom: '1px solid rgba(0,0,0,0.06)'}}>
             <div style={{
               width: '110px',
               height: '110px',
@@ -99,7 +99,7 @@ export default function Layout({ children }) {
           </nav>
 
           {/* User Section */}
-          <div className="p-4 border-t border-gray-200">
+          <div className="p-4" style={{borderTop: '1px solid rgba(0,0,0,0.06)'}}>
             <div className="flex items-center gap-3 px-2 py-2">
               <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center">
                 <span className="text-sm font-medium text-white">
@@ -126,7 +126,7 @@ export default function Layout({ children }) {
       </aside>
 
       {/* Mobile Header */}
-      <div className="lg:hidden sticky top-0 z-40 bg-white border-b border-gray-200">
+      <div className="lg:hidden sticky top-0 z-40 bg-white" style={{borderBottom: '1px solid rgba(0,0,0,0.06)'}}>
         <div className="relative flex items-center justify-center px-4 py-6">
           <div style={{
             width: '110px',
@@ -157,7 +157,7 @@ export default function Layout({ children }) {
 
         {/* Mobile Menu */}
         {mobileMenuOpen && (
-          <div className="absolute top-full left-0 right-0 bg-white border-b border-gray-200 shadow-lg">
+          <div className="absolute top-full left-0 right-0 bg-white shadow-lg" style={{borderBottom: '1px solid rgba(0,0,0,0.06)'}}>
             <nav className="p-3 space-y-1">
               {navigation.map((item) => {
                 const Icon = item.icon;
@@ -180,7 +180,7 @@ export default function Layout({ children }) {
                 );
               })}
             </nav>
-            <div className="p-3 border-t border-gray-200">
+            <div className="p-3" style={{borderTop: '1px solid rgba(0,0,0,0.06)'}}>
               <Button 
                 variant="ghost" 
                 className="w-full justify-start text-gray-600 hover:text-black hover:bg-gray-100"
