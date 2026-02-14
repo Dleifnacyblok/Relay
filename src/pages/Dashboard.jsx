@@ -46,10 +46,17 @@ export default function Dashboard() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         {/* Header */}
         <div className="mb-8 text-center" style={{backgroundColor: '#FFFFFF'}}>
-          <h1 className="text-2xl sm:text-3xl tracking-tight" style={{color: '#000000'}}>
-            <span className="font-bold">ESC -</span> <span className="italic font-extrabold" style={{fontSize: '1.1em'}}>Relay</span>
+          <h1 
+            className="tracking-tight font-bold" 
+            style={{
+              color: '#000000',
+              fontSize: '42px',
+              textShadow: '0 0 40px rgba(59,130,246,0.30), 0 0 60px rgba(147,51,234,0.22)'
+            }}
+          >
+            Relay
           </h1>
-          <p className="text-sm italic mt-0.5" style={{color: '#333333'}}>
+          <p className="text-sm italic mt-0.5" style={{color: '#444444'}}>
             Real time loaner movement and risk tracking
           </p>
         </div>
