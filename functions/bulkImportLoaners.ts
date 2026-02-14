@@ -5,6 +5,26 @@ const RETRY_DELAY = 1000; // Starting delay for retries
 
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
+const stringifyRow = (row) => {
+  const stringifiedRow = {};
+  const idFields = ["Set ID", "Loaner Id", "Etch Id", "Consignment Id"];
+  
+  for (const [key, value] of Object.entries(row)) {
+    if (value === null || value === undefined) {
+      stringifiedRow[key] = '';
+    } else if (idFields.includes(key)) {
+      // For ID fields, convert to string and strip decimals
+      const strValue = String(value);
+      stringifiedRow[key] = strValue.includes('.') ? strValue.split('.')[0] : strValue;
+    } else {
+      // For all other fields, just convert to string
+      stringifiedRow[key] = String(value);
+    }
+  }
+  
+  return stringifiedRow;
+};
+
 const validateRow = (row, rowIndex) => {
   const errors = [];
   
@@ -91,7 +111,10 @@ export default async function bulkImportLoaners(req, res) {
       const validRows = [];
       batchData.forEach((row, idx) => {
         const rowNumber = startIndex + idx + 2; // +2 for header and 0-indexing
-        const validationErrors = validateRow(row, rowNumber);
+        
+        // First, convert all values to strings and strip decimals from ID fields
+        const stringifiedRow = stringifyRow(row);
+        const validationErrors = validateRow(stringifiedRow, rowNumber);
         
         if (validationErrors.length > 0) {
           failedRows.push({
@@ -101,7 +124,7 @@ export default async function bulkImportLoaners(req, res) {
           });
         } else {
           try {
-            const transformedRow = transformRow(row);
+            const transformedRow = transformRow(stringifiedRow);
             validRows.push(transformedRow);
             successRows.push(rowNumber);
           } catch (err) {
