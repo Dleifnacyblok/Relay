@@ -42,10 +42,10 @@ export default function Dashboard() {
   const riskLoaners = [...myLoaners, ...otherLoaners];
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen" style={{backgroundColor: '#FFFFFF'}}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         {/* Header */}
-        <div className="mb-8 text-center">
+        <div className="mb-8 text-center" style={{backgroundColor: '#FFFFFF'}}>
           <h1 className="text-2xl sm:text-3xl tracking-tight" style={{color: '#000000'}}>
             <span className="font-bold">ESC -</span> <span className="italic font-extrabold" style={{fontSize: '1.1em'}}>Relay</span>
           </h1>

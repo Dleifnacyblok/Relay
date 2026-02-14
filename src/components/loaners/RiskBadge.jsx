@@ -3,33 +3,36 @@ import { cn } from "@/lib/utils";
 export default function RiskBadge({ riskStatus }) {
   const config = {
     Overdue: {
-      bg: "bg-red-950/70",
-      text: "text-red-400",
-      border: "border-red-500/50",
-      dot: "bg-red-500"
+      bg: "#FDECEC",
+      text: "#991B1B",
+      dot: "#DC2626"
     },
     "Due Soon": {
-      bg: "bg-amber-950/70",
-      text: "text-amber-400",
-      border: "border-amber-500/50",
-      dot: "bg-amber-500"
+      bg: "#FFF4E5",
+      text: "#92400E",
+      dot: "#D97706"
     },
     Safe: {
-      bg: "bg-emerald-950/70",
-      text: "text-emerald-400",
-      border: "border-emerald-500/50",
-      dot: "bg-emerald-500"
+      bg: "#ECFDF5",
+      text: "#065F46",
+      dot: "#059669"
     }
   };
 
   const style = config[riskStatus] || config.Safe;
 
   return (
-    <span className={cn(
-      "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border",
-      style.bg, style.text, style.border
-    )}>
-      <span className={cn("w-1.5 h-1.5 rounded-full", style.dot)} />
+    <span 
+      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold"
+      style={{
+        backgroundColor: style.bg,
+        color: style.text
+      }}
+    >
+      <span 
+        className="w-1.5 h-1.5 rounded-full" 
+        style={{backgroundColor: style.dot}}
+      />
       {riskStatus}
     </span>
   );
