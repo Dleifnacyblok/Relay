@@ -24,8 +24,8 @@ export default function StatCard({ title, value, icon: Icon, variant = "default"
 
   const valueStyles = {
     default: {color: '#000000'},
-    danger: {color: '#DC2626', textShadow: '0 0 10px rgba(220, 38, 38, 0.2)'},
-    warning: {color: '#D97706', textShadow: '0 0 10px rgba(217, 119, 6, 0.2)'},
+    danger: {color: '#DC2626', textShadow: '0 0 20px rgba(220, 38, 38, 0.15), 0 0 40px rgba(220, 38, 38, 0.08)'},
+    warning: {color: '#D97706', textShadow: '0 0 20px rgba(217, 119, 6, 0.15), 0 0 40px rgba(217, 119, 6, 0.08)'},
     success: {color: '#059669'}
   };
 
@@ -36,8 +36,9 @@ export default function StatCard({ title, value, icon: Icon, variant = "default"
         variants[variant]
       )}
       style={{
-        border: '1px solid #E5E5E5',
-        boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.05)'
+        backgroundColor: '#FFFFFF',
+        border: '1px solid #EEEEEE',
+        boxShadow: '0px 6px 18px rgba(0, 0, 0, 0.06)'
       }}
     >
       <div className="flex items-start justify-between">
