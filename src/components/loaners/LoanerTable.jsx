@@ -44,7 +44,7 @@ export default function LoanerTable({ loaners, compact = false }) {
             <div className="flex items-start justify-between mb-3">
               <div className="flex-1 min-w-0">
                 <h3 className="font-semibold text-white truncate">{loaner.set_name}</h3>
-                <p className="text-xs text-slate-500">{loaner.set_id}</p>
+                <p className="text-xs text-slate-500">{loaner.etch_id || loaner.set_id}</p>
               </div>
               <RiskBadge riskStatus={loaner.risk_status} />
             </div>
@@ -99,7 +99,7 @@ export default function LoanerTable({ loaners, compact = false }) {
                     className="hover:text-white"
                   >
                     <div className="font-medium text-white">{loaner.set_name}</div>
-                    <div className="text-xs text-slate-500">{loaner.set_id}</div>
+                    <div className="text-xs text-slate-500">{loaner.etch_id || loaner.set_id}</div>
                   </Link>
                 </TableCell>
                 <TableCell className="text-slate-300">{loaner.account_name || "—"}</TableCell>
