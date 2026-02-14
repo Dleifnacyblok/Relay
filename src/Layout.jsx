@@ -43,22 +43,23 @@ export default function Layout({ children }) {
   };
 
   return (
-    <div className="min-h-screen bg-[#0B0D12]">
+    <div className="min-h-screen bg-white">
       {/* Desktop Sidebar */}
       <aside className="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-64 lg:flex-col">
-        <div className="flex flex-col flex-grow bg-[#121621] border-r border-slate-800/50">
+        <div className="flex flex-col flex-grow bg-white border-r border-gray-200">
           {/* Logo */}
-          <div className="flex items-center gap-4 px-6 py-6 border-b border-slate-800/50">
+          <div className="flex items-center gap-4 px-6 py-6 border-b border-gray-200">
             <img 
               src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/698fe9d012ce3a450807fc7e/9d5cf87f9_IMG_3258.jpg" 
               alt="Relay Logo" 
-              className="w-16 h-16 object-contain bg-white rounded-lg p-1"
+              className="w-16 h-16 object-contain"
+              style={{filter: 'drop-shadow(0 0 15px rgba(79, 140, 255, 0.25)) drop-shadow(0 0 30px rgba(157, 78, 221, 0.15))'}}
             />
             <div>
-              <h1 className="text-lg font-bold tracking-tight text-white" style={{textShadow: '0 0 25px rgba(79, 140, 255, 0.6), 0 0 35px rgba(157, 78, 221, 0.4)'}}>
+              <h1 className="text-lg font-bold tracking-tight text-black">
                 Relay
               </h1>
-              <p className="text-xs text-slate-400">Loaner Manager</p>
+              <p className="text-xs text-gray-600">Loaner Manager</p>
             </div>
           </div>
 
@@ -74,11 +75,11 @@ export default function Layout({ children }) {
                   className={cn(
                     "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all",
                     active 
-                      ? "bg-gradient-to-r from-[#4F8CFF]/20 to-[#9D4EDD]/20 text-white border border-[#4F8CFF]/30" 
-                      : "text-slate-400 hover:bg-slate-800/50 hover:text-white"
+                      ? "bg-blue-50 text-black border border-blue-200" 
+                      : "text-gray-600 hover:bg-gray-50 hover:text-black"
                   )}
                   >
-                  <Icon className={cn("w-5 h-5", active ? "text-[#4F8CFF]" : "text-slate-500")} />
+                  <Icon className={cn("w-5 h-5", active ? "text-blue-600" : "text-gray-500")} />
                   {item.name}
                 </Link>
               );
@@ -86,23 +87,23 @@ export default function Layout({ children }) {
           </nav>
 
           {/* User Section */}
-          <div className="p-4 border-t border-slate-800/50">
+          <div className="p-4 border-t border-gray-200">
             <div className="flex items-center gap-3 px-2 py-2">
-              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#4F8CFF] to-[#9D4EDD] flex items-center justify-center">
+              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center">
                 <span className="text-sm font-medium text-white">
                   {user?.full_name?.charAt(0) || "U"}
                 </span>
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-white truncate">
+                <p className="text-sm font-medium text-black truncate">
                   {user?.full_name || "User"}
                 </p>
-                <p className="text-xs text-slate-400 capitalize">{user?.role || "Rep"}</p>
+                <p className="text-xs text-gray-600 capitalize">{user?.role || "Rep"}</p>
               </div>
               <Button 
                 variant="ghost" 
                 size="icon"
-                className="text-slate-400 hover:text-white hover:bg-slate-800"
+                className="text-gray-600 hover:text-black hover:bg-gray-100"
                 onClick={handleLogout}
               >
                 <LogOut className="w-4 h-4" />
@@ -113,20 +114,20 @@ export default function Layout({ children }) {
       </aside>
 
       {/* Mobile Header */}
-      <div className="lg:hidden sticky top-0 z-40 bg-[#121621] border-b border-slate-800/50">
+      <div className="lg:hidden sticky top-0 z-40 bg-white border-b border-gray-200">
         <div className="relative flex items-center justify-center px-4 py-6">
           <div className="flex items-center justify-center">
             <img 
               src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/698fe9d012ce3a450807fc7e/9d5cf87f9_IMG_3258.jpg" 
               alt="Relay Logo" 
               className="h-20 w-auto object-contain"
-              style={{filter: 'drop-shadow(0 0 20px rgba(79, 140, 255, 0.3)) drop-shadow(0 0 40px rgba(157, 78, 221, 0.2))'}}
+              style={{filter: 'drop-shadow(0 0 15px rgba(79, 140, 255, 0.25)) drop-shadow(0 0 30px rgba(157, 78, 221, 0.15))'}}
             />
           </div>
           <Button
             variant="ghost"
             size="icon"
-            className="absolute right-4 text-white hover:bg-slate-800"
+            className="absolute right-4 text-black hover:bg-gray-100"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           >
             {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -135,7 +136,7 @@ export default function Layout({ children }) {
 
         {/* Mobile Menu */}
         {mobileMenuOpen && (
-          <div className="absolute top-full left-0 right-0 bg-[#121621] border-b border-slate-800/50 shadow-lg">
+          <div className="absolute top-full left-0 right-0 bg-white border-b border-gray-200 shadow-lg">
             <nav className="p-3 space-y-1">
               {navigation.map((item) => {
                 const Icon = item.icon;
@@ -148,20 +149,20 @@ export default function Layout({ children }) {
                     className={cn(
                       "flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium",
                       active 
-                        ? "bg-gradient-to-r from-[#4F8CFF]/20 to-[#9D4EDD]/20 text-white border border-[#4F8CFF]/30" 
-                        : "text-slate-400"
+                        ? "bg-blue-50 text-black border border-blue-200" 
+                        : "text-gray-600"
                     )}
                   >
-                    <Icon className={cn("w-5 h-5", active ? "text-[#4F8CFF]" : "text-slate-500")} />
+                    <Icon className={cn("w-5 h-5", active ? "text-blue-600" : "text-gray-500")} />
                     {item.name}
                   </Link>
                 );
               })}
             </nav>
-            <div className="p-3 border-t border-slate-800/50">
+            <div className="p-3 border-t border-gray-200">
               <Button 
                 variant="ghost" 
-                className="w-full justify-start text-slate-400 hover:text-white hover:bg-slate-800"
+                className="w-full justify-start text-gray-600 hover:text-black hover:bg-gray-100"
                 onClick={handleLogout}
               >
                 <LogOut className="w-4 h-4 mr-3" />

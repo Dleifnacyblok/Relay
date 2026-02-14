@@ -2,51 +2,43 @@ import { cn } from "@/lib/utils";
 
 export default function StatCard({ title, value, icon: Icon, variant = "default", subtitle }) {
   const variants = {
-    default: "bg-[#121621] border-[#4F8CFF]/20",
-    danger: "bg-[#121621] border-red-500/30",
-    warning: "bg-[#121621] border-amber-500/30",
-    success: "bg-[#121621] border-emerald-500/30"
+    default: "bg-white border-gray-200",
+    danger: "bg-white border-red-200",
+    warning: "bg-white border-amber-200",
+    success: "bg-white border-emerald-200"
   };
 
   const iconVariants = {
-    default: "bg-gradient-to-br from-[#4F8CFF]/20 to-[#9D4EDD]/20 text-[#4F8CFF]",
-    danger: "bg-red-950/50 text-red-500",
-    warning: "bg-amber-950/50 text-amber-500",
-    success: "bg-emerald-950/50 text-emerald-500"
+    default: "bg-blue-50 text-blue-600",
+    danger: "bg-red-50 text-red-600",
+    warning: "bg-amber-50 text-amber-600",
+    success: "bg-emerald-50 text-emerald-600"
   };
 
   const valueVariants = {
-    default: "text-white",
-    danger: "text-red-400",
-    warning: "text-amber-400",
-    success: "text-emerald-400"
+    default: "text-black",
+    danger: "text-red-600",
+    warning: "text-amber-600",
+    success: "text-emerald-600"
   };
 
   const glowStyles = {
     default: {},
-    danger: {textShadow: '0 0 20px rgba(239, 68, 68, 0.5), 0 0 40px rgba(239, 68, 68, 0.2)'},
-    warning: {textShadow: '0 0 20px rgba(245, 158, 11, 0.5), 0 0 40px rgba(245, 158, 11, 0.2)'},
+    danger: {textShadow: '0 0 15px rgba(220, 38, 38, 0.3), 0 0 30px rgba(220, 38, 38, 0.15)'},
+    warning: {textShadow: '0 0 15px rgba(217, 119, 6, 0.3), 0 0 30px rgba(217, 119, 6, 0.15)'},
     success: {}
-  };
-
-  const cardGlowStyles = {
-    default: {boxShadow: '0 0 30px rgba(79, 140, 255, 0.1)'},
-    danger: {boxShadow: '0 0 30px rgba(239, 68, 68, 0.15)'},
-    warning: {boxShadow: '0 0 30px rgba(245, 158, 11, 0.15)'},
-    success: {boxShadow: '0 0 30px rgba(16, 185, 129, 0.1)'}
   };
 
   return (
     <div 
       className={cn(
-        "rounded-xl border p-5 transition-all",
+        "rounded-xl border p-5 transition-all shadow-sm",
         variants[variant]
       )}
-      style={cardGlowStyles[variant]}
     >
       <div className="flex items-start justify-between">
         <div>
-          <p className="text-sm font-medium text-slate-400">{title}</p>
+          <p className="text-sm font-medium text-gray-600">{title}</p>
           <p 
             className={cn("text-3xl font-bold mt-1 tracking-tight", valueVariants[variant])}
             style={glowStyles[variant]}
@@ -54,7 +46,7 @@ export default function StatCard({ title, value, icon: Icon, variant = "default"
             {value}
           </p>
           {subtitle && (
-            <p className="text-xs text-slate-500 mt-1">{subtitle}</p>
+            <p className="text-xs text-gray-500 mt-1">{subtitle}</p>
           )}
         </div>
         {Icon && (

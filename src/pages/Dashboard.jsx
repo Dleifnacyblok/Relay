@@ -42,14 +42,14 @@ export default function Dashboard() {
   const riskLoaners = [...myLoaners, ...otherLoaners];
 
   return (
-    <div className="min-h-screen bg-[#0B0D12]">
+    <div className="min-h-screen bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         {/* Header */}
         <div className="mb-8 text-center">
-          <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
-            ESC - <span className="italic" style={{textShadow: '0 0 25px rgba(79, 140, 255, 0.6), 0 0 35px rgba(157, 78, 221, 0.4)', fontSize: '1.1em'}}>Relay</span>
+          <h1 className="text-2xl sm:text-3xl font-bold text-black tracking-tight">
+            ESC - <span className="italic" style={{fontSize: '1.1em'}}>Relay</span>
           </h1>
-          <p className="text-slate-400 mt-1 italic">
+          <p className="text-gray-600 mt-1 italic">
             Real time loaner movement and risk tracking
           </p>
         </div>
@@ -95,10 +95,10 @@ export default function Dashboard() {
         )}
 
         {/* Risk Board */}
-        <div className="bg-[#121621] rounded-xl border border-[#4F8CFF]/20 shadow-xl overflow-hidden" style={{boxShadow: '0 0 40px rgba(79, 140, 255, 0.1)'}}>
-          <div className="px-5 py-4 border-b border-slate-800/50">
-            <h2 className="text-lg font-semibold text-white">All Loaners</h2>
-            <p className="text-sm text-slate-400">
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+          <div className="px-5 py-4 border-b border-gray-200">
+            <h2 className="text-lg font-semibold text-black">All Loaners</h2>
+            <p className="text-sm text-gray-600">
               Complete loaner inventory - {computedLoaners.length} total records
             </p>
           </div>
@@ -106,16 +106,16 @@ export default function Dashboard() {
           {isLoading ? (
             <div className="p-6 space-y-4">
               {[1, 2, 3].map(i => (
-                <Skeleton key={i} className="h-16 rounded-lg bg-slate-800" />
+                <Skeleton key={i} className="h-16 rounded-lg bg-gray-100" />
               ))}
             </div>
           ) : riskLoaners.length === 0 ? (
             <div className="p-12 text-center">
-              <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-emerald-500/10 flex items-center justify-center">
-                <Package className="w-6 h-6 text-emerald-500" />
+              <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-emerald-100 flex items-center justify-center">
+                <Package className="w-6 h-6 text-emerald-600" />
               </div>
-              <p className="text-white font-medium">All clear!</p>
-              <p className="text-sm text-slate-400 mt-1">No overdue or at-risk loaners</p>
+              <p className="text-black font-medium">All clear!</p>
+              <p className="text-sm text-gray-600 mt-1">No overdue or at-risk loaners</p>
             </div>
           ) : (
             <LoanerTable loaners={riskLoaners} />

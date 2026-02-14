@@ -25,7 +25,7 @@ export default function LoanerTable({ loaners, compact = false }) {
 
   if (loaners.length === 0) {
     return (
-      <div className="text-center py-12 text-slate-400">
+      <div className="text-center py-12 text-gray-500">
         <p className="text-sm">No loaners found</p>
       </div>
     );
@@ -39,32 +39,32 @@ export default function LoanerTable({ loaners, compact = false }) {
           <Link
             key={loaner.id}
             to={createPageUrl("LoanerDetail") + `?id=${loaner.id}`}
-            className="block bg-[#121621] border border-slate-800/50 rounded-xl p-4 hover:border-[#4F8CFF]/40 transition-all"
+            className="block bg-white border border-gray-200 rounded-xl p-4 hover:border-blue-300 transition-all shadow-sm"
           >
             <div className="flex items-start justify-between mb-3">
               <div className="flex-1 min-w-0">
-                <h3 className="font-semibold text-white truncate">{loaner.set_name}</h3>
-                <p className="text-xs text-slate-500">Etch ID: {loaner.etch_id || "(missing)"}</p>
+                <h3 className="font-semibold text-black truncate">{loaner.set_name}</h3>
+                <p className="text-xs text-gray-500">Etch ID: {loaner.etch_id || "(missing)"}</p>
               </div>
               <RiskBadge riskStatus={loaner.risk_status} />
             </div>
             <div className="grid grid-cols-2 gap-2 text-sm">
               <div>
-                <span className="text-slate-500">Account:</span>
-                <p className="font-medium text-slate-300 truncate">{loaner.account_name || "—"}</p>
+                <span className="text-gray-500">Account:</span>
+                <p className="font-medium text-gray-900 truncate">{loaner.account_name || "—"}</p>
               </div>
               <div>
-                <span className="text-slate-500">Due:</span>
-                <p className="font-medium text-slate-300">{formatDate(loaner.expected_return_date)}</p>
+                <span className="text-gray-500">Due:</span>
+                <p className="font-medium text-gray-900">{formatDate(loaner.expected_return_date)}</p>
               </div>
               <div>
-                <span className="text-slate-500">Rep:</span>
-                <p className="font-medium text-slate-300 truncate">{loaner.associate_rep || loaner.primary_rep || "—"}</p>
+                <span className="text-gray-500">Rep:</span>
+                <p className="font-medium text-gray-900 truncate">{loaner.associate_rep || loaner.primary_rep || "—"}</p>
               </div>
               {loaner.fine_exposure > 0 && (
                 <div>
-                  <span className="text-slate-500">Fine:</span>
-                  <p className="font-semibold text-red-400">{formatCurrency(loaner.fine_exposure)}</p>
+                  <span className="text-gray-500">Fine:</span>
+                  <p className="font-semibold text-red-600">{formatCurrency(loaner.fine_exposure)}</p>
                 </div>
               )}
             </div>
@@ -76,14 +76,14 @@ export default function LoanerTable({ loaners, compact = false }) {
       <div className="hidden md:block">
         <Table>
           <TableHeader>
-            <TableRow className="border-slate-800/50 hover:bg-transparent">
-              <TableHead className="font-semibold text-slate-400">Set</TableHead>
-              <TableHead className="font-semibold text-slate-400">Account</TableHead>
-              {!compact && <TableHead className="font-semibold text-slate-400">Reps</TableHead>}
-              <TableHead className="font-semibold text-slate-400">Status</TableHead>
-              <TableHead className="font-semibold text-slate-400">Expected Return</TableHead>
-              <TableHead className="font-semibold text-slate-400">Risk</TableHead>
-              <TableHead className="font-semibold text-slate-400 text-right">Fine</TableHead>
+            <TableRow className="border-gray-200 hover:bg-transparent">
+              <TableHead className="font-semibold text-gray-600">Set</TableHead>
+              <TableHead className="font-semibold text-gray-600">Account</TableHead>
+              {!compact && <TableHead className="font-semibold text-gray-600">Reps</TableHead>}
+              <TableHead className="font-semibold text-gray-600">Status</TableHead>
+              <TableHead className="font-semibold text-gray-600">Expected Return</TableHead>
+              <TableHead className="font-semibold text-gray-600">Risk</TableHead>
+              <TableHead className="font-semibold text-gray-600 text-right">Fine</TableHead>
               <TableHead className="w-10"></TableHead>
             </TableRow>
           </TableHeader>
@@ -91,48 +91,48 @@ export default function LoanerTable({ loaners, compact = false }) {
             {loaners.map((loaner) => (
               <TableRow 
                 key={loaner.id} 
-                className="border-slate-800/50 hover:bg-[#4F8CFF]/5 transition-colors cursor-pointer"
+                className="border-gray-200 hover:bg-gray-50 transition-colors cursor-pointer"
               >
                 <TableCell>
                   <Link 
                     to={createPageUrl("LoanerDetail") + `?id=${loaner.id}`}
-                    className="hover:text-white"
+                    className="hover:text-black"
                   >
-                    <div className="font-medium text-white">{loaner.set_name}</div>
-                    <div className="text-xs text-slate-500">Etch ID: {loaner.etch_id || "(missing)"}</div>
+                    <div className="font-medium text-black">{loaner.set_name}</div>
+                    <div className="text-xs text-gray-500">Etch ID: {loaner.etch_id || "(missing)"}</div>
                   </Link>
                 </TableCell>
-                <TableCell className="text-slate-300">{loaner.account_name || "—"}</TableCell>
+                <TableCell className="text-gray-900">{loaner.account_name || "—"}</TableCell>
                 {!compact && (
                   <TableCell>
-                    <div className="text-slate-300">{loaner.associate_rep || loaner.primary_rep || "—"}</div>
+                    <div className="text-gray-900">{loaner.associate_rep || loaner.primary_rep || "—"}</div>
                     {loaner.associate_rep && loaner.primary_rep && (
-                      <div className="text-xs text-slate-500">{loaner.primary_rep}</div>
+                      <div className="text-xs text-gray-500">{loaner.primary_rep}</div>
                     )}
                   </TableCell>
                 )}
                 <TableCell>
-                  <span className="px-2 py-1 bg-slate-800/50 text-slate-300 rounded text-xs font-medium border border-slate-700/50">
+                  <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs font-medium border border-gray-200">
                     {loaner.status || "—"}
                   </span>
                 </TableCell>
-                <TableCell className="text-slate-300">{formatDate(loaner.expected_return_date)}</TableCell>
+                <TableCell className="text-gray-900">{formatDate(loaner.expected_return_date)}</TableCell>
                 <TableCell>
                   <RiskBadge riskStatus={loaner.risk_status} />
                 </TableCell>
                 <TableCell className="text-right">
                   {loaner.fine_exposure > 0 ? (
-                    <span className="font-semibold text-red-400">
+                    <span className="font-semibold text-red-600">
                       {formatCurrency(loaner.fine_exposure)}
                     </span>
                   ) : (
-                    <span className="text-slate-600">—</span>
+                    <span className="text-gray-400">—</span>
                   )}
                 </TableCell>
                 <TableCell>
                   <Link 
                     to={createPageUrl("LoanerDetail") + `?id=${loaner.id}`}
-                    className="text-slate-500 hover:text-white"
+                    className="text-gray-400 hover:text-black"
                   >
                     <ChevronRight className="w-4 h-4" />
                   </Link>
