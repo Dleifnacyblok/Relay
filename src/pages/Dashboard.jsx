@@ -47,11 +47,11 @@ export default function Dashboard() {
     <div className="min-h-screen bg-[#0B0D12]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         {/* Header */}
-        <div className="mb-8">
+        <div className="mb-8 text-center">
           <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
-            ESC - <span style={{textShadow: '0 0 25px rgba(79, 140, 255, 0.6), 0 0 35px rgba(157, 78, 221, 0.4)'}}>Relay</span>
+            ESC - <span className="italic" style={{textShadow: '0 0 25px rgba(79, 140, 255, 0.6), 0 0 35px rgba(157, 78, 221, 0.4)', fontSize: '1.1em'}}>Relay</span>
           </h1>
-          <p className="text-slate-400 mt-1">
+          <p className="text-slate-400 mt-1 italic">
             Real time loaner movement and risk tracking
           </p>
         </div>
