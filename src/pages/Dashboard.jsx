@@ -47,10 +47,11 @@ export default function Dashboard() {
         {/* Header */}
         <div className="mb-8 text-center" style={{backgroundColor: '#FFFFFF'}}>
           <h1 
-            className="tracking-tight font-bold" 
+            className="font-bold" 
             style={{
               color: '#000000',
               fontSize: '42px',
+              letterSpacing: '-0.02em',
               textShadow: '0 0 40px rgba(59,130,246,0.30), 0 0 60px rgba(147,51,234,0.22)'
             }}
           >
