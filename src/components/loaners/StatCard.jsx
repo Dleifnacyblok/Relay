@@ -24,7 +24,7 @@ export default function StatCard({ title, value, icon: Icon, variant = "default"
 
   const valueStyles = {
     default: {color: '#000000'},
-    danger: {color: '#DC2626', textShadow: '0 0 20px rgba(220, 38, 38, 0.15), 0 0 40px rgba(220, 38, 38, 0.08)'},
+    danger: {color: '#DC2626', textShadow: '0 0 8px rgba(220,38,38,0.25)'},
     warning: {color: '#D97706', textShadow: '0 0 20px rgba(217, 119, 6, 0.15), 0 0 40px rgba(217, 119, 6, 0.08)'},
     success: {color: '#059669'}
   };
