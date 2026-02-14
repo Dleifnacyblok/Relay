@@ -8,53 +8,62 @@ const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 const validateRow = (row, rowIndex) => {
   const errors = [];
   
-  if (!row.set_name || String(row.set_name).trim() === '') {
+  if (!row["Set Name"] || String(row["Set Name"]).trim() === '') {
     errors.push('Missing Set Name');
   }
-  if (!row.etch_id || String(row.etch_id).trim() === '') {
-    errors.push('Missing Etch Id');
+  if (!row["Loaner Id"] || String(row["Loaner Id"]).trim() === '') {
+    errors.push('Missing Loaner Id');
+  }
+  if (!row["Account Name"] || String(row["Account Name"]).trim() === '') {
+    errors.push('Missing Account Name');
+  }
+  if (!row["Loaned Date"] || String(row["Loaned Date"]).trim() === '') {
+    errors.push('Missing Loaned Date');
   }
   
   return errors;
 };
 
-const parseExcelDate = (dateValue) => {
+const parseDate = (dateValue) => {
   if (!dateValue) return null;
-  
-  // If it's already a string in YYYY-MM-DD format, return it
-  if (typeof dateValue === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateValue)) {
-    return dateValue;
-  }
-  
-  // If it's a string, try to parse it
-  if (typeof dateValue === 'string') {
-    const date = new Date(dateValue);
-    if (!isNaN(date.getTime())) {
-      return date.toISOString().split('T')[0];
-    }
-  }
   
   // If it's a number (Excel serial date)
   if (typeof dateValue === 'number') {
-    // Excel date serial (days since 1900-01-01, with 1900 leap year bug)
     const excelEpoch = new Date(1900, 0, 1);
     const date = new Date(excelEpoch.getTime() + (dateValue - 2) * 24 * 60 * 60 * 1000);
-    return date.toISOString().split('T')[0];
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const year = date.getFullYear();
+    return `${month}/${day}/${year}`;
+  }
+  
+  // If it's a string, try to parse and reformat
+  if (typeof dateValue === 'string') {
+    const date = new Date(dateValue);
+    if (!isNaN(date.getTime())) {
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const year = date.getFullYear();
+      return `${month}/${day}/${year}`;
+    }
   }
   
   return null;
 };
 
-const cleanRow = (row) => {
+const transformRow = (row) => {
+  const status = String(row["Status"] || '').trim();
+  
   return {
-    set_name: String(row.set_name || '').trim(),
-    etch_id: String(row.etch_id || '').trim(),
-    primary_rep: String(row.primary_rep || '').trim() || null,
-    associate_rep: String(row.associate_rep || '').trim() || null,
-    account_name: String(row.account_name || '').trim() || null,
-    status: String(row.status || '').trim() || null,
-    loaned_date: parseExcelDate(row.loaned_date),
-    expected_return_date: parseExcelDate(row.expected_return_date)
+    set_name: String(row["Set Name"] || '').trim(),
+    loaner_id: String(row["Loaner Id"] || '').trim(),
+    etch_id: String(row["Etch Id"] || '').trim() || null,
+    account_name: String(row["Account Name"] || '').trim(),
+    associate_rep: String(row["Associate Sales Rep Name"] || '').trim() || null,
+    field_rep: String(row["Current Field Sales Name"] || '').trim() || null,
+    status: status === "Pending Return" ? "loaned" : status || null,
+    loaned_date: parseDate(row["Loaned Date"]),
+    expected_return_date: parseDate(row["Expected Return Date"]) || null
   };
 };
 
@@ -92,8 +101,8 @@ export default async function bulkImportLoaners(req, res) {
           });
         } else {
           try {
-            const cleanedRow = cleanRow(row);
-            validRows.push(cleanedRow);
+            const transformedRow = transformRow(row);
+            validRows.push(transformedRow);
             successRows.push(rowNumber);
           } catch (err) {
             failedRows.push({
