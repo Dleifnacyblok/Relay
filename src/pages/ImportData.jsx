@@ -371,8 +371,7 @@ export default function ImportData() {
             <Alert className="mt-4 border-green-200 bg-green-50">
               <CheckCircle className="h-4 w-4 text-green-600" />
               <AlertDescription className="text-green-800">
-                Successfully imported {importResult.count} records 
-                ({importResult.created} created, {importResult.updated} updated)
+                Successfully imported {importResult.count} records in batch {importResult.batchId?.slice(0, 8)}
               </AlertDescription>
             </Alert>
           )}
