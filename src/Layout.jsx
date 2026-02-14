@@ -49,12 +49,23 @@ export default function Layout({ children }) {
         <div className="flex flex-col flex-grow bg-white border-r border-gray-200">
           {/* Logo */}
           <div className="flex items-center gap-4 px-6 py-6 border-b border-gray-200">
-            <img 
-              src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/698fe9d012ce3a450807fc7e/9d5cf87f9_IMG_3258.jpg" 
-              alt="Relay Logo" 
-              className="w-16 h-16 object-contain"
-              style={{filter: 'drop-shadow(0 0 15px rgba(79, 140, 255, 0.25)) drop-shadow(0 0 30px rgba(157, 78, 221, 0.15))'}}
-            />
+            <div style={{
+              width: '110px',
+              height: '110px',
+              borderRadius: '18px',
+              padding: '12px',
+              boxShadow: '0 8px 24px rgba(0,0,0,0.08)',
+              backgroundColor: '#FFFFFF',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}>
+              <img 
+                src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/698fe9d012ce3a450807fc7e/9d5cf87f9_IMG_3258.jpg" 
+                alt="Relay Logo" 
+                className="w-full h-full object-contain"
+              />
+            </div>
             <div>
               <h1 className="text-lg font-bold tracking-tight text-black">
                 Relay
@@ -116,12 +127,21 @@ export default function Layout({ children }) {
       {/* Mobile Header */}
       <div className="lg:hidden sticky top-0 z-40 bg-white border-b border-gray-200">
         <div className="relative flex items-center justify-center px-4 py-6">
-          <div className="flex items-center justify-center">
+          <div style={{
+            width: '110px',
+            height: '110px',
+            borderRadius: '18px',
+            padding: '12px',
+            boxShadow: '0 8px 24px rgba(0,0,0,0.08)',
+            backgroundColor: '#FFFFFF',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}>
             <img 
               src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/698fe9d012ce3a450807fc7e/9d5cf87f9_IMG_3258.jpg" 
               alt="Relay Logo" 
-              className="h-20 w-auto object-contain"
-              style={{filter: 'drop-shadow(0 0 15px rgba(79, 140, 255, 0.25)) drop-shadow(0 0 30px rgba(157, 78, 221, 0.15))'}}
+              className="w-full h-full object-contain"
             />
           </div>
           <Button
