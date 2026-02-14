@@ -26,19 +26,14 @@ const stringifyRow = (row) => {
 };
 
 const validateRow = (row, rowIndex) => {
+  // Only check for required fields: set_name and account_name
   const errors = [];
   
   if (!row["Set Name"] || String(row["Set Name"]).trim() === '') {
     errors.push('Missing Set Name');
   }
-  if (!row["Loaner Id"] || String(row["Loaner Id"]).trim() === '') {
-    errors.push('Missing Loaner Id');
-  }
   if (!row["Account Name"] || String(row["Account Name"]).trim() === '') {
     errors.push('Missing Account Name');
-  }
-  if (!row["Loaned Date"] || String(row["Loaned Date"]).trim() === '') {
-    errors.push('Missing Loaned Date');
   }
   
   return errors;
@@ -72,18 +67,32 @@ const parseDate = (dateValue) => {
 };
 
 const transformRow = (row) => {
-  const status = String(row["Status"] || '').trim();
+  const getOptionalString = (value) => {
+    const str = String(value || '').trim();
+    return str === '' ? null : str;
+  };
+  
+  const getOptionalDate = (value) => {
+    if (!value || String(value).trim() === '') return null;
+    try {
+      return parseDate(value);
+    } catch {
+      return null;
+    }
+  };
+  
+  const status = getOptionalString(row["Status"]);
   
   return {
     set_name: String(row["Set Name"] || '').trim(),
-    loaner_id: String(row["Loaner Id"] || '').trim(),
-    etch_id: String(row["Etch Id"] || '').trim() || null,
+    loaner_id: getOptionalString(row["Loaner Id"]),
+    etch_id: getOptionalString(row["Etch Id"]),
     account_name: String(row["Account Name"] || '').trim(),
-    associate_rep: String(row["Associate Sales Rep Name"] || '').trim() || null,
-    field_rep: String(row["Current Field Sales Name"] || '').trim() || null,
-    status: status === "Pending Return" ? "loaned" : status || null,
-    loaned_date: parseDate(row["Loaned Date"]),
-    expected_return_date: parseDate(row["Expected Return Date"]) || null
+    associate_rep: getOptionalString(row["Associate Sales Rep Name"]),
+    field_rep: getOptionalString(row["Current Field Sales Name"]),
+    status: status === "Pending Return" ? "loaned" : status,
+    loaned_date: getOptionalDate(row["Loaned Date"]),
+    expected_return_date: getOptionalDate(row["Expected Return Date"])
   };
 };
 
