@@ -24,6 +24,8 @@ export default function ImportData() {
   const [isCleaning, setIsCleaning] = useState(false);
   const [cleanupResult, setCleanupResult] = useState(null);
   const [retryCountdown, setRetryCountdown] = useState(0);
+  const [uploadProgress, setUploadProgress] = useState(null);
+  const [failedRows, setFailedRows] = useState([]);
   
   const queryClient = useQueryClient();
 
@@ -67,12 +69,15 @@ export default function ImportData() {
     }
   };
 
+  const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
   const handleImport = async () => {
     if (!file || isUploading) return;
 
     setIsUploading(true);
     setError(null);
     setImportResult(null);
+    setFailedRows([]);
 
     try {
       // Upload file
@@ -111,35 +116,81 @@ export default function ImportData() {
         throw new Error("No valid data found in the file");
       }
 
-      // Call backend function for bulk upsert
-      const response = await fetch('/api/bulkImportLoaners', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ data: extractedData })
-      });
+      // Process in batches of 50
+      const BATCH_SIZE = 50;
+      const totalBatches = Math.ceil(extractedData.length / BATCH_SIZE);
+      let totalImported = 0;
+      const failures = [];
 
-      if (response.status === 429) {
-        const errorData = await response.json();
-        const retryAfter = errorData.retryAfter || 30;
-        setRetryCountdown(retryAfter);
-        throw new Error(`Rate limited. Please try again in ${retryAfter} seconds.`);
+      for (let i = 0; i < extractedData.length; i += BATCH_SIZE) {
+        const batchIndex = Math.floor(i / BATCH_SIZE);
+        setUploadProgress({
+          current: batchIndex,
+          total: totalBatches,
+          percent: Math.round((batchIndex / totalBatches) * 100)
+        });
+
+        const batch = extractedData.slice(i, i + BATCH_SIZE);
+
+        try {
+          const response = await fetch('/api/bulkImportLoaners', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ data: batch })
+          });
+
+          if (response.status === 429) {
+            const errorData = await response.json();
+            const retryAfter = errorData.retryAfter || 30;
+            setRetryCountdown(retryAfter);
+            throw new Error(`Rate limited. Please try again in ${retryAfter} seconds.`);
+          }
+
+          if (!response.ok) {
+            const errorData = await response.json();
+            // Track failed batch rows
+            batch.forEach((row, idx) => {
+              failures.push({
+                rowIndex: i + idx + 2, // +2 for header row and 0-indexing
+                data: row,
+                error: errorData.error || 'Failed to import'
+              });
+            });
+          } else {
+            const result = await response.json();
+            totalImported += result.recordCount || batch.length;
+          }
+        } catch (err) {
+          // If batch fails, track all rows in batch as failed
+          batch.forEach((row, idx) => {
+            failures.push({
+              rowIndex: i + idx + 2,
+              data: row,
+              error: err.message
+            });
+          });
+        }
+
+        // Delay between batches (100-200ms)
+        if (i + BATCH_SIZE < extractedData.length) {
+          await delay(150);
+        }
       }
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Bulk import failed');
+      setUploadProgress(null);
+      setFailedRows(failures);
+
+      if (failures.length === 0) {
+        setImportResult({
+          success: true,
+          count: totalImported
+        });
+        queryClient.invalidateQueries(["loaners"]);
+        queryClient.invalidateQueries(["appSetting"]);
+        setFile(null);
+      } else {
+        setError(`Completed with ${failures.length} failed rows. ${totalImported} rows imported successfully.`);
       }
-
-      const importResult = await response.json();
-      
-      setImportResult({
-        success: true,
-        count: importResult.recordCount
-      });
-
-      queryClient.invalidateQueries(["loaners"]);
-      queryClient.invalidateQueries(["appSetting"]);
-      setFile(null);
 
     } catch (err) {
       setError(err.message || "Failed to import data");
