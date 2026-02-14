@@ -114,19 +114,19 @@ export default function Layout({ children }) {
 
       {/* Mobile Header */}
       <div className="lg:hidden sticky top-0 z-40 bg-[#121621] border-b border-slate-800/50">
-        <div className="flex items-center justify-between px-4 py-4">
-          <div className="flex items-center gap-3">
+        <div className="relative flex items-center justify-center px-4 py-6">
+          <div className="flex items-center justify-center">
             <img 
               src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/698fe9d012ce3a450807fc7e/9d5cf87f9_IMG_3258.jpg" 
               alt="Relay Logo" 
-              className="w-10 h-10 object-contain bg-white rounded-lg p-1"
+              className="h-16 w-auto object-contain bg-white rounded-lg p-2"
+              style={{boxShadow: '0 0 30px rgba(79, 140, 255, 0.5), 0 0 50px rgba(157, 78, 221, 0.3)'}}
             />
-            <span className="font-bold text-white" style={{textShadow: '0 0 25px rgba(79, 140, 255, 0.6), 0 0 35px rgba(157, 78, 221, 0.4)'}}>Relay</span>
           </div>
           <Button
             variant="ghost"
             size="icon"
-            className="text-white hover:bg-slate-800"
+            className="absolute right-4 text-white hover:bg-slate-800"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           >
             {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
