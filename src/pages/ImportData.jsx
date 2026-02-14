@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
-import { Upload, FileSpreadsheet, AlertCircle, CheckCircle, Loader2, Trash2, Sparkles } from "lucide-react";
+import { Upload, FileSpreadsheet, AlertCircle, CheckCircle, Loader2, Trash2, Sparkles, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -23,6 +23,7 @@ export default function ImportData() {
   const [isClearing, setIsClearing] = useState(false);
   const [isCleaning, setIsCleaning] = useState(false);
   const [cleanupResult, setCleanupResult] = useState(null);
+  const [retryCountdown, setRetryCountdown] = useState(0);
   
   const queryClient = useQueryClient();
 
@@ -56,7 +57,7 @@ export default function ImportData() {
   };
 
   const handleImport = async () => {
-    if (!file) return;
+    if (!file || isUploading) return;
 
     setIsUploading(true);
     setError(null);
@@ -105,6 +106,13 @@ export default function ImportData() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ data: extractedData })
       });
+
+      if (response.status === 429) {
+        const errorData = await response.json();
+        const retryAfter = errorData.retryAfter || 30;
+        setRetryCountdown(retryAfter);
+        throw new Error(`Rate limited. Please try again in ${retryAfter} seconds.`);
+      }
 
       if (!response.ok) {
         const error = await response.json();
@@ -359,12 +367,19 @@ export default function ImportData() {
           </div>
 
           {/* Error Alert */}
-          {error && (
-            <Alert variant="destructive" className="mt-4">
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
+           {error && (
+             <Alert variant="destructive" className="mt-4">
+               <AlertCircle className="h-4 w-4" />
+               <AlertDescription>
+                 {error}
+                 {retryCountdown > 0 && (
+                   <div className="mt-2 text-sm font-medium">
+                     Try again in {retryCountdown}s
+                   </div>
+                 )}
+               </AlertDescription>
+             </Alert>
+           )}
 
           {/* Success Alert */}
           {importResult?.success && (
@@ -377,23 +392,29 @@ export default function ImportData() {
           )}
 
           {/* Import Button */}
-          <Button 
-            className="w-full mt-6 h-11"
-            onClick={handleImport}
-            disabled={!file || isUploading}
-          >
-            {isUploading ? (
-              <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Importing...
-              </>
-            ) : (
-              <>
-                <Upload className="w-4 h-4 mr-2" />
-                Import Data
-              </>
-            )}
-          </Button>
+           <Button 
+             className="w-full mt-6 h-11"
+             onClick={handleImport}
+             disabled={!file || isUploading || retryCountdown > 0}
+             title={retryCountdown > 0 ? `Try again in ${retryCountdown}s` : ''}
+           >
+             {isUploading ? (
+               <>
+                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                 Importing...
+               </>
+             ) : retryCountdown > 0 ? (
+               <>
+                 <Clock className="w-4 h-4 mr-2" />
+                 Retry in {retryCountdown}s
+               </>
+             ) : (
+               <>
+                 <Upload className="w-4 h-4 mr-2" />
+                 Import Data
+               </>
+             )}
+           </Button>
         </div>
 
         {/* Clear Confirmation Dialog */}

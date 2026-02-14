@@ -1,3 +1,27 @@
+const BATCH_SIZE = 50;
+const INITIAL_RETRY_DELAY = 1000;
+const MAX_RETRIES = 5;
+
+const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+const retryWithBackoff = async (fn, retries = MAX_RETRIES) => {
+  for (let i = 0; i < retries; i++) {
+    try {
+      return await fn();
+    } catch (error) {
+      if (i === retries - 1) throw error;
+      
+      // Check for rate limit or quota errors
+      const isRateLimit = error.message?.includes('rate') || error.message?.includes('quota');
+      if (!isRateLimit) throw error;
+      
+      const delayMs = INITIAL_RETRY_DELAY * Math.pow(2, i);
+      console.log(`Retry ${i + 1}/${retries} after ${delayMs}ms due to rate limit`);
+      await delay(delayMs);
+    }
+  }
+};
+
 export default async function bulkImportLoaners(req, res) {
   const { data } = req.body;
   
@@ -22,7 +46,6 @@ export default async function bulkImportLoaners(req, res) {
     
     // Prepare records for upsert
     const recordsToUpsert = data.map(record => {
-      // Compute loaner_key: lower(trim(etch_id))|lower(trim(set_name))|lower(trim(account_name))|YYYY-MM-DD
       const loanerKey = [
         (record.etch_id || '').trim().toLowerCase(),
         (record.set_name || '').trim().toLowerCase(),
@@ -39,7 +62,10 @@ export default async function bulkImportLoaners(req, res) {
     });
 
     // Fetch existing loaners to check for upserts
-    const existingLoaners = await base44.asServiceRole.entities.Loaners.list();
+    const existingLoaners = await retryWithBackoff(() =>
+      base44.asServiceRole.entities.Loaners.list()
+    );
+    
     const existingByKey = {};
     for (const loaner of existingLoaners) {
       if (loaner.loaner_key) {
@@ -59,34 +85,52 @@ export default async function bulkImportLoaners(req, res) {
       }
     }
 
-    // Bulk create
-    if (creates.length > 0) {
-      await base44.asServiceRole.entities.Loaners.bulkCreate(creates);
+    // Process creates in batches with retry
+    for (let i = 0; i < creates.length; i += BATCH_SIZE) {
+      const batch = creates.slice(i, i + BATCH_SIZE);
+      await retryWithBackoff(() =>
+        base44.asServiceRole.entities.Loaners.bulkCreate(batch)
+      );
+      // Add delay between batches
+      if (i + BATCH_SIZE < creates.length) {
+        await delay(500);
+      }
     }
 
-    // Bulk update
-    if (updates.length > 0) {
-      for (const { id, data: updateData } of updates) {
-        await base44.asServiceRole.entities.Loaners.update(id, updateData);
+    // Process updates in batches with retry
+    for (let i = 0; i < updates.length; i += BATCH_SIZE) {
+      const batch = updates.slice(i, i + BATCH_SIZE);
+      for (const { id, data: updateData } of batch) {
+        await retryWithBackoff(() =>
+          base44.asServiceRole.entities.Loaners.update(id, updateData)
+        );
+      }
+      // Add delay between batches
+      if (i + BATCH_SIZE < updates.length) {
+        await delay(500);
       }
     }
 
     // Update AppSetting with last import metadata
-    const appSettingList = await base44.asServiceRole.entities.AppSetting.filter(
-      { key: 'import_metadata' }
+    const appSettingList = await retryWithBackoff(() =>
+      base44.asServiceRole.entities.AppSetting.filter({ key: 'import_metadata' })
     );
 
     if (appSettingList.length > 0) {
-      await base44.asServiceRole.entities.AppSetting.update(appSettingList[0].id, {
-        last_imported_at: now,
-        last_import_batch_id: batchId
-      });
+      await retryWithBackoff(() =>
+        base44.asServiceRole.entities.AppSetting.update(appSettingList[0].id, {
+          last_imported_at: now,
+          last_import_batch_id: batchId
+        })
+      );
     } else {
-      await base44.asServiceRole.entities.AppSetting.create({
-        key: 'import_metadata',
-        last_imported_at: now,
-        last_import_batch_id: batchId
-      });
+      await retryWithBackoff(() =>
+        base44.asServiceRole.entities.AppSetting.create({
+          key: 'import_metadata',
+          last_imported_at: now,
+          last_import_batch_id: batchId
+        })
+      );
     }
 
     return res.json({
@@ -99,6 +143,10 @@ export default async function bulkImportLoaners(req, res) {
     });
   } catch (error) {
     console.error('Bulk import error:', error);
-    return res.status(500).json({ error: error.message });
+    const isRateLimit = error.message?.includes('rate') || error.message?.includes('quota');
+    return res.status(isRateLimit ? 429 : 500).json({ 
+      error: error.message,
+      retryAfter: isRateLimit ? 30 : undefined
+    });
   }
 }
