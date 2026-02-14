@@ -54,8 +54,8 @@ export default function Layout({ children }) {
               <Package className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h1 className="font-bold text-slate-900 tracking-tight">Territory Loaner</h1>
-              <p className="text-xs text-slate-500">Manager</p>
+              <h1 className="font-bold text-slate-900 tracking-tight">Relay</h1>
+              <p className="text-xs text-slate-500">Loaner Manager</p>
             </div>
           </div>
 
@@ -116,7 +116,7 @@ export default function Layout({ children }) {
             <div className="p-1.5 rounded-lg bg-indigo-600">
               <Package className="w-4 h-4 text-white" />
             </div>
-            <span className="font-bold text-slate-900">Loaner Manager</span>
+            <span className="font-bold text-slate-900">Relay</span>
           </div>
           <Button
             variant="ghost"
