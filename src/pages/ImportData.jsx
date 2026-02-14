@@ -99,39 +99,29 @@ export default function ImportData() {
         throw new Error("No valid data found in the file");
       }
 
-      // Upsert loaners based on composite key: etch_id + set_name
-      let createdCount = 0;
-      let updatedCount = 0;
-      
-      for (const record of extractedData) {
-        let existing = null;
-        
-        // Find by composite key: etch_id + set_name
-        if (record.etch_id && record.set_name) {
-          existing = existingLoaners.find(l => 
-            l.etch_id === record.etch_id && l.set_name === record.set_name
-          );
-        }
-        
-        if (existing) {
-          // Update existing record
-          await base44.entities.Loaners.update(existing.id, record);
-          updatedCount++;
-        } else {
-          // Create new record
-          await base44.entities.Loaners.create(record);
-          createdCount++;
-        }
+      // Call backend function for bulk upsert
+      const response = await fetch('/api/bulkImportLoaners', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ data: extractedData })
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Bulk import failed');
       }
+
+      const importResult = await response.json();
       
       setImportResult({
         success: true,
         count: extractedData.length,
-        created: createdCount,
-        updated: updatedCount
+        batchId: importResult.batchId,
+        importedAt: importResult.importedAt
       });
 
       queryClient.invalidateQueries(["loaners"]);
+      queryClient.invalidateQueries(["appSetting"]);
       setFile(null);
 
     } catch (err) {
