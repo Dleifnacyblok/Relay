@@ -63,7 +63,8 @@ export default function Layout({ children }) {
               <img 
                 src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/698fe9d012ce3a450807fc7e/9d5cf87f9_IMG_3258.jpg" 
                 alt="Relay Logo" 
-                className="w-full h-full object-contain"
+                className="object-contain"
+                style={{width: '85%', height: '85%'}}
               />
             </div>
             <div>
