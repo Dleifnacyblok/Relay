@@ -24,24 +24,22 @@ export default function Dashboard() {
   const dueSoonCount = computedLoaners.filter(l => l.risk_status === "Due Soon").length;
   const totalFineExposure = computedLoaners.reduce((sum, l) => sum + (l.fine_exposure || 0), 0);
   
-  // Filter to risk loaners and prioritize current user's loaners
-  const riskLoanersFiltered = computedLoaners.filter(l => l.risk_status === "Overdue" || l.risk_status === "Due Soon");
-  
-  const myRiskLoaners = sortLoanersByRisk(
-    riskLoanersFiltered.filter(l => 
+  // Show all loaners - no filters
+  const myLoaners = sortLoanersByRisk(
+    computedLoaners.filter(l => 
       l.primary_rep?.toLowerCase() === userName.toLowerCase() ||
       l.associate_rep?.toLowerCase() === userName.toLowerCase()
     )
   );
   
-  const otherRiskLoaners = sortLoanersByRisk(
-    riskLoanersFiltered.filter(l => 
+  const otherLoaners = sortLoanersByRisk(
+    computedLoaners.filter(l => 
       l.primary_rep?.toLowerCase() !== userName.toLowerCase() &&
       l.associate_rep?.toLowerCase() !== userName.toLowerCase()
     )
   );
   
-  const riskLoaners = [...myRiskLoaners, ...otherRiskLoaners];
+  const riskLoaners = [...myLoaners, ...otherLoaners];
 
   return (
     <div className="min-h-screen bg-[#0B0D12]">
@@ -99,9 +97,9 @@ export default function Dashboard() {
         {/* Risk Board */}
         <div className="bg-[#121621] rounded-xl border border-[#4F8CFF]/20 shadow-xl overflow-hidden" style={{boxShadow: '0 0 40px rgba(79, 140, 255, 0.1)'}}>
           <div className="px-5 py-4 border-b border-slate-800/50">
-            <h2 className="text-lg font-semibold text-white">Risk Board</h2>
+            <h2 className="text-lg font-semibold text-white">All Loaners</h2>
             <p className="text-sm text-slate-400">
-              Overdue and due-soon loaners requiring attention
+              Complete loaner inventory - {computedLoaners.length} total records
             </p>
           </div>
           
