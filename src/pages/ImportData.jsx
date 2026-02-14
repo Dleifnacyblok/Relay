@@ -426,6 +426,21 @@ export default function ImportData() {
             )}
           </div>
 
+          {/* Progress */}
+          {uploadProgress && (
+            <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+              <p className="text-sm font-medium text-blue-900 mb-2">
+                Uploading batch {uploadProgress.current + 1} of {uploadProgress.total}
+              </p>
+              <div className="w-full bg-blue-200 rounded-full h-2">
+                <div 
+                  className="bg-blue-600 h-2 rounded-full transition-all"
+                  style={{ width: `${uploadProgress.percent}%` }}
+                />
+              </div>
+            </div>
+          )}
+
           {/* Error Alert */}
            {error && (
              <Alert variant="destructive" className="mt-4">
@@ -439,6 +454,27 @@ export default function ImportData() {
                  )}
                </AlertDescription>
              </Alert>
+           )}
+
+           {/* Failed Rows */}
+           {failedRows.length > 0 && (
+             <div className="mt-4 p-4 bg-amber-50 rounded-lg border border-amber-200">
+               <p className="text-sm font-medium text-amber-900 mb-3">
+                 {failedRows.length} row{failedRows.length !== 1 ? 's' : ''} failed:
+               </p>
+               <div className="space-y-2 max-h-48 overflow-y-auto">
+                 {failedRows.slice(0, 10).map((row, idx) => (
+                   <div key={idx} className="text-xs text-amber-800">
+                     <span className="font-medium">Row {row.rowIndex}:</span> {row.data.set_name || '(unnamed)'} - {row.error}
+                   </div>
+                 ))}
+                 {failedRows.length > 10 && (
+                   <p className="text-xs text-amber-700 italic">
+                     ... and {failedRows.length - 10} more
+                   </p>
+                 )}
+               </div>
+             </div>
            )}
 
           {/* Success Alert */}
