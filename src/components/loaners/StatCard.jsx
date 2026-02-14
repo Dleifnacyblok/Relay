@@ -37,9 +37,9 @@ export default function StatCard({ title, value, icon: Icon, variant = "default"
       )}
       style={{
         backgroundColor: '#FFFFFF',
-        border: '1px solid #F5F5F5',
-        boxShadow: '0px 6px 20px rgba(0, 0, 0, 0.05)',
-        marginBottom: '24px'
+        border: '1px solid #F8F8F8',
+        boxShadow: '0px 4px 16px rgba(0, 0, 0, 0.04)',
+        marginBottom: '28px'
       }}
     >
       <div className="flex items-start justify-between">
