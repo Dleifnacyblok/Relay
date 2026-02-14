@@ -46,10 +46,10 @@ export default function Dashboard() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         {/* Header */}
         <div className="mb-8 text-center">
-          <h1 className="text-2xl sm:text-3xl font-bold text-black tracking-tight">
-            ESC - <span className="italic" style={{fontSize: '1.1em'}}>Relay</span>
+          <h1 className="text-2xl sm:text-3xl tracking-tight" style={{color: '#000000'}}>
+            <span className="font-bold">ESC -</span> <span className="italic font-extrabold" style={{fontSize: '1.1em'}}>Relay</span>
           </h1>
-          <p className="text-gray-600 mt-1 italic">
+          <p className="text-sm italic mt-0.5" style={{color: '#333333'}}>
             Real time loaner movement and risk tracking
           </p>
         </div>
@@ -97,8 +97,8 @@ export default function Dashboard() {
         {/* Risk Board */}
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
           <div className="px-5 py-4 border-b border-gray-200">
-            <h2 className="text-lg font-semibold text-black">All Loaners</h2>
-            <p className="text-sm text-gray-600">
+            <h2 className="text-lg font-semibold" style={{color: '#000000'}}>All Loaners</h2>
+            <p className="text-sm" style={{color: '#666666'}}>
               Complete loaner inventory - {computedLoaners.length} total records
             </p>
           </div>

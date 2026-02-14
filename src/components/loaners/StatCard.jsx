@@ -16,17 +16,17 @@ export default function StatCard({ title, value, icon: Icon, variant = "default"
   };
 
   const valueVariants = {
-    default: "text-black",
-    danger: "text-red-600",
-    warning: "text-amber-600",
-    success: "text-emerald-600"
+    default: "",
+    danger: "",
+    warning: "",
+    success: ""
   };
 
-  const glowStyles = {
-    default: {},
-    danger: {textShadow: '0 0 15px rgba(220, 38, 38, 0.3), 0 0 30px rgba(220, 38, 38, 0.15)'},
-    warning: {textShadow: '0 0 15px rgba(217, 119, 6, 0.3), 0 0 30px rgba(217, 119, 6, 0.15)'},
-    success: {}
+  const valueStyles = {
+    default: {color: '#000000'},
+    danger: {color: '#DC2626', textShadow: '0 0 12px rgba(220, 38, 38, 0.25)'},
+    warning: {color: '#D97706', textShadow: '0 0 12px rgba(217, 119, 6, 0.25)'},
+    success: {color: '#059669'}
   };
 
   return (
@@ -38,15 +38,15 @@ export default function StatCard({ title, value, icon: Icon, variant = "default"
     >
       <div className="flex items-start justify-between">
         <div>
-          <p className="text-sm font-medium text-gray-600">{title}</p>
+          <p className="text-sm font-medium" style={{color: '#333333'}}>{title}</p>
           <p 
-            className={cn("text-3xl font-bold mt-1 tracking-tight", valueVariants[variant])}
-            style={glowStyles[variant]}
+            className="text-3xl font-bold mt-1 tracking-tight"
+            style={valueStyles[variant]}
           >
             {value}
           </p>
           {subtitle && (
-            <p className="text-xs text-gray-500 mt-1">{subtitle}</p>
+            <p className="text-xs mt-1" style={{color: '#666666'}}>{subtitle}</p>
           )}
         </div>
         {Icon && (
