@@ -1,25 +1,47 @@
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
-import { AlertTriangle, Clock, DollarSign, Package } from "lucide-react";
+import { AlertTriangle, Clock, DollarSign, Package, User } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import StatCard from "@/components/loaners/StatCard";
 import LoanerTable from "@/components/loaners/LoanerTable";
 import { computeLoanerFields, sortLoanersByRisk, formatCurrency } from "@/components/loaners/loanerUtils";
 
 export default function Dashboard() {
+  const { data: user } = useQuery({
+    queryKey: ["currentUser"],
+    queryFn: () => base44.auth.me(),
+  });
+
   const { data: loaners = [], isLoading } = useQuery({
     queryKey: ["loaners"],
     queryFn: () => base44.entities.Loaners.list(),
   });
+
+  const userName = user?.full_name || "";
 
   const computedLoaners = loaners.map(computeLoanerFields);
   const overdueCount = computedLoaners.filter(l => l.risk_status === "Overdue").length;
   const dueSoonCount = computedLoaners.filter(l => l.risk_status === "Due Soon").length;
   const totalFineExposure = computedLoaners.reduce((sum, l) => sum + (l.fine_exposure || 0), 0);
   
-  const riskLoaners = sortLoanersByRisk(
-    computedLoaners.filter(l => l.risk_status === "Overdue" || l.risk_status === "Due Soon")
+  // Filter to risk loaners and prioritize current user's loaners
+  const riskLoanersFiltered = computedLoaners.filter(l => l.risk_status === "Overdue" || l.risk_status === "Due Soon");
+  
+  const myRiskLoaners = sortLoanersByRisk(
+    riskLoanersFiltered.filter(l => 
+      l.primary_rep?.toLowerCase() === userName.toLowerCase() ||
+      l.associate_rep?.toLowerCase() === userName.toLowerCase()
+    )
   );
+  
+  const otherRiskLoaners = sortLoanersByRisk(
+    riskLoanersFiltered.filter(l => 
+      l.primary_rep?.toLowerCase() !== userName.toLowerCase() &&
+      l.associate_rep?.toLowerCase() !== userName.toLowerCase()
+    )
+  );
+  
+  const riskLoaners = [...myRiskLoaners, ...otherRiskLoaners];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">

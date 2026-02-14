@@ -79,8 +79,7 @@ export default function LoanerTable({ loaners, compact = false }) {
             <TableRow className="bg-slate-50/80">
               <TableHead className="font-semibold">Set</TableHead>
               <TableHead className="font-semibold">Account</TableHead>
-              {!compact && <TableHead className="font-semibold">Primary Rep</TableHead>}
-              {!compact && <TableHead className="font-semibold">Associate</TableHead>}
+              {!compact && <TableHead className="font-semibold">Reps</TableHead>}
               <TableHead className="font-semibold">Status</TableHead>
               <TableHead className="font-semibold">Expected Return</TableHead>
               <TableHead className="font-semibold">Risk</TableHead>
@@ -104,8 +103,14 @@ export default function LoanerTable({ loaners, compact = false }) {
                   </Link>
                 </TableCell>
                 <TableCell className="text-slate-700">{loaner.account_name || "—"}</TableCell>
-                {!compact && <TableCell className="text-slate-700">{loaner.primary_rep || "—"}</TableCell>}
-                {!compact && <TableCell className="text-slate-600">{loaner.associate_rep_display}</TableCell>}
+                {!compact && (
+                  <TableCell>
+                    <div className="text-slate-700">{loaner.primary_rep || "—"}</div>
+                    {loaner.associate_rep && (
+                      <div className="text-xs text-slate-500">{loaner.associate_rep_display}</div>
+                    )}
+                  </TableCell>
+                )}
                 <TableCell>
                   <span className="px-2 py-1 bg-slate-100 text-slate-700 rounded text-xs font-medium">
                     {loaner.status || "—"}
