@@ -1,5 +1,3 @@
-const { v4: uuidv4 } = require('uuid');
-
 export default async function bulkImportLoaners(req, res) {
   const { data } = req.body;
   
@@ -8,7 +6,7 @@ export default async function bulkImportLoaners(req, res) {
   }
 
   try {
-    const batchId = uuidv4();
+    const batchId = Date.now().toString(36) + Math.random().toString(36).substr(2);
     const now = new Date().toISOString();
     
     // Prepare records for upsert
@@ -28,25 +26,50 @@ export default async function bulkImportLoaners(req, res) {
       };
     });
 
-    // Bulk upsert using deterministic unique key
-    const upsertResult = await base44.asServiceRole.entities.Loaners.bulkUpsert(
-      recordsToUpsert,
-      'unique_key'
-    );
+    // Fetch existing loaners to check for upserts
+    const existingLoaners = await base44.asServiceRole.entities.Loaners.list();
+    const existingByKey = {};
+    for (const loaner of existingLoaners) {
+      if (loaner.unique_key) {
+        existingByKey[loaner.unique_key] = loaner;
+      }
+    }
+
+    // Separate creates and updates
+    const creates = [];
+    const updates = [];
+    
+    for (const record of recordsToUpsert) {
+      if (existingByKey[record.unique_key]) {
+        updates.push({ id: existingByKey[record.unique_key].id, data: record });
+      } else {
+        creates.push(record);
+      }
+    }
+
+    // Bulk create
+    if (creates.length > 0) {
+      await base44.asServiceRole.entities.Loaners.bulkCreate(creates);
+    }
+
+    // Bulk update
+    if (updates.length > 0) {
+      for (const { id, data: updateData } of updates) {
+        await base44.asServiceRole.entities.Loaners.update(id, updateData);
+      }
+    }
 
     // Update AppSetting with last import metadata
-    const appSetting = await base44.asServiceRole.entities.AppSetting.filter(
+    const appSettingList = await base44.asServiceRole.entities.AppSetting.filter(
       { key: 'import_metadata' }
     );
 
-    if (appSetting.length > 0) {
-      // Update existing
-      await base44.asServiceRole.entities.AppSetting.update(appSetting[0].id, {
+    if (appSettingList.length > 0) {
+      await base44.asServiceRole.entities.AppSetting.update(appSettingList[0].id, {
         last_imported_at: now,
         last_import_batch_id: batchId
       });
     } else {
-      // Create new
       await base44.asServiceRole.entities.AppSetting.create({
         key: 'import_metadata',
         last_imported_at: now,
@@ -59,7 +82,8 @@ export default async function bulkImportLoaners(req, res) {
       batchId,
       importedAt: now,
       recordCount: recordsToUpsert.length,
-      result: upsertResult
+      created: creates.length,
+      updated: updates.length
     });
   } catch (error) {
     console.error('Bulk import error:', error);
