@@ -95,7 +95,7 @@ export default function Dashboard() {
         )}
 
         {/* Risk Board */}
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden" style={{marginBottom: '20px'}}>
           <div className="px-5 py-4 border-b border-gray-200" style={{backgroundColor: '#FFFFFF'}}>
             <h2 className="text-lg font-semibold" style={{color: '#111111'}}>All Loaners</h2>
             <p className="text-sm" style={{color: '#666666'}}>
