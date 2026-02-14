@@ -52,9 +52,9 @@ export default function Layout({ children }) {
             <div style={{
               width: '100px',
               height: '100px',
-              borderRadius: '14px',
-              padding: '4px',
-              boxShadow: '0 4px 16px rgba(0,0,0,0.10)',
+              borderRadius: '12px',
+              padding: '2px',
+              boxShadow: '0 3px 12px rgba(0,0,0,0.10)',
               backgroundColor: '#FFFFFF',
               display: 'flex',
               alignItems: 'center',
@@ -67,11 +67,11 @@ export default function Layout({ children }) {
                 style={{width: '100%', height: '100%'}}
               />
             </div>
-            <div>
-              <h1 className="text-lg font-semibold text-black" style={{letterSpacing: '-0.02em'}}>
+            <div style={{marginTop: '-2px'}}>
+              <h1 className="text-lg font-semibold text-black" style={{letterSpacing: '-0.03em'}}>
                 Relay
               </h1>
-              <p className="text-xs text-gray-600">Loaner Manager</p>
+              <p className="text-xs text-gray-600" style={{marginTop: '-1px'}}>Loaner Manager</p>
             </div>
           </div>
 
@@ -131,9 +131,9 @@ export default function Layout({ children }) {
           <div style={{
             width: '100px',
             height: '100px',
-            borderRadius: '14px',
-            padding: '4px',
-            boxShadow: '0 4px 16px rgba(0,0,0,0.10)',
+            borderRadius: '12px',
+            padding: '2px',
+            boxShadow: '0 3px 12px rgba(0,0,0,0.10)',
             backgroundColor: '#FFFFFF',
             display: 'flex',
             alignItems: 'center',

@@ -51,14 +51,14 @@ export default function Dashboard() {
             style={{
               color: '#000000',
               fontSize: '48px',
-              letterSpacing: '-0.03em',
+              letterSpacing: '-0.04em',
               textShadow: '0 4px 24px rgba(59,130,246,0.20), 0 8px 40px rgba(147,51,234,0.12)',
               fontFamily: 'system-ui, -apple-system, sans-serif'
             }}
           >
             Relay
           </h1>
-          <p className="text-xs font-light mt-1" style={{color: '#6B7280', letterSpacing: '0.15em', textTransform: 'uppercase'}}>
+          <p className="text-xs font-light" style={{color: '#6B7280', letterSpacing: '0.15em', textTransform: 'uppercase', marginTop: '2px'}}>
             Loaner Operations
           </p>
         </div>
