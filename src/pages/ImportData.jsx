@@ -78,20 +78,20 @@ export default function ImportData() {
       // Upload file
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
 
-      // Extract data with direct column mapping - no transformations
+      // Extract data with exact column header mapping
       const extractionSchema = {
         type: "array",
         items: {
           type: "object",
           properties: {
-            set_name: { type: "string" },
-            etch_id: { type: "string" },
-            primary_rep: { type: "string" },
-            associate_rep: { type: "string" },
-            account_name: { type: "string" },
-            status: { type: "string" },
-            loaned_date: { type: "date" },
-            expected_return_date: { type: "date" }
+            "Set Name": { type: "string" },
+            "Etch Id": { type: "string" },
+            "Current Field Sales Name": { type: "string" },
+            "Associate Sales Rep Name": { type: "string" },
+            "Account Name": { type: "string" },
+            "Status": { type: "string" },
+            "Loaned Date": { type: "date" },
+            "Expected Return Date": { type: "date" }
           }
         }
       };
