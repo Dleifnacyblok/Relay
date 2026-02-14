@@ -27,6 +27,17 @@ export default function ImportData() {
   
   const queryClient = useQueryClient();
 
+  // Countdown timer for rate limit
+  useEffect(() => {
+    if (retryCountdown <= 0) return;
+    
+    const timer = setInterval(() => {
+      setRetryCountdown(prev => Math.max(0, prev - 1));
+    }, 1000);
+    
+    return () => clearInterval(timer);
+  }, [retryCountdown]);
+
   const { data: user } = useQuery({
     queryKey: ["currentUser"],
     queryFn: () => base44.auth.me(),
