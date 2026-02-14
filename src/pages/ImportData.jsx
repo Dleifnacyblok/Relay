@@ -391,16 +391,16 @@ export default function ImportData() {
             <p className="text-sm font-medium text-slate-700 mb-2">Expected columns:</p>
             <div className="grid grid-cols-2 gap-2 text-xs text-slate-600">
               <div>• Set Name <span className="text-red-600">*</span></div>
-              <div>• Loaner Id <span className="text-red-600">*</span></div>
+              <div>• Loaner Id</div>
               <div>• Etch Id</div>
               <div>• Account Name <span className="text-red-600">*</span></div>
               <div>• Associate Sales Rep Name</div>
               <div>• Current Field Sales Name</div>
               <div>• Status</div>
-              <div>• Loaned Date <span className="text-red-600">*</span></div>
+              <div>• Loaned Date</div>
               <div>• Expected Return Date</div>
             </div>
-            <p className="text-xs text-slate-500 mt-3"><span className="text-red-600">*</span> Required. Status "Pending Return" converts to "loaned". Extra columns are ignored. Files up to 600 rows are processed in batches of 50.</p>
+            <p className="text-xs text-slate-500 mt-3"><span className="text-red-600">*</span> Required. Missing or invalid values for optional fields are set to null. Status "Pending Return" converts to "loaned". Extra columns are ignored. Files up to 600 rows processed in batches of 50.</p>
           </div>
 
           {/* File Input */}
