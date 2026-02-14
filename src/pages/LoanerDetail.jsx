@@ -185,13 +185,13 @@ export default function LoanerDetail() {
               />
               <DetailRow 
                 icon={User} 
-                label="Primary Rep" 
-                value={loaner.primary_rep} 
+                label="Rep" 
+                value={loaner.associate_rep || loaner.primary_rep} 
               />
               <DetailRow 
                 icon={Users} 
-                label="Associate Rep" 
-                value={loaner.associate_rep_display} 
+                label={loaner.associate_rep ? "Primary Rep" : "Associate Rep"} 
+                value={loaner.associate_rep ? loaner.primary_rep : loaner.associate_rep_display} 
               />
               <DetailRow 
                 icon={Calendar} 
