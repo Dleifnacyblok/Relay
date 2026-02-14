@@ -115,7 +115,7 @@ export default function LoanerDetail() {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+    <div className="min-h-screen" style={{backgroundColor: '#FFFFFF'}}>
       <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
         {/* Back Button */}
         <Link 
@@ -127,11 +127,18 @@ export default function LoanerDetail() {
         </Link>
 
         {/* Header Card */}
-        <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6 mb-6">
+        <div className="rounded-xl py-6 px-6 mb-6" style={{
+          backgroundColor: '#FFFFFF',
+          border: '1px solid #EEEEEE',
+          boxShadow: '0px 8px 24px rgba(0, 0, 0, 0.06)'
+        }}>
           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
             <div>
-              <h1 className="text-2xl font-bold text-slate-900">{loaner.set_name}</h1>
-              <p className="text-slate-500 mt-1">Etch ID: {loaner.etch_id || "(missing)"}</p>
+              <h1 className="text-2xl font-bold" style={{color: '#000000'}}>{loaner.set_name}</h1>
+              <p className="mt-1">
+                <span style={{color: '#777777'}}>Etch ID: </span>
+                <span style={{color: '#222222', letterSpacing: '0.02em'}}>{loaner.etch_id || "(missing)"}</span>
+              </p>
             </div>
             <RiskBadge riskStatus={loaner.risk_status} />
           </div>
@@ -168,9 +175,13 @@ export default function LoanerDetail() {
         </div>
 
         {/* Details Card */}
-        <div className="bg-white rounded-xl border border-slate-200 shadow-sm divide-y divide-slate-100">
-          <div className="p-6">
-            <h2 className="text-lg font-semibold text-slate-900 mb-2">Loaner Details</h2>
+        <div className="rounded-xl divide-y divide-slate-100" style={{
+          backgroundColor: '#FFFFFF',
+          border: '1px solid #EEEEEE',
+          boxShadow: '0px 8px 24px rgba(0, 0, 0, 0.06)'
+        }}>
+          <div className="py-6 px-6">
+            <h2 className="text-lg font-semibold mb-2" style={{color: '#111111'}}>Loaner Details</h2>
             
             <div className="grid sm:grid-cols-2 gap-x-6">
               <DetailRow 
@@ -212,8 +223,8 @@ export default function LoanerDetail() {
           </div>
 
           {/* Risk Metrics */}
-          <div className="p-6">
-            <h2 className="text-lg font-semibold text-slate-900 mb-4">Risk Metrics</h2>
+          <div className="py-6 px-6">
+            <h2 className="text-lg font-semibold mb-4" style={{color: '#111111'}}>Risk Metrics</h2>
             
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               <div className="bg-slate-50 rounded-lg p-4 text-center">
@@ -255,11 +266,11 @@ export default function LoanerDetail() {
           </div>
 
           {/* Notes Section */}
-          <div className="p-6">
+          <div className="py-6 px-6">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
                 <FileText className="w-5 h-5 text-slate-400" />
-                <h2 className="text-lg font-semibold text-slate-900">Notes</h2>
+                <h2 className="text-lg font-semibold" style={{color: '#111111'}}>Notes</h2>
               </div>
               {isAdmin && !isEditingNotes && (
                 <Button 

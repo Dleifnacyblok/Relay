@@ -185,14 +185,14 @@ export default function Search() {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+    <div className="min-h-screen" style={{backgroundColor: '#FFFFFF'}}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         {/* Header */}
         <div className="mb-6">
-          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight" style={{color: '#111111'}}>
             Search Loaners
           </h1>
-          <p className="text-slate-500 mt-1">
+          <p className="mt-1" style={{color: '#666666'}}>
             Find sets by name, ID, rep, or account
           </p>
         </div>
@@ -235,7 +235,11 @@ export default function Search() {
         <div className="flex gap-6">
           {/* Desktop Filters Sidebar */}
           <div className="hidden lg:block w-64 shrink-0">
-            <div className="bg-white rounded-xl border border-slate-200 p-5 sticky top-6">
+            <div className="rounded-xl p-5 sticky top-6" style={{
+              backgroundColor: '#FFFFFF',
+              border: '1px solid #EEEEEE',
+              boxShadow: '0px 8px 24px rgba(0, 0, 0, 0.06)'
+            }}>
               <div className="flex items-center gap-2 mb-4">
                 <Filter className="w-4 h-4 text-slate-500" />
                 <span className="font-semibold text-slate-900">Filters</span>
@@ -251,7 +255,11 @@ export default function Search() {
 
           {/* Results */}
           <div className="flex-1 min-w-0">
-            <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+            <div className="rounded-xl overflow-hidden" style={{
+              backgroundColor: '#FFFFFF',
+              border: '1px solid #EEEEEE',
+              boxShadow: '0px 8px 24px rgba(0, 0, 0, 0.06)'
+            }}>
               <div className="px-5 py-3 border-b border-slate-200 bg-slate-50/50 flex items-center justify-between">
                 <span className="text-sm text-slate-600">
                   {isLoading ? "Loading..." : `${filteredLoaners.length} results`}
