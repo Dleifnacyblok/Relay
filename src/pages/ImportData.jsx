@@ -78,20 +78,20 @@ export default function ImportData() {
       // Upload file
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
 
-      // Extract data with mapping schema
+      // Extract data with direct column mapping - no transformations
       const extractionSchema = {
         type: "array",
         items: {
           type: "object",
           properties: {
-            set_name: { type: "string", description: "Maps from 'Set Name'" },
-            etch_id: { type: "string", description: "Maps from 'Etch Id'" },
-            primary_rep: { type: "string", description: "Maps from 'Current Field Sales Name'" },
-            associate_rep: { type: "string", description: "Maps from 'Associate Sales Rep Name'" },
-            account_name: { type: "string", description: "Maps from 'Account Name'" },
-            status: { type: "string", description: "Maps from 'Status'" },
-            loaned_date: { type: "string", description: "Maps from 'Loaned Date' (format: YYYY-MM-DD)" },
-            expected_return_date: { type: "string", description: "Maps from 'Expected Return Date' (format: YYYY-MM-DD)" }
+            set_name: { type: "string" },
+            etch_id: { type: "string" },
+            primary_rep: { type: "string" },
+            associate_rep: { type: "string" },
+            account_name: { type: "string" },
+            status: { type: "string" },
+            loaned_date: { type: "date" },
+            expected_return_date: { type: "date" }
           }
         }
       };
