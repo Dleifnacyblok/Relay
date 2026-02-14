@@ -48,16 +48,14 @@ export default function Layout({ children }) {
       <aside className="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-64 lg:flex-col">
         <div className="flex flex-col flex-grow bg-white border-r border-slate-200">
           {/* Logo */}
-          <div className="flex items-center gap-3 px-6 py-5 border-b border-slate-100">
-            <div className="p-1 rounded-xl bg-white border border-slate-200">
-              <img 
-                src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/698fe9d012ce3a450807fc7e/9d5cf87f9_IMG_3258.jpg" 
-                alt="Relay Logo" 
-                className="w-12 h-12 object-contain"
-              />
-            </div>
+          <div className="flex items-center gap-4 px-6 py-6 border-b border-slate-100">
+            <img 
+              src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/698fe9d012ce3a450807fc7e/9d5cf87f9_IMG_3258.jpg" 
+              alt="Relay Logo" 
+              className="w-16 h-16 object-contain"
+            />
             <div>
-              <h1 className="font-bold text-slate-900 tracking-tight">Relay</h1>
+              <h1 className="text-lg font-bold text-slate-900 tracking-tight">Relay</h1>
               <p className="text-xs text-slate-500">Loaner Manager</p>
             </div>
           </div>
@@ -114,15 +112,13 @@ export default function Layout({ children }) {
 
       {/* Mobile Header */}
       <div className="lg:hidden sticky top-0 z-40 bg-white border-b border-slate-200">
-        <div className="flex items-center justify-between px-4 py-3">
-          <div className="flex items-center gap-2">
-            <div className="p-1 rounded-lg bg-white border border-slate-200">
-              <img 
-                src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/698fe9d012ce3a450807fc7e/9d5cf87f9_IMG_3258.jpg" 
-                alt="Relay Logo" 
-                className="w-8 h-8 object-contain"
-              />
-            </div>
+        <div className="flex items-center justify-between px-4 py-4">
+          <div className="flex items-center gap-3">
+            <img 
+              src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/698fe9d012ce3a450807fc7e/9d5cf87f9_IMG_3258.jpg" 
+              alt="Relay Logo" 
+              className="w-10 h-10 object-contain"
+            />
             <span className="font-bold text-slate-900">Relay</span>
           </div>
           <Button
