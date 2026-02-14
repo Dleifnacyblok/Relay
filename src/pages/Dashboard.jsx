@@ -44,11 +44,6 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen" style={{backgroundColor: '#FFFFFF'}}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-        {/* Last Imported Timestamp */}
-        <p className="text-xs font-light mb-6" style={{color: '#777777'}}>
-          Last Imported: Feb 14, 2026 – 2:18 PM
-        </p>
-
         {/* Header */}
         <div className="mb-8 text-center" style={{backgroundColor: '#FFFFFF'}}>
           <h1 
@@ -65,6 +60,9 @@ export default function Dashboard() {
           </h1>
           <p className="text-xs font-light" style={{color: '#6B7280', letterSpacing: '0.15em', textTransform: 'uppercase', marginTop: '2px'}}>
             Loaner Operations
+          </p>
+          <p className="text-xs font-light" style={{color: '#888888', opacity: 0.85, marginTop: '8px'}}>
+            Last imported • Feb 14, 2026 – 2:18 PM
           </p>
         </div>
 
