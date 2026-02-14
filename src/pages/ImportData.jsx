@@ -83,20 +83,21 @@ export default function ImportData() {
       // Upload file
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
 
-      // Extract data with direct snake_case mapping and no transformations
+      // Extract data with CSV column names exactly as they appear
       const extractionSchema = {
         type: "array",
         items: {
           type: "object",
           properties: {
-            set_name: { type: "string", description: "Set Name" },
-            etch_id: { type: "string", description: "Etch Id" },
-            primary_rep: { type: "string", description: "Current Field Sales Name" },
-            associate_rep: { type: "string", description: "Associate Sales Rep Name" },
-            account_name: { type: "string", description: "Account Name" },
-            status: { type: "string", description: "Status" },
-            loaned_date: { type: "string", description: "Loaned Date" },
-            expected_return_date: { type: "string", description: "Expected Return Date" }
+            "Set Name": { type: "string" },
+            "Loaner Id": { type: "string" },
+            "Etch Id": { type: "string" },
+            "Account Name": { type: "string" },
+            "Associate Sales Rep Name": { type: "string" },
+            "Current Field Sales Name": { type: "string" },
+            "Status": { type: "string" },
+            "Loaned Date": { type: "string" },
+            "Expected Return Date": { type: "string" }
           }
         }
       };
@@ -387,18 +388,19 @@ export default function ImportData() {
 
           {/* Column Mapping Info */}
           <div className="bg-slate-50 rounded-lg p-4 mb-6">
-            <p className="text-sm font-medium text-slate-700 mb-2">Expected columns (must match exactly):</p>
+            <p className="text-sm font-medium text-slate-700 mb-2">Expected columns:</p>
             <div className="grid grid-cols-2 gap-2 text-xs text-slate-600">
-              <div>• Set Name</div>
+              <div>• Set Name <span className="text-red-600">*</span></div>
+              <div>• Loaner Id <span className="text-red-600">*</span></div>
               <div>• Etch Id</div>
-              <div>• Current Field Sales Name</div>
+              <div>• Account Name <span className="text-red-600">*</span></div>
               <div>• Associate Sales Rep Name</div>
-              <div>• Account Name</div>
+              <div>• Current Field Sales Name</div>
               <div>• Status</div>
-              <div>• Loaned Date</div>
+              <div>• Loaned Date <span className="text-red-600">*</span></div>
               <div>• Expected Return Date</div>
             </div>
-            <p className="text-xs text-slate-500 mt-3">Dates should be in standard Excel format. Files up to 600 rows are processed in batches of 50 with automatic rate limiting.</p>
+            <p className="text-xs text-slate-500 mt-3"><span className="text-red-600">*</span> Required. Status "Pending Return" converts to "loaned". Extra columns are ignored. Files up to 600 rows are processed in batches of 50.</p>
           </div>
 
           {/* File Input */}
