@@ -2,10 +2,10 @@ import { cn } from "@/lib/utils";
 
 export default function StatCard({ title, value, icon: Icon, variant = "default", subtitle }) {
   const variants = {
-    default: "bg-white border-gray-200",
-    danger: "bg-white border-red-200",
-    warning: "bg-white border-amber-200",
-    success: "bg-white border-emerald-200"
+    default: "bg-white",
+    danger: "bg-white",
+    warning: "bg-white",
+    success: "bg-white"
   };
 
   const iconVariants = {
@@ -24,17 +24,21 @@ export default function StatCard({ title, value, icon: Icon, variant = "default"
 
   const valueStyles = {
     default: {color: '#000000'},
-    danger: {color: '#DC2626', textShadow: '0 0 12px rgba(220, 38, 38, 0.25)'},
-    warning: {color: '#D97706', textShadow: '0 0 12px rgba(217, 119, 6, 0.25)'},
+    danger: {color: '#DC2626', textShadow: '0 0 10px rgba(220, 38, 38, 0.2)'},
+    warning: {color: '#D97706', textShadow: '0 0 10px rgba(217, 119, 6, 0.2)'},
     success: {color: '#059669'}
   };
 
   return (
     <div 
       className={cn(
-        "rounded-xl border p-5 transition-all shadow-sm",
+        "rounded-xl p-5 transition-all",
         variants[variant]
       )}
+      style={{
+        border: '1px solid #E5E5E5',
+        boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.05)'
+      }}
     >
       <div className="flex items-start justify-between">
         <div>
@@ -50,7 +54,7 @@ export default function StatCard({ title, value, icon: Icon, variant = "default"
           )}
         </div>
         {Icon && (
-          <div className={cn("p-2.5 rounded-lg", iconVariants[variant])}>
+          <div className={cn("p-2.5 rounded-full", iconVariants[variant])}>
             <Icon className="w-5 h-5" />
           </div>
         )}
