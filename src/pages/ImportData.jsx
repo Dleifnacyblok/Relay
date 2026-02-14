@@ -64,6 +64,7 @@ export default function ImportData() {
           properties: {
             set_name: { type: "string", description: "Maps from 'Set Name'" },
             set_id: { type: "string", description: "Maps from 'Set ID'" },
+            etch_id: { type: "string", description: "Maps from 'Etch ID'" },
             primary_rep: { type: "string", description: "Maps from 'Current Field Sales Name'" },
             associate_rep: { type: "string", description: "Maps from 'Associate Sales Rep Name'" },
             account_name: { type: "string", description: "Maps from 'Account Name'" },
@@ -89,12 +90,36 @@ export default function ImportData() {
         throw new Error("No valid data found in the file");
       }
 
-      // Bulk create loaners
-      await base44.entities.Loaners.bulkCreate(extractedData);
+      // Upsert loaners based on etch_id
+      let createdCount = 0;
+      let updatedCount = 0;
+      
+      for (const record of extractedData) {
+        if (record.etch_id) {
+          // Find existing loaner by etch_id
+          const existing = existingLoaners.find(l => l.etch_id === record.etch_id);
+          
+          if (existing) {
+            // Update existing record
+            await base44.entities.Loaners.update(existing.id, record);
+            updatedCount++;
+          } else {
+            // Create new record
+            await base44.entities.Loaners.create(record);
+            createdCount++;
+          }
+        } else {
+          // No etch_id, create new record
+          await base44.entities.Loaners.create(record);
+          createdCount++;
+        }
+      }
       
       setImportResult({
         success: true,
-        count: extractedData.length
+        count: extractedData.length,
+        created: createdCount,
+        updated: updatedCount
       });
 
       queryClient.invalidateQueries(["loaners"]);
@@ -185,6 +210,7 @@ export default function ImportData() {
             <div className="grid grid-cols-2 gap-2 text-xs text-slate-600">
               <div>• Set Name</div>
               <div>• Set ID</div>
+              <div>• Etch ID</div>
               <div>• Current Field Sales Name</div>
               <div>• Associate Sales Rep Name</div>
               <div>• Account Name</div>
@@ -233,7 +259,8 @@ export default function ImportData() {
             <Alert className="mt-4 border-green-200 bg-green-50">
               <CheckCircle className="h-4 w-4 text-green-600" />
               <AlertDescription className="text-green-800">
-                Successfully imported {importResult.count} records
+                Successfully imported {importResult.count} records 
+                ({importResult.created} created, {importResult.updated} updated)
               </AlertDescription>
             </Alert>
           )}
