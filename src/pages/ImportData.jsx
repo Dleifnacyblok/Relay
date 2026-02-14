@@ -90,24 +90,16 @@ export default function ImportData() {
         throw new Error("No valid data found in the file");
       }
 
-      // Upsert loaners based on etch_id, or fallback to set_id + expected_return_date
+      // Upsert loaners based on etch_id
       let createdCount = 0;
       let updatedCount = 0;
       
       for (const record of extractedData) {
         let existing = null;
         
-        // Try to find by etch_id first
+        // Find by etch_id
         if (record.etch_id) {
           existing = existingLoaners.find(l => l.etch_id === record.etch_id);
-        }
-        
-        // Fallback: match by set_id + expected_return_date for backfill
-        if (!existing && record.set_id && record.expected_return_date) {
-          existing = existingLoaners.find(l => 
-            l.set_id === record.set_id && 
-            l.expected_return_date === record.expected_return_date
-          );
         }
         
         if (existing) {

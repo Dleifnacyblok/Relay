@@ -179,11 +179,6 @@ export default function LoanerDetail() {
                 value={loaner.etch_id} 
               />
               <DetailRow 
-                icon={Package} 
-                label="Set ID" 
-                value={loaner.set_id} 
-              />
-              <DetailRow 
                 icon={Building2} 
                 label="Account" 
                 value={loaner.account_name} 
