@@ -31,6 +31,14 @@ export default function ImportData() {
     queryFn: () => base44.auth.me(),
   });
 
+  const { data: appSetting } = useQuery({
+    queryKey: ["appSetting"],
+    queryFn: async () => {
+      const result = await base44.entities.AppSetting.filter({ key: 'import_metadata' });
+      return result?.[0] || null;
+    }
+  });
+
   const { data: existingLoaners = [] } = useQuery({
     queryKey: ["loaners"],
     queryFn: () => base44.entities.Loaners.list(),
