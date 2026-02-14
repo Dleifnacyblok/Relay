@@ -22,19 +22,14 @@ export default function ImportData() {
   const [error, setError] = useState(null);
   const [showClearDialog, setShowClearDialog] = useState(false);
   const [isClearing, setIsClearing] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(null);
-    const [failedRows, setFailedRows] = useState([]);
+  const [failedRows, setFailedRows] = useState([]);
   
   const queryClient = useQueryClient();
-
-
 
   const { data: user } = useQuery({
     queryKey: ["currentUser"],
     queryFn: () => base44.auth.me(),
   });
-
-
 
   const { data: existingLoaners = [] } = useQuery({
     queryKey: ["loaners"],
@@ -43,16 +38,72 @@ export default function ImportData() {
 
   const isAdmin = user?.role === "admin";
 
+  const toCleanString = (v) => {
+    if (v === null || v === undefined) return "";
+    return String(v).trim();
+  };
+
+  const normalizeDueDate = (v) => {
+    const s = toCleanString(v);
+    if (!s) return "";
+
+    // Excel date number
+    if (/^\d+(\.\d+)?$/.test(s)) {
+      const n = Number(s);
+      const excelEpoch = new Date(Date.UTC(1899, 11, 30));
+      const dt = new Date(excelEpoch.getTime() + n * 24 * 60 * 60 * 1000);
+      if (!isNaN(dt.getTime())) return dt.toISOString().slice(0, 10);
+    }
+
+    // ISO date
+    if (/^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0, 10);
+
+    // MM/DD/YYYY or M/D/YYYY
+    const mdy = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+    if (mdy) {
+      const mm = mdy[1].padStart(2, "0");
+      const dd = mdy[2].padStart(2, "0");
+      const yyyy = mdy[3];
+      return `${yyyy}-${mm}-${dd}`;
+    }
+
+    // Try Date.parse
+    const dt = new Date(s);
+    if (!isNaN(dt.getTime())) return dt.toISOString().slice(0, 10);
+
+    return s;
+  };
+
+  const sanitizeEtchId = (v) => {
+    const s = toCleanString(v);
+    return s.replace(/[\u200B-\u200D\uFEFF]/g, "");
+  };
+
+  const mapRow = (raw) => {
+    const set_name = toCleanString(raw["Set Name"]);
+    const account = toCleanString(raw["Account Name"]);
+
+    if (!set_name && !account) return null;
+
+    return {
+      set_name,
+      account,
+      etch_id: sanitizeEtchId(raw["Etch Id"]),
+      rep: toCleanString(raw["Current Field Sales Name"]),
+      associate_rep: toCleanString(raw["Associate Sales Rep Name"]),
+      due_date: normalizeDueDate(raw["Expected Return Date"]),
+    };
+  };
+
   const handleFileChange = (e) => {
     const selectedFile = e.target.files?.[0];
     if (selectedFile) {
       setFile(selectedFile);
       setImportResult(null);
       setError(null);
+      setFailedRows([]);
     }
   };
-
-  const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
   const handleImport = async () => {
     if (!file || isUploading) return;
