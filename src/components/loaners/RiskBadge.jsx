@@ -3,8 +3,8 @@ import { cn } from "@/lib/utils";
 export default function RiskBadge({ riskStatus }) {
   const config = {
     Overdue: {
-      bg: "#FEF2F2",
-      text: "#991B1B",
+      bg: "rgba(220,38,38,0.08)",
+      text: "#dc2626",
       dot: "#DC2626"
     },
     "Due Soon": {
