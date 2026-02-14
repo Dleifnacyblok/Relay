@@ -47,17 +47,18 @@ export default function Dashboard() {
         {/* Header */}
         <div className="mb-8 text-center" style={{backgroundColor: '#FFFFFF'}}>
           <h1 
-            className="font-extrabold" 
+            className="font-semibold" 
             style={{
               color: '#000000',
               fontSize: '48px',
               letterSpacing: '-0.03em',
-              textShadow: '0 4px 24px rgba(59,130,246,0.20), 0 8px 40px rgba(147,51,234,0.12)'
+              textShadow: '0 4px 24px rgba(59,130,246,0.20), 0 8px 40px rgba(147,51,234,0.12)',
+              fontFamily: 'system-ui, -apple-system, sans-serif'
             }}
           >
             Relay
           </h1>
-          <p className="text-xs font-light mt-1" style={{color: '#6B7280', letterSpacing: '0.12em', textTransform: 'uppercase'}}>
+          <p className="text-xs font-light mt-1" style={{color: '#6B7280', letterSpacing: '0.15em', textTransform: 'uppercase'}}>
             Loaner Operations
           </p>
         </div>

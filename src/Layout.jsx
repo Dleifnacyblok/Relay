@@ -50,10 +50,10 @@ export default function Layout({ children }) {
           {/* Logo */}
           <div className="flex items-center gap-4 px-6 py-6" style={{borderBottom: '1px solid rgba(0,0,0,0.06)'}}>
             <div style={{
-              width: '110px',
-              height: '110px',
+              width: '100px',
+              height: '100px',
               borderRadius: '14px',
-              padding: '6px',
+              padding: '4px',
               boxShadow: '0 4px 16px rgba(0,0,0,0.10)',
               backgroundColor: '#FFFFFF',
               display: 'flex',
@@ -68,7 +68,7 @@ export default function Layout({ children }) {
               />
             </div>
             <div>
-              <h1 className="text-lg font-bold tracking-tight text-black">
+              <h1 className="text-lg font-semibold text-black" style={{letterSpacing: '-0.02em'}}>
                 Relay
               </h1>
               <p className="text-xs text-gray-600">Loaner Manager</p>
@@ -129,10 +129,10 @@ export default function Layout({ children }) {
       <div className="lg:hidden sticky top-0 z-40 bg-white" style={{borderBottom: '1px solid rgba(0,0,0,0.06)'}}>
         <div className="relative flex items-center justify-center px-4 py-4">
           <div style={{
-            width: '110px',
-            height: '110px',
+            width: '100px',
+            height: '100px',
             borderRadius: '14px',
-            padding: '6px',
+            padding: '4px',
             boxShadow: '0 4px 16px rgba(0,0,0,0.10)',
             backgroundColor: '#FFFFFF',
             display: 'flex',
