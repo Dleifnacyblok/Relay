@@ -53,8 +53,8 @@ export default function Layout({ children }) {
               width: '110px',
               height: '110px',
               borderRadius: '18px',
-              padding: '12px',
-              boxShadow: '0 8px 24px rgba(0,0,0,0.08)',
+              padding: '10px',
+              boxShadow: '0 10px 30px rgba(0,0,0,0.12), 0 4px 12px rgba(0,0,0,0.06)',
               backgroundColor: '#FFFFFF',
               display: 'flex',
               alignItems: 'center',
@@ -64,7 +64,7 @@ export default function Layout({ children }) {
                 src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/698fe9d012ce3a450807fc7e/9d5cf87f9_IMG_3258.jpg" 
                 alt="Relay Logo" 
                 className="object-contain"
-                style={{width: '85%', height: '85%'}}
+                style={{width: '98%', height: '98%'}}
               />
             </div>
             <div>
@@ -132,8 +132,8 @@ export default function Layout({ children }) {
             width: '110px',
             height: '110px',
             borderRadius: '18px',
-            padding: '12px',
-            boxShadow: '0 8px 24px rgba(0,0,0,0.08)',
+            padding: '10px',
+            boxShadow: '0 10px 30px rgba(0,0,0,0.12), 0 4px 12px rgba(0,0,0,0.06)',
             backgroundColor: '#FFFFFF',
             display: 'flex',
             alignItems: 'center',
@@ -142,7 +142,8 @@ export default function Layout({ children }) {
             <img 
               src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/698fe9d012ce3a450807fc7e/9d5cf87f9_IMG_3258.jpg" 
               alt="Relay Logo" 
-              className="w-full h-full object-contain"
+              className="object-contain"
+              style={{width: '98%', height: '98%'}}
             />
           </div>
           <Button

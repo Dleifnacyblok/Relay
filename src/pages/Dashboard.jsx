@@ -50,15 +50,15 @@ export default function Dashboard() {
             className="font-bold" 
             style={{
               color: '#000000',
-              fontSize: '42px',
+              fontSize: '48px',
               letterSpacing: '-0.02em',
               textShadow: '0 0 40px rgba(59,130,246,0.30), 0 0 60px rgba(147,51,234,0.22)'
             }}
           >
             Relay
           </h1>
-          <p className="text-sm italic mt-0.5" style={{color: '#444444'}}>
-            Real time loaner movement and risk tracking
+          <p className="text-sm font-normal mt-1" style={{color: '#6B7280', letterSpacing: '0.03em'}}>
+            Loaner Operations
           </p>
         </div>
 
