@@ -1,0 +1,107 @@
+import { useQuery } from "@tanstack/react-query";
+import { base44 } from "@/api/base44Client";
+import { AlertTriangle, Clock, DollarSign, Package } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+import StatCard from "@/components/loaners/StatCard";
+import LoanerTable from "@/components/loaners/LoanerTable";
+import { computeLoanerFields, sortLoanersByRisk, formatCurrency } from "@/components/loaners/loanerUtils";
+
+export default function Dashboard() {
+  const { data: loaners = [], isLoading } = useQuery({
+    queryKey: ["loaners"],
+    queryFn: () => base44.entities.Loaners.list(),
+  });
+
+  const computedLoaners = loaners.map(computeLoanerFields);
+  const overdueCount = computedLoaners.filter(l => l.risk_status === "Overdue").length;
+  const dueSoonCount = computedLoaners.filter(l => l.risk_status === "Due Soon").length;
+  const totalFineExposure = computedLoaners.reduce((sum, l) => sum + (l.fine_exposure || 0), 0);
+  
+  const riskLoaners = sortLoanersByRisk(
+    computedLoaners.filter(l => l.risk_status === "Overdue" || l.risk_status === "Due Soon")
+  );
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
+            Territory Risk Dashboard
+          </h1>
+          <p className="text-slate-500 mt-1">
+            Monitor overdue and at-risk loaner sets
+          </p>
+        </div>
+
+        {/* Stats Cards */}
+        {isLoading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            {[1, 2, 3, 4].map(i => (
+              <Skeleton key={i} className="h-28 rounded-xl" />
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            <StatCard
+              title="Overdue Sets"
+              value={overdueCount}
+              icon={AlertTriangle}
+              variant={overdueCount > 0 ? "danger" : "default"}
+              subtitle="Require immediate attention"
+            />
+            <StatCard
+              title="Due Soon"
+              value={dueSoonCount}
+              icon={Clock}
+              variant={dueSoonCount > 0 ? "warning" : "default"}
+              subtitle="Within 3 days"
+            />
+            <StatCard
+              title="Fine Exposure"
+              value={formatCurrency(totalFineExposure)}
+              icon={DollarSign}
+              variant={totalFineExposure > 0 ? "danger" : "default"}
+              subtitle="$50/day overdue"
+            />
+            <StatCard
+              title="Total Loaners"
+              value={computedLoaners.length}
+              icon={Package}
+              variant="default"
+              subtitle="Active in territory"
+            />
+          </div>
+        )}
+
+        {/* Risk Board */}
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+          <div className="px-5 py-4 border-b border-slate-200 bg-slate-50/50">
+            <h2 className="text-lg font-semibold text-slate-900">Risk Board</h2>
+            <p className="text-sm text-slate-500">
+              Overdue and due-soon loaners requiring attention
+            </p>
+          </div>
+          
+          {isLoading ? (
+            <div className="p-6 space-y-4">
+              {[1, 2, 3].map(i => (
+                <Skeleton key={i} className="h-16 rounded-lg" />
+              ))}
+            </div>
+          ) : riskLoaners.length === 0 ? (
+            <div className="p-12 text-center">
+              <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-emerald-100 flex items-center justify-center">
+                <Package className="w-6 h-6 text-emerald-600" />
+              </div>
+              <p className="text-slate-600 font-medium">All clear!</p>
+              <p className="text-sm text-slate-500 mt-1">No overdue or at-risk loaners</p>
+            </div>
+          ) : (
+            <LoanerTable loaners={riskLoaners} />
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}

@@ -1,0 +1,100 @@
+import { useQuery } from "@tanstack/react-query";
+import { base44 } from "@/api/base44Client";
+import { Package, User } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+import LoanerTable from "@/components/loaners/LoanerTable";
+import { computeLoanerFields, sortLoanersByRisk } from "@/components/loaners/loanerUtils";
+
+export default function MyLoaners() {
+  const { data: user, isLoading: userLoading } = useQuery({
+    queryKey: ["currentUser"],
+    queryFn: () => base44.auth.me(),
+  });
+
+  const { data: loaners = [], isLoading: loanersLoading } = useQuery({
+    queryKey: ["loaners"],
+    queryFn: () => base44.entities.Loaners.list(),
+  });
+
+  const isLoading = userLoading || loanersLoading;
+  const userName = user?.full_name || "";
+
+  const computedLoaners = loaners.map(computeLoanerFields);
+  
+  // Filter by primary OR associate rep matching current user name
+  const myLoaners = sortLoanersByRisk(
+    computedLoaners.filter(l => 
+      l.primary_rep?.toLowerCase() === userName.toLowerCase() ||
+      l.associate_rep?.toLowerCase() === userName.toLowerCase()
+    )
+  );
+
+  const overdueCount = myLoaners.filter(l => l.risk_status === "Overdue").length;
+  const dueSoonCount = myLoaners.filter(l => l.risk_status === "Due Soon").length;
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+        {/* Header */}
+        <div className="mb-6">
+          <div className="flex items-center gap-3 mb-1">
+            <div className="p-2 rounded-lg bg-indigo-100">
+              <User className="w-5 h-5 text-indigo-600" />
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
+              My Loaners
+            </h1>
+          </div>
+          <p className="text-slate-500 ml-12">
+            {userName ? `Showing loaners where you are primary or associate rep` : "Loading..."}
+          </p>
+        </div>
+
+        {/* Quick Stats */}
+        {!isLoading && myLoaners.length > 0 && (
+          <div className="flex flex-wrap gap-3 mb-6">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-white border border-slate-200 rounded-full text-sm">
+              <span className="text-slate-500">Total:</span>
+              <span className="font-semibold text-slate-900">{myLoaners.length}</span>
+            </div>
+            {overdueCount > 0 && (
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-red-50 border border-red-200 rounded-full text-sm">
+                <span className="w-2 h-2 rounded-full bg-red-500" />
+                <span className="font-semibold text-red-700">{overdueCount} Overdue</span>
+              </div>
+            )}
+            {dueSoonCount > 0 && (
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-amber-50 border border-amber-200 rounded-full text-sm">
+                <span className="w-2 h-2 rounded-full bg-amber-500" />
+                <span className="font-semibold text-amber-700">{dueSoonCount} Due Soon</span>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Table */}
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+          {isLoading ? (
+            <div className="p-6 space-y-4">
+              {[1, 2, 3, 4].map(i => (
+                <Skeleton key={i} className="h-16 rounded-lg" />
+              ))}
+            </div>
+          ) : myLoaners.length === 0 ? (
+            <div className="p-12 text-center">
+              <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-slate-100 flex items-center justify-center">
+                <Package className="w-6 h-6 text-slate-400" />
+              </div>
+              <p className="text-slate-600 font-medium">No loaners assigned to you</p>
+              <p className="text-sm text-slate-500 mt-1">
+                {userName ? "You're not listed as primary or associate rep on any loaners" : "Please ensure your name matches the rep names in the system"}
+              </p>
+            </div>
+          ) : (
+            <LoanerTable loaners={myLoaners} />
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
