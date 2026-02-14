@@ -49,11 +49,11 @@ export default function Layout({ children }) {
         <div className="flex flex-col flex-grow bg-white border-r border-slate-200">
           {/* Logo */}
           <div className="flex items-center gap-3 px-6 py-5 border-b border-slate-100">
-            <div className="p-2 rounded-xl bg-white border border-slate-200">
+            <div className="p-1 rounded-xl bg-white border border-slate-200">
               <img 
                 src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/698fe9d012ce3a450807fc7e/9d5cf87f9_IMG_3258.jpg" 
                 alt="Relay Logo" 
-                className="w-5 h-5 object-contain"
+                className="w-12 h-12 object-contain"
               />
             </div>
             <div>
@@ -116,11 +116,11 @@ export default function Layout({ children }) {
       <div className="lg:hidden sticky top-0 z-40 bg-white border-b border-slate-200">
         <div className="flex items-center justify-between px-4 py-3">
           <div className="flex items-center gap-2">
-            <div className="p-1.5 rounded-lg bg-white border border-slate-200">
+            <div className="p-1 rounded-lg bg-white border border-slate-200">
               <img 
                 src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/698fe9d012ce3a450807fc7e/9d5cf87f9_IMG_3258.jpg" 
                 alt="Relay Logo" 
-                className="w-4 h-4 object-contain"
+                className="w-8 h-8 object-contain"
               />
             </div>
             <span className="font-bold text-slate-900">Relay</span>
