@@ -48,31 +48,11 @@ export default function Layout({ children }) {
       <aside className="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-64 lg:flex-col">
         <div className="flex flex-col flex-grow bg-white border-r border-gray-200">
           {/* Logo */}
-          <div className="flex items-center gap-4 px-6 py-6" style={{borderBottom: '1px solid rgba(0,0,0,0.06)'}}>
-            <div style={{
-              width: '100px',
-              height: '100px',
-              borderRadius: '10px',
-              padding: '1px',
-              boxShadow: '0 3px 10px rgba(0,0,0,0.10)',
-              backgroundColor: '#FFFFFF',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}>
-              <img 
-                src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/698fe9d012ce3a450807fc7e/9d5cf87f9_IMG_3258.jpg" 
-                alt="Relay Logo" 
-                className="object-contain"
-                style={{width: '100%', height: '100%'}}
-              />
-            </div>
-            <div style={{marginTop: '-2px'}}>
-              <h1 className="text-lg font-semibold text-black" style={{letterSpacing: '-0.03em'}}>
-                Relay
-              </h1>
-              <p className="text-xs text-gray-600" style={{marginTop: '-1px'}}>Loaner Manager</p>
-            </div>
+          <div className="px-6 py-6" style={{borderBottom: '1px solid rgba(0,0,0,0.06)'}}>
+            <h1 className="text-lg font-semibold text-black" style={{letterSpacing: '-0.03em'}}>
+              Relay
+            </h1>
+            <p className="text-xs text-gray-600" style={{marginTop: '2px'}}>Loaner Manager</p>
           </div>
 
           {/* Navigation */}
@@ -126,36 +106,20 @@ export default function Layout({ children }) {
       </aside>
 
       {/* Mobile Header */}
-      <div className="lg:hidden sticky top-0 z-40 bg-white" style={{borderBottom: '1px solid rgba(0,0,0,0.06)'}}>
-        <div className="relative flex items-center justify-center px-4 py-4">
-          <div style={{
-            width: '100px',
-            height: '100px',
-            borderRadius: '10px',
-            padding: '1px',
-            boxShadow: '0 3px 10px rgba(0,0,0,0.10)',
-            backgroundColor: '#FFFFFF',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center'
-          }}>
-            <img 
-              src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/698fe9d012ce3a450807fc7e/9d5cf87f9_IMG_3258.jpg" 
-              alt="Relay Logo" 
-              className="object-contain"
-              style={{width: '100%', height: '100%'}}
-            />
-          </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="absolute right-4 text-black hover:bg-gray-100"
-            style={{top: '50%', transform: 'translateY(-50%)'}}
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          >
-            {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-          </Button>
-        </div>
+       <div className="lg:hidden sticky top-0 z-40 bg-white" style={{borderBottom: '1px solid rgba(0,0,0,0.06)'}}>
+         <div className="flex items-center justify-between px-6 py-4">
+           <h1 className="text-lg font-semibold text-black" style={{letterSpacing: '-0.03em'}}>
+             Relay
+           </h1>
+           <Button
+             variant="ghost"
+             size="icon"
+             className="text-black hover:bg-gray-100"
+             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+           >
+             {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+           </Button>
+         </div>
 
         {/* Mobile Menu */}
         {mobileMenuOpen && (
