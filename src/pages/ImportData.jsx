@@ -171,9 +171,9 @@ export default function ImportData() {
           });
         }
 
-        // Delay between batches (100-200ms)
+        // Delay between batches (200ms to avoid rate limits)
         if (i + BATCH_SIZE < extractedData.length) {
-          await delay(150);
+          await delay(200);
         }
       }
 
@@ -387,7 +387,7 @@ export default function ImportData() {
 
           {/* Column Mapping Info */}
           <div className="bg-slate-50 rounded-lg p-4 mb-6">
-            <p className="text-sm font-medium text-slate-700 mb-2">Expected columns:</p>
+            <p className="text-sm font-medium text-slate-700 mb-2">Expected columns (must match exactly):</p>
             <div className="grid grid-cols-2 gap-2 text-xs text-slate-600">
               <div>• Set Name</div>
               <div>• Etch Id</div>
@@ -398,6 +398,7 @@ export default function ImportData() {
               <div>• Loaned Date</div>
               <div>• Expected Return Date</div>
             </div>
+            <p className="text-xs text-slate-500 mt-3">Dates should be in standard Excel format. Files up to 600 rows are processed in batches of 50 with automatic rate limiting.</p>
           </div>
 
           {/* File Input */}
