@@ -22,6 +22,7 @@ export default function ImportData() {
   const [error, setError] = useState(null);
   const [showClearDialog, setShowClearDialog] = useState(false);
   const [isClearing, setIsClearing] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(null);
   const [failedRows, setFailedRows] = useState([]);
   
   const queryClient = useQueryClient();
