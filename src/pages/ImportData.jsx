@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
-import { Upload, FileSpreadsheet, AlertCircle, CheckCircle, Loader2, Trash2, Sparkles, Clock } from "lucide-react";
+import * as XLSX from "xlsx";
+import { Upload, FileSpreadsheet, AlertCircle, CheckCircle, Loader2, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -21,24 +22,12 @@ export default function ImportData() {
   const [error, setError] = useState(null);
   const [showClearDialog, setShowClearDialog] = useState(false);
   const [isClearing, setIsClearing] = useState(false);
-  const [isCleaning, setIsCleaning] = useState(false);
-  const [cleanupResult, setCleanupResult] = useState(null);
-  const [retryCountdown, setRetryCountdown] = useState(0);
   const [uploadProgress, setUploadProgress] = useState(null);
-  const [failedRows, setFailedRows] = useState([]);
+    const [failedRows, setFailedRows] = useState([]);
   
   const queryClient = useQueryClient();
 
-  // Countdown timer for rate limit
-  useEffect(() => {
-    if (retryCountdown <= 0) return;
-    
-    const timer = setInterval(() => {
-      setRetryCountdown(prev => Math.max(0, prev - 1));
-    }, 1000);
-    
-    return () => clearInterval(timer);
-  }, [retryCountdown]);
+
 
   const { data: user } = useQuery({
     queryKey: ["currentUser"],
@@ -74,157 +63,67 @@ export default function ImportData() {
     setFailedRows([]);
 
     try {
-      // Upload file
-            const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      // Read file with XLSX
+      const arrayBuffer = await file.arrayBuffer();
+      const wb = XLSX.read(arrayBuffer, { type: "array" });
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const rawRows = XLSX.utils.sheet_to_json(ws, { defval: "" });
 
-            // Extract data - capture required columns
-            const extractionSchema = {
-              type: "array",
-              items: {
-                type: "object",
-                properties: {
-                  "Set Name": { type: "string" },
-                  "Etch Id": { type: "string" },
-                  "Account Name": { type: "string" },
-                  "Associate Sales Rep Name": { type: "string" },
-                  "Current Field Sales Name": { type: "string" },
-                  "Expected Return Date": { type: "string" }
-                }
-              }
-            };
-
-            const result = await base44.integrations.Core.ExtractDataFromUploadedFile({
-              file_url,
-              json_schema: extractionSchema
-            });
-
-            if (result.status === "error") {
-              throw new Error(result.details || "Failed to extract data from file");
-            }
-
-            const extractedData = result.output;
-
-            if (!Array.isArray(extractedData) || extractedData.length === 0) {
-              throw new Error("No valid data found in the file");
-            }
-
-            // Send directly to backend for processing
-            const response = await fetch('/api/bulkImportLoaners', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ data: extractedData })
-            });
-
-            if (!response.ok) {
-              const errorData = await response.json();
-              throw new Error(errorData.error || "Failed to import data");
-            }
-
-            const importResult = await response.json();
-            setFailedRows(importResult.failures || []);
-
-            if (importResult.success) {
-              setImportResult({
-                success: true,
-                count: importResult.recordCount
-              });
-              queryClient.invalidateQueries({ queryKey: ["loaners"] });
-              setFile(null);
-              } else {
-              setError(`${importResult.failureCount} rows failed. ${importResult.recordCount} rows imported successfully.`);
-              }
-
-              } catch (err) {
-              setError(err.message || "Failed to import data");
-              } finally {
-              setIsUploading(false);
-              setUploadProgress(null);
-              }
-              };
-
-  const handleCleanupDuplicates = async () => {
-    setIsCleaning(true);
-    setCleanupResult(null);
-    setError(null);
-    
-    try {
-      let deletedCount = 0;
-      const toDelete = new Set();
-      
-      // Step 1: Group by set_name + account_name + expected_return_date + rep
-      const duplicateGroups = {};
-      for (const loaner of existingLoaners) {
-        const rep = loaner.associate_rep || loaner.primary_rep || '';
-        const key = `${loaner.set_name || ''}|${loaner.account_name || ''}|${loaner.expected_return_date || ''}|${rep}`;
-        if (!duplicateGroups[key]) {
-          duplicateGroups[key] = [];
-        }
-        duplicateGroups[key].push(loaner);
+      if (!Array.isArray(rawRows) || rawRows.length === 0) {
+        throw new Error("No valid data found in the file");
       }
-      
-      // Within duplicates, delete records with blank etch_id
-      for (const key in duplicateGroups) {
-        const group = duplicateGroups[key];
-        if (group.length > 1) {
-          const withEtchId = group.filter(l => l.etch_id && l.etch_id.trim() !== '');
-          const withoutEtchId = group.filter(l => !l.etch_id || l.etch_id.trim() === '');
-          
-          // If we have records with etch_id, delete the ones without
-          if (withEtchId.length > 0) {
-            for (const loaner of withoutEtchId) {
-              toDelete.add(loaner.id);
-            }
-          }
+
+      // Map rows
+      const rows = [];
+      const skipped = [];
+      for (let i = 0; i < rawRows.length; i++) {
+        const mapped = mapRow(rawRows[i]);
+        if (mapped) {
+          rows.push(mapped);
+        } else {
+          skipped.push(i + 2); // +2 for header and 0-indexing
         }
       }
-      
-      // Step 2: Group by etch_id + set_name, keep only one
-      const compositeGroups = {};
-      for (const loaner of existingLoaners) {
-        if (toDelete.has(loaner.id)) continue; // Skip already marked for deletion
-        
-        const key = `${loaner.etch_id || ''}|${loaner.set_name || ''}`;
-        if (!compositeGroups[key]) {
-          compositeGroups[key] = [];
-        }
-        compositeGroups[key].push(loaner);
+
+      if (rows.length === 0) {
+        throw new Error("No valid rows found (all rows missing Set Name and Account Name)");
       }
-      
-      // Keep only one record per etch_id + set_name
-      for (const key in compositeGroups) {
-        const group = compositeGroups[key];
-        if (group.length > 1) {
-          // Sort by updated_date descending, keep the first
-          const sorted = [...group].sort((a, b) => 
-            new Date(b.updated_date) - new Date(a.updated_date)
-          );
-          
-          // Mark all except the first for deletion
-          for (let i = 1; i < sorted.length; i++) {
-            toDelete.add(sorted[i].id);
-          }
-        }
-      }
-      
-      // Execute deletions
-      for (const id of toDelete) {
-        await base44.entities.Loaners.delete(id);
-        deletedCount++;
-      }
-      
-      setCleanupResult({
-        success: true,
-        deletedCount
+
+      // Send to backend for batch insert
+      const response = await fetch('/api/bulkImportLoaners', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ rows })
       });
-      
-      queryClient.invalidateQueries(["loaners"]);
-      
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to import data");
+      }
+
+      const result = await response.json();
+      setFailedRows(result.failures || []);
+
+      if (result.success) {
+        setImportResult({
+          success: true,
+          count: result.recordCount
+        });
+        queryClient.invalidateQueries({ queryKey: ["loaners"] });
+        setFile(null);
+      } else {
+        setError(`${result.failureCount} rows failed. ${result.recordCount} rows imported successfully.`);
+      }
+
     } catch (err) {
-      setError("Failed to cleanup duplicates: " + err.message);
+      setError(err.message || "Failed to import data");
     } finally {
-      setIsCleaning(false);
+      setIsUploading(false);
+      setUploadProgress(null);
     }
   };
+
+
 
   const handleClearAll = async () => {
     setIsClearing(true);
@@ -274,47 +173,17 @@ export default function ImportData() {
               <p className="text-2xl font-bold text-slate-900">{existingLoaners.length}</p>
             </div>
             {existingLoaners.length > 0 && (
-              <div className="flex gap-2">
-                <Button 
-                  variant="outline" 
-                  className="text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50"
-                  onClick={handleCleanupDuplicates}
-                  disabled={isCleaning}
-                >
-                  {isCleaning ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Cleaning...
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles className="w-4 h-4 mr-2" />
-                      Clean Duplicates
-                    </>
-                  )}
-                </Button>
-                <Button 
-                  variant="outline" 
-                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                  onClick={() => setShowClearDialog(true)}
-                >
-                  <Trash2 className="w-4 h-4 mr-2" />
-                  Clear All
-                </Button>
-              </div>
+              <Button 
+                variant="outline" 
+                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                onClick={() => setShowClearDialog(true)}
+              >
+                <Trash2 className="w-4 h-4 mr-2" />
+                Clear All
+              </Button>
             )}
           </div>
         </div>
-
-        {/* Cleanup Result */}
-        {cleanupResult?.success && (
-          <Alert className="mb-6 border-green-200 bg-green-50">
-            <CheckCircle className="h-4 w-4 text-green-600" />
-            <AlertDescription className="text-green-800">
-              Cleanup complete! Removed {cleanupResult.deletedCount} duplicate/blank records.
-            </AlertDescription>
-          </Alert>
-        )}
 
         {/* Upload Card */}
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
@@ -386,33 +255,13 @@ export default function ImportData() {
             )}
           </div>
 
-          {/* Progress */}
-          {uploadProgress && (
-            <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
-              <p className="text-sm font-medium text-blue-900 mb-2">
-                Uploading batch {uploadProgress.current + 1} of {uploadProgress.total}
-              </p>
-              <div className="w-full bg-blue-200 rounded-full h-2">
-                <div 
-                  className="bg-blue-600 h-2 rounded-full transition-all"
-                  style={{ width: `${uploadProgress.percent}%` }}
-                />
-              </div>
-            </div>
-          )}
+
 
           {/* Error Alert */}
            {error && (
              <Alert variant="destructive" className="mt-4">
                <AlertCircle className="h-4 w-4" />
-               <AlertDescription>
-                 {error}
-                 {retryCountdown > 0 && (
-                   <div className="mt-2 text-sm font-medium">
-                     Try again in {retryCountdown}s
-                   </div>
-                 )}
-               </AlertDescription>
+               <AlertDescription>{error}</AlertDescription>
              </Alert>
            )}
 
@@ -451,18 +300,12 @@ export default function ImportData() {
            <Button 
              className="w-full mt-6 h-11"
              onClick={handleImport}
-             disabled={!file || isUploading || retryCountdown > 0}
-             title={retryCountdown > 0 ? `Try again in ${retryCountdown}s` : ''}
+             disabled={!file || isUploading}
            >
              {isUploading ? (
                <>
                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                  Importing...
-               </>
-             ) : retryCountdown > 0 ? (
-               <>
-                 <Clock className="w-4 h-4 mr-2" />
-                 Retry in {retryCountdown}s
                </>
              ) : (
                <>
