@@ -23,10 +23,12 @@ export default function RiskBadge({ riskStatus }) {
 
   return (
     <span 
-      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold"
+      className="inline-flex items-center gap-1.5 rounded-full text-xs"
       style={{
         backgroundColor: style.bg,
-        color: style.text
+        color: style.text,
+        fontWeight: 600,
+        padding: '6px 12px'
       }}
     >
       <span 
