@@ -49,7 +49,7 @@ export default function Dashboard() {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
-            ESC - <span className="bg-gradient-to-r from-[#4F8CFF] to-[#9D4EDD] bg-clip-text text-transparent" style={{textShadow: '0 0 30px rgba(79, 140, 255, 0.4)'}}>Relay</span> Dashboard
+            ESC - <span style={{textShadow: '0 0 25px rgba(79, 140, 255, 0.6), 0 0 35px rgba(157, 78, 221, 0.4)'}}>Relay</span>
           </h1>
           <p className="text-slate-400 mt-1">
             Real time loaner movement and risk tracking

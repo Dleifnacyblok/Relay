@@ -55,7 +55,7 @@ export default function Layout({ children }) {
               className="w-16 h-16 object-contain bg-white rounded-lg p-1"
             />
             <div>
-              <h1 className="text-lg font-bold tracking-tight bg-gradient-to-r from-[#4F8CFF] to-[#9D4EDD] bg-clip-text text-transparent" style={{textShadow: '0 0 20px rgba(79, 140, 255, 0.3)'}}>
+              <h1 className="text-lg font-bold tracking-tight text-white" style={{textShadow: '0 0 25px rgba(79, 140, 255, 0.6), 0 0 35px rgba(157, 78, 221, 0.4)'}}>
                 Relay
               </h1>
               <p className="text-xs text-slate-400">Loaner Manager</p>
@@ -121,7 +121,7 @@ export default function Layout({ children }) {
               alt="Relay Logo" 
               className="w-10 h-10 object-contain bg-white rounded-lg p-1"
             />
-            <span className="font-bold bg-gradient-to-r from-[#4F8CFF] to-[#9D4EDD] bg-clip-text text-transparent">Relay</span>
+            <span className="font-bold text-white" style={{textShadow: '0 0 25px rgba(79, 140, 255, 0.6), 0 0 35px rgba(157, 78, 221, 0.4)'}}>Relay</span>
           </div>
           <Button
             variant="ghost"
