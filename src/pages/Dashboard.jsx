@@ -46,31 +46,19 @@ export default function Dashboard() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         {/* Header */}
         <div className="mb-8 text-center" style={{backgroundColor: '#FFFFFF'}}>
-          <div style={{
-            display: 'flex',
-            justifyContent: 'center',
-            marginBottom: '16px',
-            filter: 'drop-shadow(0 2px 12px rgba(59,130,246,0.18)) drop-shadow(0 4px 24px rgba(147,51,234,0.12))'
-          }}>
-            <img 
-              src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/698fe9d012ce3a450807fc7e/9d5cf87f9_IMG_3258.jpg" 
-              alt="Relay Logo" 
-              style={{width: '120px', height: '120px', objectFit: 'contain'}}
-            />
-          </div>
           <h1 
-            className="font-bold" 
+            className="font-semibold" 
             style={{
               color: '#000000',
               fontSize: '48px',
               letterSpacing: '-0.04em',
-              textShadow: '0 2px 14px rgba(59,130,246,0.28), 0 4px 24px rgba(147,51,234,0.16)',
+              textShadow: '0 4px 24px rgba(59,130,246,0.20), 0 8px 40px rgba(147,51,234,0.12)',
               fontFamily: 'system-ui, -apple-system, sans-serif'
             }}
           >
             Relay
           </h1>
-          <p className="text-xs font-light" style={{color: '#6B7280', letterSpacing: '0.10em', textTransform: 'uppercase', marginTop: '-10px'}}>
+          <p className="text-xs font-light" style={{color: '#6B7280', letterSpacing: '0.15em', textTransform: 'uppercase', marginTop: '2px'}}>
             Loaner Operations
           </p>
         </div>
