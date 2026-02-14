@@ -42,11 +42,11 @@ export default function LoanerTable({ loaners, compact = false }) {
             className="block rounded-xl py-5 px-4 hover:border-blue-300 transition-all"
             style={{
               backgroundColor: '#FFFFFF',
-              border: '1px solid #EEEEEE',
-              boxShadow: '0px 8px 24px rgba(0, 0, 0, 0.06)',
-              marginBottom: '20px'
+              border: '1px solid #F5F5F5',
+              boxShadow: '0px 6px 20px rgba(0, 0, 0, 0.05)',
+              marginBottom: '24px'
             }}
-          >
+            >
             <div className="flex items-start justify-between mb-3">
               <div className="flex-1 min-w-0">
                 <h3 className="font-bold truncate" style={{color: '#000000'}}>{loaner.set_name}</h3>

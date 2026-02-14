@@ -52,7 +52,7 @@ export default function Dashboard() {
               color: '#000000',
               fontSize: '48px',
               letterSpacing: '-0.02em',
-              textShadow: '0 0 40px rgba(59,130,246,0.30), 0 0 60px rgba(147,51,234,0.22)'
+              textShadow: '0 6px 28px rgba(59,130,246,0.24), 0 10px 45px rgba(147,51,234,0.16)'
             }}
           >
             Relay
