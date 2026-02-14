@@ -30,9 +30,24 @@ export default function Search() {
   const [associateRepFilter, setAssociateRepFilter] = useState("all");
   const [filtersOpen, setFiltersOpen] = useState(false);
 
+  const { data: appSetting } = useQuery({
+    queryKey: ["appSetting"],
+    queryFn: async () => {
+      const result = await base44.entities.AppSetting.filter({ key: 'import_metadata' });
+      return result?.[0] || null;
+    }
+  });
+
   const { data: loaners = [], isLoading } = useQuery({
-    queryKey: ["loaners"],
-    queryFn: () => base44.entities.Loaners.list(),
+    queryKey: ["loaners", appSetting?.last_import_batch_id],
+    queryFn: async () => {
+      if (!appSetting?.last_import_batch_id) return [];
+      const result = await base44.entities.Loaners.filter({ 
+        import_batch_id: appSetting.last_import_batch_id 
+      });
+      return result;
+    },
+    enabled: !!appSetting?.last_import_batch_id
   });
 
   const computedLoaners = useMemo(() => 
