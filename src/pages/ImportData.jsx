@@ -63,8 +63,7 @@ export default function ImportData() {
           type: "object",
           properties: {
             set_name: { type: "string", description: "Maps from 'Set Name'" },
-            set_id: { type: "string", description: "Maps from 'Set ID'" },
-            etch_id: { type: "string", description: "Maps from 'Etch ID'" },
+            etch_id: { type: "string", description: "Maps from 'Etch Id'" },
             primary_rep: { type: "string", description: "Maps from 'Current Field Sales Name'" },
             associate_rep: { type: "string", description: "Maps from 'Associate Sales Rep Name'" },
             account_name: { type: "string", description: "Maps from 'Account Name'" },
@@ -207,8 +206,7 @@ export default function ImportData() {
             <p className="text-sm font-medium text-slate-700 mb-2">Expected columns:</p>
             <div className="grid grid-cols-2 gap-2 text-xs text-slate-600">
               <div>• Set Name</div>
-              <div>• Set ID</div>
-              <div>• Etch ID</div>
+              <div>• Etch Id</div>
               <div>• Current Field Sales Name</div>
               <div>• Associate Sales Rep Name</div>
               <div>• Account Name</div>
