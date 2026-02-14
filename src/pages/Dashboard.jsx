@@ -44,14 +44,14 @@ export default function Dashboard() {
   const riskLoaners = [...myRiskLoaners, ...otherRiskLoaners];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+    <div className="min-h-screen bg-[#0F1115]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
             ESC - Relay Dashboard
           </h1>
-          <p className="text-slate-500 mt-1">
+          <p className="text-slate-400 mt-1">
             Real time loaner movement and risk tracking
           </p>
         </div>
@@ -97,10 +97,10 @@ export default function Dashboard() {
         )}
 
         {/* Risk Board */}
-        <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-          <div className="px-5 py-4 border-b border-slate-200 bg-slate-50/50">
-            <h2 className="text-lg font-semibold text-slate-900">Risk Board</h2>
-            <p className="text-sm text-slate-500">
+        <div className="bg-[#1A1D23] rounded-xl border border-slate-800 shadow-xl overflow-hidden">
+          <div className="px-5 py-4 border-b border-slate-800">
+            <h2 className="text-lg font-semibold text-white">Risk Board</h2>
+            <p className="text-sm text-slate-400">
               Overdue and due-soon loaners requiring attention
             </p>
           </div>
@@ -108,16 +108,16 @@ export default function Dashboard() {
           {isLoading ? (
             <div className="p-6 space-y-4">
               {[1, 2, 3].map(i => (
-                <Skeleton key={i} className="h-16 rounded-lg" />
+                <Skeleton key={i} className="h-16 rounded-lg bg-slate-800" />
               ))}
             </div>
           ) : riskLoaners.length === 0 ? (
             <div className="p-12 text-center">
-              <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-emerald-100 flex items-center justify-center">
-                <Package className="w-6 h-6 text-emerald-600" />
+              <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-emerald-500/10 flex items-center justify-center">
+                <Package className="w-6 h-6 text-emerald-500" />
               </div>
-              <p className="text-slate-600 font-medium">All clear!</p>
-              <p className="text-sm text-slate-500 mt-1">No overdue or at-risk loaners</p>
+              <p className="text-white font-medium">All clear!</p>
+              <p className="text-sm text-slate-400 mt-1">No overdue or at-risk loaners</p>
             </div>
           ) : (
             <LoanerTable loaners={riskLoaners} />
