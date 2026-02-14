@@ -139,46 +139,68 @@ export default function ImportData() {
     setError(null);
     
     try {
-      // Group loaners by (etch_id + set_name)
-      const groups = {};
+      let deletedCount = 0;
+      const toDelete = new Set();
       
+      // Step 1: Group by set_name + account_name + expected_return_date + rep
+      const duplicateGroups = {};
       for (const loaner of existingLoaners) {
-        const key = `${loaner.etch_id || ''}|${loaner.set_name || ''}`;
-        if (!groups[key]) {
-          groups[key] = [];
+        const rep = loaner.associate_rep || loaner.primary_rep || '';
+        const key = `${loaner.set_name || ''}|${loaner.account_name || ''}|${loaner.expected_return_date || ''}|${rep}`;
+        if (!duplicateGroups[key]) {
+          duplicateGroups[key] = [];
         }
-        groups[key].push(loaner);
+        duplicateGroups[key].push(loaner);
       }
       
-      let deletedCount = 0;
-      
-      // Process each group
-      for (const key in groups) {
-        const group = groups[key];
-        
-        // Remove records with blank etch_id
-        const withEtchId = group.filter(l => l.etch_id && l.etch_id.trim() !== '');
-        const withoutEtchId = group.filter(l => !l.etch_id || l.etch_id.trim() === '');
-        
-        // Delete all records without etch_id
-        for (const loaner of withoutEtchId) {
-          await base44.entities.Loaners.delete(loaner.id);
-          deletedCount++;
+      // Within duplicates, delete records with blank etch_id
+      for (const key in duplicateGroups) {
+        const group = duplicateGroups[key];
+        if (group.length > 1) {
+          const withEtchId = group.filter(l => l.etch_id && l.etch_id.trim() !== '');
+          const withoutEtchId = group.filter(l => !l.etch_id || l.etch_id.trim() === '');
+          
+          // If we have records with etch_id, delete the ones without
+          if (withEtchId.length > 0) {
+            for (const loaner of withoutEtchId) {
+              toDelete.add(loaner.id);
+            }
+          }
         }
+      }
+      
+      // Step 2: Group by etch_id + set_name, keep only one
+      const compositeGroups = {};
+      for (const loaner of existingLoaners) {
+        if (toDelete.has(loaner.id)) continue; // Skip already marked for deletion
         
-        // If multiple records with etch_id exist, keep the most recent
-        if (withEtchId.length > 1) {
-          // Sort by updated_date descending
-          const sorted = [...withEtchId].sort((a, b) => 
+        const key = `${loaner.etch_id || ''}|${loaner.set_name || ''}`;
+        if (!compositeGroups[key]) {
+          compositeGroups[key] = [];
+        }
+        compositeGroups[key].push(loaner);
+      }
+      
+      // Keep only one record per etch_id + set_name
+      for (const key in compositeGroups) {
+        const group = compositeGroups[key];
+        if (group.length > 1) {
+          // Sort by updated_date descending, keep the first
+          const sorted = [...group].sort((a, b) => 
             new Date(b.updated_date) - new Date(a.updated_date)
           );
           
-          // Delete all except the first (most recent)
+          // Mark all except the first for deletion
           for (let i = 1; i < sorted.length; i++) {
-            await base44.entities.Loaners.delete(sorted[i].id);
-            deletedCount++;
+            toDelete.add(sorted[i].id);
           }
         }
+      }
+      
+      // Execute deletions
+      for (const id of toDelete) {
+        await base44.entities.Loaners.delete(id);
+        deletedCount++;
       }
       
       setCleanupResult({
