@@ -49,7 +49,7 @@ export default function Dashboard() {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
-            Territory Risk Dashboard
+            ESC Loaner Dashboard
           </h1>
           <p className="text-slate-500 mt-1">
             Monitor overdue and at-risk loaner sets
