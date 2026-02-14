@@ -83,20 +83,17 @@ export default function ImportData() {
       // Upload file
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
 
-      // Extract data with CSV column names exactly as they appear
+      // Extract data - capture all columns, we'll filter in backend
       const extractionSchema = {
         type: "array",
         items: {
           type: "object",
           properties: {
             "Set Name": { type: "string" },
-            "Loaner Id": { type: "string" },
             "Etch Id": { type: "string" },
             "Account Name": { type: "string" },
             "Associate Sales Rep Name": { type: "string" },
             "Current Field Sales Name": { type: "string" },
-            "Status": { type: "string" },
-            "Loaned Date": { type: "string" },
             "Expected Return Date": { type: "string" }
           }
         }
@@ -388,19 +385,34 @@ export default function ImportData() {
 
           {/* Column Mapping Info */}
           <div className="bg-slate-50 rounded-lg p-4 mb-6">
-            <p className="text-sm font-medium text-slate-700 mb-2">Expected columns:</p>
-            <div className="grid grid-cols-2 gap-2 text-xs text-slate-600">
-              <div>• Set Name <span className="text-red-600">*</span></div>
-              <div>• Loaner Id</div>
-              <div>• Etch Id</div>
-              <div>• Account Name <span className="text-red-600">*</span></div>
-              <div>• Associate Sales Rep Name</div>
-              <div>• Current Field Sales Name</div>
-              <div>• Status</div>
-              <div>• Loaned Date</div>
-              <div>• Expected Return Date</div>
+            <p className="text-sm font-medium text-slate-700 mb-2">Column Mapping:</p>
+            <div className="space-y-2 text-xs text-slate-600">
+              <div className="flex items-center justify-between">
+                <span>Set Name</span>
+                <span className="text-slate-400">→ set_name <span className="text-red-600">*</span></span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span>Account Name</span>
+                <span className="text-slate-400">→ account <span className="text-red-600">*</span></span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span>Etch Id</span>
+                <span className="text-slate-400">→ etch_id</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span>Current Field Sales Name</span>
+                <span className="text-slate-400">→ rep</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span>Associate Sales Rep Name</span>
+                <span className="text-slate-400">→ associate_rep</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span>Expected Return Date</span>
+                <span className="text-slate-400">→ due_date</span>
+              </div>
             </div>
-            <p className="text-xs text-slate-500 mt-3"><span className="text-red-600">*</span> Required. Missing or invalid values for optional fields are set to null. Status "Pending Return" converts to "loaned". Extra columns are ignored. Files up to 600 rows processed in batches of 50.</p>
+            <p className="text-xs text-slate-500 mt-3"><span className="text-red-600">*</span> Required. Other columns ignored. Invalid dates stored as text. Extra columns not imported.</p>
           </div>
 
           {/* File Input */}

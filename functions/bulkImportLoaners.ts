@@ -1,55 +1,23 @@
 const BATCH_SIZE = 50;
-const BATCH_DELAY = 200; // 200ms delay between batches
-const MAX_RETRIES = 3;
-const RETRY_DELAY = 1000; // Starting delay for retries
+const BATCH_DELAY = 200;
 
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
-
-const stringifyRow = (row) => {
-  const stringifiedRow = {};
-  const idFields = ["Set ID", "Loaner Id", "Etch Id", "Consignment Id"];
-  
-  for (const [key, value] of Object.entries(row)) {
-    if (value === null || value === undefined) {
-      stringifiedRow[key] = '';
-    } else if (idFields.includes(key)) {
-      // For ID fields, convert to string and strip decimals
-      const strValue = String(value);
-      stringifiedRow[key] = strValue.includes('.') ? strValue.split('.')[0] : strValue;
-    } else {
-      // For all other fields, just convert to string
-      stringifiedRow[key] = String(value);
-    }
-  }
-  
-  return stringifiedRow;
-};
-
-const validateRow = (row, rowIndex) => {
-  // Only check for required fields: set_name and account_name
-  const errors = [];
-  
-  if (!row["Set Name"] || String(row["Set Name"]).trim() === '') {
-    errors.push('Missing Set Name');
-  }
-  if (!row["Account Name"] || String(row["Account Name"]).trim() === '') {
-    errors.push('Missing Account Name');
-  }
-  
-  return errors;
-};
 
 const parseDate = (dateValue) => {
   if (!dateValue) return null;
   
   // If it's a number (Excel serial date)
   if (typeof dateValue === 'number') {
-    const excelEpoch = new Date(1900, 0, 1);
-    const date = new Date(excelEpoch.getTime() + (dateValue - 2) * 24 * 60 * 60 * 1000);
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    const year = date.getFullYear();
-    return `${month}/${day}/${year}`;
+    try {
+      const excelEpoch = new Date(1900, 0, 1);
+      const date = new Date(excelEpoch.getTime() + (dateValue - 2) * 24 * 60 * 60 * 1000);
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const year = date.getFullYear();
+      return `${month}/${day}/${year}`;
+    } catch {
+      return String(dateValue);
+    }
   }
   
   // If it's a string, try to parse and reformat
@@ -61,38 +29,39 @@ const parseDate = (dateValue) => {
       const year = date.getFullYear();
       return `${month}/${day}/${year}`;
     }
+    // If parsing fails, return as-is text
+    return dateValue;
   }
   
-  return null;
+  return String(dateValue);
+};
+
+const stringifyRow = (row) => {
+  const stringifiedRow = {};
+  const idFields = ["Set ID", "Loaner Id", "Etch Id", "Consignment Id"];
+  
+  for (const [key, value] of Object.entries(row)) {
+    if (value === null || value === undefined) {
+      stringifiedRow[key] = '';
+    } else if (idFields.includes(key)) {
+      const strValue = String(value);
+      stringifiedRow[key] = strValue.includes('.') ? strValue.split('.')[0] : strValue;
+    } else {
+      stringifiedRow[key] = String(value);
+    }
+  }
+  
+  return stringifiedRow;
 };
 
 const transformRow = (row) => {
-  const getOptionalString = (value) => {
-    const str = String(value || '').trim();
-    return str === '' ? null : str;
-  };
-  
-  const getOptionalDate = (value) => {
-    if (!value || String(value).trim() === '') return null;
-    try {
-      return parseDate(value);
-    } catch {
-      return null;
-    }
-  };
-  
-  const status = getOptionalString(row["Status"]);
-  
   return {
-    set_name: String(row["Set Name"] || '').trim(),
-    loaner_id: getOptionalString(row["Loaner Id"]),
-    etch_id: getOptionalString(row["Etch Id"]),
-    account_name: String(row["Account Name"] || '').trim(),
-    associate_rep: getOptionalString(row["Associate Sales Rep Name"]),
-    field_rep: getOptionalString(row["Current Field Sales Name"]),
-    status: status === "Pending Return" ? "loaned" : status,
-    loaned_date: getOptionalDate(row["Loaned Date"]),
-    expected_return_date: getOptionalDate(row["Expected Return Date"])
+    rep: (row["Current Field Sales Name"] || '').trim() || null,
+    associate_rep: (row["Associate Sales Rep Name"] || '').trim() || null,
+    set_name: (row["Set Name"] || '').trim(),
+    etch_id: (row["Etch Id"] || '').trim() || null,
+    account: (row["Account Name"] || '').trim(),
+    due_date: parseDate(row["Expected Return Date"]) || null
   };
 };
 
@@ -116,20 +85,22 @@ export default async function bulkImportLoaners(req, res) {
       
       console.log(`Processing batch ${batchIndex + 1}/${totalBatches} (rows ${startIndex + 1}-${endIndex})`);
 
-      // Validate and clean rows in batch
       const validRows = [];
       batchData.forEach((row, idx) => {
-        const rowNumber = startIndex + idx + 2; // +2 for header and 0-indexing
+        const rowNumber = startIndex + idx + 2;
         
-        // First, convert all values to strings and strip decimals from ID fields
+        // Convert to strings
         const stringifiedRow = stringifyRow(row);
-        const validationErrors = validateRow(stringifiedRow, rowNumber);
         
-        if (validationErrors.length > 0) {
+        // Check if both required fields are empty
+        const setName = (stringifiedRow["Set Name"] || '').trim();
+        const accountName = (stringifiedRow["Account Name"] || '').trim();
+        
+        if (!setName && !accountName) {
           failedRows.push({
             rowNumber,
             data: row,
-            errors: validationErrors
+            error: 'Missing both Set Name and Account Name'
           });
         } else {
           try {
@@ -140,7 +111,7 @@ export default async function bulkImportLoaners(req, res) {
             failedRows.push({
               rowNumber,
               data: row,
-              errors: [err.message]
+              error: err.message
             });
           }
         }
@@ -148,34 +119,17 @@ export default async function bulkImportLoaners(req, res) {
 
       // Insert valid rows
       if (validRows.length > 0) {
-        let retries = 0;
-        let inserted = false;
-
-        while (retries < MAX_RETRIES && !inserted) {
-          try {
-            await base44.asServiceRole.entities.Loaners.bulkCreate(validRows);
-            inserted = true;
-          } catch (error) {
-            retries++;
-            const isRateLimit = error.message?.includes('rate') || error.message?.includes('quota');
-            
-            if (isRateLimit && retries < MAX_RETRIES) {
-              const delayMs = RETRY_DELAY * Math.pow(2, retries - 1);
-              console.log(`Rate limited. Retrying batch ${batchIndex + 1} in ${delayMs}ms...`);
-              await delay(delayMs);
-            } else {
-              // Mark all rows in this batch as failed
-              validRows.forEach((_, idx) => {
-                const rowNumber = startIndex + idx + 2;
-                failedRows.push({
-                  rowNumber,
-                  data: batchData[idx],
-                  errors: [error.message]
-                });
-              });
-              inserted = true; // Stop retrying
-            }
-          }
+        try {
+          await base44.asServiceRole.entities.Loaners.bulkCreate(validRows);
+        } catch (error) {
+          validRows.forEach((_, idx) => {
+            const rowNumber = startIndex + idx + 2;
+            failedRows.push({
+              rowNumber,
+              data: batchData[idx],
+              error: error.message
+            });
+          });
         }
       }
 
@@ -187,12 +141,8 @@ export default async function bulkImportLoaners(req, res) {
 
     return res.json({
       success: failedRows.length === 0,
-      summary: {
-        totalRows,
-        successCount: successRows.length,
-        failureCount: failedRows.length,
-        batches: totalBatches
-      },
+      recordCount: successRows.length,
+      failureCount: failedRows.length,
       failures: failedRows.length > 0 ? failedRows : undefined
     });
 
@@ -200,13 +150,8 @@ export default async function bulkImportLoaners(req, res) {
     console.error('Bulk import error:', error);
     return res.status(500).json({ 
       error: error.message,
-      summary: {
-        totalRows,
-        successCount: successRows.length,
-        failureCount: failedRows.length,
-        batches: totalBatches
-      },
-      failures: failedRows.length > 0 ? failedRows : undefined
+      recordCount: successRows.length,
+      failureCount: failedRows.length
     });
   }
 }
