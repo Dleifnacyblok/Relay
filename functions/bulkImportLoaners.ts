@@ -9,20 +9,32 @@ export default async function bulkImportLoaners(req, res) {
     const batchId = Date.now().toString(36) + Math.random().toString(36).substr(2);
     const now = new Date().toISOString();
     
+    // Helper to format date as YYYY-MM-DD
+    const formatDateKey = (dateStr) => {
+      if (!dateStr) return '';
+      try {
+        const date = new Date(dateStr);
+        return date.toISOString().split('T')[0];
+      } catch {
+        return '';
+      }
+    };
+    
     // Prepare records for upsert
     const recordsToUpsert = data.map(record => {
-      // Compute unique key: LOWER(TRIM(etch_id))|LOWER(TRIM(set_name))|LOWER(TRIM(account_name))
-      const uniqueKey = [
+      // Compute loaner_key: lower(trim(etch_id))|lower(trim(set_name))|lower(trim(account_name))|YYYY-MM-DD
+      const loanerKey = [
         (record.etch_id || '').trim().toLowerCase(),
         (record.set_name || '').trim().toLowerCase(),
-        (record.account_name || '').trim().toLowerCase()
+        (record.account_name || '').trim().toLowerCase(),
+        formatDateKey(record.loaned_date)
       ].join('|');
       
       return {
         ...record,
         import_batch_id: batchId,
         imported_at: now,
-        unique_key: uniqueKey
+        loaner_key: loanerKey
       };
     });
 
@@ -30,8 +42,8 @@ export default async function bulkImportLoaners(req, res) {
     const existingLoaners = await base44.asServiceRole.entities.Loaners.list();
     const existingByKey = {};
     for (const loaner of existingLoaners) {
-      if (loaner.unique_key) {
-        existingByKey[loaner.unique_key] = loaner;
+      if (loaner.loaner_key) {
+        existingByKey[loaner.loaner_key] = loaner;
       }
     }
 
@@ -40,8 +52,8 @@ export default async function bulkImportLoaners(req, res) {
     const updates = [];
     
     for (const record of recordsToUpsert) {
-      if (existingByKey[record.unique_key]) {
-        updates.push({ id: existingByKey[record.unique_key].id, data: record });
+      if (existingByKey[record.loaner_key]) {
+        updates.push({ id: existingByKey[record.loaner_key].id, data: record });
       } else {
         creates.push(record);
       }
