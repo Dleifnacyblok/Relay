@@ -9,7 +9,8 @@ import {
   Upload,
   Menu,
   X,
-  LogOut
+  LogOut,
+  AlertCircle
 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -29,6 +30,7 @@ export default function Layout({ children }) {
   const navigation = [
     { name: "Dashboard", page: "Dashboard", icon: LayoutDashboard },
     { name: "My Loaners", page: "MyLoaners", icon: User },
+    { name: "My Missing Parts", page: "MyMissingParts", icon: AlertCircle },
     { name: "Search", page: "Search", icon: Search },
     ...(isAdmin ? [{ name: "Import", page: "ImportData", icon: Upload }] : []),
   ];
