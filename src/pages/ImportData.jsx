@@ -135,6 +135,33 @@ export default function ImportData() {
     URL.revokeObjectURL(url);
   };
 
+  const parseDate = (value) => {
+    if (value == null || value === "") return null;
+    if (value instanceof Date && !isNaN(value.getTime())) return value;
+    if (typeof value === "number") {
+      const excelEpoch = new Date(Date.UTC(1899, 11, 30));
+      const ms = value * 86400000;
+      const d = new Date(excelEpoch.getTime() + ms);
+      return isNaN(d.getTime()) ? null : d;
+    }
+    const s = value.toString().trim();
+    if (!s) return null;
+    const d = new Date(s);
+    return isNaN(d.getTime()) ? null : d;
+  };
+
+  const daysDiff = (from, to) => {
+    const a = new Date(from.getFullYear(), from.getMonth(), from.getDate()).getTime();
+    const b = new Date(to.getFullYear(), to.getMonth(), to.getDate()).getTime();
+    return Math.round((b - a) / 86400000);
+  };
+
+  const makeImportKey = (setId, etchId, accountName, loanedDate) => {
+    const loanedISO = loanedDate.toISOString().slice(0, 10);
+    const safeAccount = accountName.replace(/\s+/g, " ").trim();
+    return `${setId}__${etchId}__${safeAccount}__${loanedISO}`.toLowerCase();
+  };
+
   const handleImport = async () => {
     if (!file || isUploading) return;
 
@@ -144,49 +171,129 @@ export default function ImportData() {
     setFailedRows([]);
 
     try {
-      // Convert file to base64
       const arrayBuffer = await file.arrayBuffer();
-      const uint8Array = new Uint8Array(arrayBuffer);
-      let binary = '';
-      for (let i = 0; i < uint8Array.length; i++) {
-        binary += String.fromCharCode(uint8Array[i]);
+      const workbook = XLSX.read(arrayBuffer, { type: "array", cellDates: true });
+      
+      const allRows = [];
+      for (const sheetName of workbook.SheetNames) {
+        const worksheet = workbook.Sheets[sheetName];
+        const sheetData = XLSX.utils.sheet_to_json(worksheet, { defval: "", raw: false });
+        allRows.push(...sheetData);
       }
-      const base64 = btoa(binary);
 
-      // Call backend function which handles upsert logic properly
-      const result = await base44.functions.importMichiganLoanerReport({ fileBuffer: base64 });
+      if (!allRows.length) throw new Error("No data found in file");
 
-      if (result.success) {
-        setImportResult({
-          success: true,
-          created: result.created || 0,
-          updated: result.updated || 0,
-          total: (result.created || 0) + (result.updated || 0)
+      const normalizedRows = allRows.map((r) => {
+        const out = {};
+        for (const k of Object.keys(r)) {
+          out[k.toString().trim().toLowerCase().replace(/\s+/g, " ")] = r[k];
+        }
+        return out;
+      });
+
+      const requiredHeaders = ["set id", "set name", "current field sales name", "associate sales rep name", "account name", "etch id", "loaned date", "expected return date"];
+      const keyUnion = new Set();
+      for (const r of normalizedRows.slice(0, 5)) {
+        for (const k of Object.keys(r)) keyUnion.add(k);
+      }
+      const missingHeaders = requiredHeaders.filter((h) => !keyUnion.has(h));
+      if (missingHeaders.length) {
+        throw new Error(`Missing columns: ${missingHeaders.join(", ")}`);
+      }
+
+      const now = new Date();
+      const errors = [];
+      const payload = [];
+
+      normalizedRows.forEach((r, idx) => {
+        const rowNum = idx + 2;
+        const setId = (r["set id"] || "").toString().trim();
+        const setName = (r["set name"] || "").toString().trim();
+        const fieldSalesRep = (r["current field sales name"] || "").toString().trim();
+        const assocRaw = (r["associate sales rep name"] || "").toString().trim();
+        const repName = assocRaw || "None";
+        const accountName = (r["account name"] || "").toString().trim();
+        const etchId = (r["etch id"] || "").toString().trim();
+        const loanedDate = parseDate(r["loaned date"]);
+        const expectedReturnDate = parseDate(r["expected return date"]);
+
+        const missing = [];
+        if (!setId) missing.push("Set ID");
+        if (!setName) missing.push("Set Name");
+        if (!accountName) missing.push("Account Name");
+        if (!etchId) missing.push("Etch Id");
+        if (!loanedDate) missing.push("Loaned Date");
+        if (!expectedReturnDate) missing.push("Expected Return Date");
+        if (!fieldSalesRep) missing.push("Current Field Sales Name");
+
+        if (missing.length) {
+          errors.push({ rowIndex: rowNum, error: `Missing: ${missing.join(", ")}`, data: { set_name: setName } });
+          return;
+        }
+
+        const daysUntilDue = daysDiff(now, expectedReturnDate);
+        const isOverdue = daysUntilDue < 0;
+        const daysOverdue = isOverdue ? Math.abs(daysUntilDue) : 0;
+        const fineAmount = daysOverdue * 50;
+        const importKey = makeImportKey(setId, etchId, accountName, loanedDate);
+
+        payload.push({
+          importKey,
+          setName,
+          etchId,
+          accountName,
+          repName,
+          expectedReturnDate: expectedReturnDate.toISOString().slice(0, 10),
+          fineAmount,
+          isOverdue,
+          setId,
+          fieldSalesRep,
+          loanedDate: loanedDate.toISOString().slice(0, 10),
+          daysUntilDue,
+          daysOverdue,
+          finePerDay: 50,
+          lastImportedAt: now.toISOString(),
         });
-        queryClient.invalidateQueries({ queryKey: ["loaners"] });
-        setFile(null);
-      } else {
-        throw new Error(result.error || "Import failed");
+      });
+
+      if (errors.length > 0) {
+        setFailedRows(errors);
+        throw new Error(`${errors.length} rows have errors`);
       }
+
+      // Fetch ALL existing records once
+      const allExisting = await base44.entities.Loaners.list();
+      const existingMap = new Map();
+      allExisting.forEach(e => {
+        if (e?.importKey && e?.id) existingMap.set(e.importKey, e.id);
+      });
+
+      let created = 0;
+      let updated = 0;
+      const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+      for (let i = 0; i < payload.length; i++) {
+        const rec = payload[i];
+        const existingId = existingMap.get(rec.importKey);
+        
+        if (existingId) {
+          await base44.entities.Loaners.update(existingId, rec);
+          updated++;
+        } else {
+          await base44.entities.Loaners.create(rec);
+          created++;
+        }
+
+        // Very aggressive throttling
+        if ((i + 1) % 2 === 0) await sleep(500);
+      }
+
+      setImportResult({ success: true, created, updated, total: created + updated });
+      queryClient.invalidateQueries({ queryKey: ["loaners"] });
+      setFile(null);
 
     } catch (err) {
-      const errorMsg = err.message || "Failed to import data";
-      setError(errorMsg);
-      
-      if (errorMsg.includes("Row ")) {
-        const errorLines = errorMsg.split('\n').filter(line => line.includes("Row "));
-        const parsedErrors = errorLines.map(line => {
-          const rowMatch = line.match(/Row (\d+):/);
-          const rowNum = rowMatch ? rowMatch[1] : '?';
-          const errorDetail = line.substring(line.indexOf(':') + 1).trim();
-          return {
-            rowIndex: rowNum,
-            error: errorDetail,
-            data: {}
-          };
-        });
-        setFailedRows(parsedErrors);
-      }
+      setError(err.message || "Failed to import data");
     } finally {
       setIsUploading(false);
     }
