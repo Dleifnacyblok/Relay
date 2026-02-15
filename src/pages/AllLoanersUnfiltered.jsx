@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { Package } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import LoanerTable from "@/components/loaners/LoanerTable";
-import { computeLoanerFields } from "@/components/loaners/loanerUtils";
+import { computeLoanerData } from "@/components/loaners/loanerUtils";
 
 export default function AllLoanersUnfiltered() {
   const { data: loaners = [], isLoading } = useQuery({
@@ -11,7 +11,7 @@ export default function AllLoanersUnfiltered() {
     queryFn: () => base44.entities.Loaners.list(),
   });
 
-  const computedLoaners = loaners.map(computeLoanerFields);
+  const computedLoaners = loaners.map(computeLoanerData);
 
   return (
     <div className="min-h-screen bg-white">
