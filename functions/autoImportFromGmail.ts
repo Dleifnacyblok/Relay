@@ -163,8 +163,13 @@ Deno.serve(async (req) => {
       const accountName = (r["account name"] || "").toString().trim();
       
       let repName = assocRaw || "None";
-      if (!assocRaw && accountName.toLowerCase().includes("mymichigan medical center")) {
-        repName = "John DeLeon";
+      const lowerAccount = accountName.toLowerCase();
+      if (!assocRaw) {
+        if (lowerAccount.includes("mymichigan medical center")) {
+          repName = "John DeLeon";
+        } else if (lowerAccount.includes("university of michigan") || lowerAccount.includes("va - ann arbor")) {
+          repName = "Reid Butcher";
+        }
       }
       const etchId = (r["etch id"] || "").toString().trim();
       const loanedDate = parseDate(r["loaned date"]);
