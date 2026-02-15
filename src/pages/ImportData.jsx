@@ -288,18 +288,26 @@ export default function ImportData() {
         }
       }
 
-      // Upsert records
+      // Upsert records with throttling
       let created = 0;
       let updated = 0;
+      const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
-      for (const rec of payload) {
+      for (let i = 0; i < payload.length; i++) {
+        const rec = payload[i];
         const existingId = existingMap.get(rec.importKey);
+        
         if (existingId) {
           await base44.entities.Loaners.update(existingId, rec);
           updated++;
         } else {
           await base44.entities.Loaners.create(rec);
           created++;
+        }
+
+        // Throttle: wait after every 5 operations
+        if ((i + 1) % 5 === 0) {
+          await sleep(200);
         }
       }
 
