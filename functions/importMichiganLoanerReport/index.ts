@@ -1,6 +1,18 @@
-import * as XLSX from 'xlsx';
+import * as XLSX from "xlsx";
 
 type RawRow = Record<string, any>;
+
+/**
+ * RELAY / MICHIGAN LOANER IMPORT (BULLETPROOF)
+ * - Reads uploaded XLSX from req.body.fileBuffer (supports Buffer, base64 string, {data: base64}, Uint8Array)
+ * - Accepts spreadsheet as-is
+ * - Ignores: Area, Loaner ID, Consignment ID, Status
+ * - Requires: Set ID, Set Name, Current Field Sales Name, Associate Sales Rep Name, Account Name, Etch Id, Loaned Date, Expected Return Date
+ * - Rep shown on card = Associate Sales Rep Name; if blank => "None"
+ * - Computes overdue + fine = $50/day * days overdue
+ * - Upserts to base44.asServiceRole.entities.Loaners using importKey
+ * - Prefetches existing records via filter { importKey: { in: [...] } } to avoid rate limits
+ */
 
 const REQUIRED_HEADERS = [
   "set id",
@@ -16,6 +28,7 @@ const REQUIRED_HEADERS = [
 const IGNORE_HEADERS = new Set(["area", "loaner id", "consignment id", "status"]);
 const FINE_PER_DAY = 50;
 
+// -------------------- helpers --------------------
 function normalizeHeader(h: string): string {
   return (h || "").toString().trim().toLowerCase().replace(/\s+/g, " ");
 }
@@ -24,11 +37,13 @@ function cleanString(v: any): string {
   return (v ?? "").toString().trim();
 }
 
+// Convert Excel serial OR string OR Date => Date
 function parseDate(value: any): Date | null {
   if (value == null || value === "") return null;
 
   if (value instanceof Date && !isNaN(value.getTime())) return value;
 
+  // Excel serial
   if (typeof value === "number") {
     const excelEpoch = new Date(Date.UTC(1899, 11, 30));
     const ms = value * 86400000;
@@ -49,8 +64,9 @@ function daysDiff(from: Date, to: Date): number {
   return Math.round((b - a) / 86400000);
 }
 
+// Unique key so re-import doesn't duplicate
 function makeImportKey(setId: string, etchId: string, accountName: string, loanedDate: Date): string {
-  const loanedISO = loanedDate.toISOString().slice(0, 10);
+  const loanedISO = loanedDate.toISOString().slice(0, 10); // YYYY-MM-DD
   const safeAccount = accountName.replace(/\s+/g, " ").trim();
   return `${setId}__${etchId}__${safeAccount}__${loanedISO}`.toLowerCase();
 }
@@ -60,27 +76,57 @@ function sleep(ms: number) {
 }
 
 function chunk<T>(arr: T[], size: number): T[][] {
-  const chunks: T[][] = [];
-  for (let i = 0; i < arr.length; i += size) {
-    chunks.push(arr.slice(i, i + size));
-  }
-  return chunks;
+  const out: T[][] = [];
+  for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size));
+  return out;
 }
 
-async function importLoanersFromSheet(rows: RawRow[]) {
-  if (!Array.isArray(rows) || rows.length === 0) throw new Error("No rows found in upload.");
+// Accept Buffer | base64 string | { data: base64 } | Uint8Array
+function coerceToBuffer(fileBuffer: any): Buffer {
+  if (!fileBuffer) throw new Error("No file provided (expected req.body.fileBuffer)");
 
+  if (Buffer.isBuffer(fileBuffer)) return fileBuffer;
+
+  if (fileBuffer?.data && typeof fileBuffer.data === "string") {
+    return Buffer.from(fileBuffer.data, "base64");
+  }
+
+  if (typeof fileBuffer === "string") {
+    return Buffer.from(fileBuffer, "base64");
+  }
+
+  if (fileBuffer instanceof Uint8Array) {
+    return Buffer.from(fileBuffer);
+  }
+
+  throw new Error(`Unsupported fileBuffer type: ${typeof fileBuffer}`);
+}
+
+// -------------------- importer --------------------
+async function importLoanersFromSheet(rows: RawRow[]) {
+  if (!Array.isArray(rows) || rows.length === 0) {
+    throw new Error("No rows found in upload.");
+  }
+
+  // Normalize headers for each row
   const normalizedRows = rows.map((r) => {
     const out: Record<string, any> = {};
-    for (const k of Object.keys(r)) out[normalizeHeader(k)] = r[k];
+    for (const k of Object.keys(r)) {
+      out[normalizeHeader(k)] = r[k];
+    }
     return out;
   });
 
-  const keys = new Set(Object.keys(normalizedRows[0] || {}));
-  const missingHeaders = REQUIRED_HEADERS.filter((h) => !keys.has(h));
+  // Validate required headers using union of first few rows
+  const keyUnion = new Set<string>();
+  for (const r of normalizedRows.slice(0, 5)) {
+    for (const k of Object.keys(r)) keyUnion.add(k);
+  }
+
+  const missingHeaders = REQUIRED_HEADERS.filter((h) => !keyUnion.has(h));
   if (missingHeaders.length) {
     throw new Error(
-      `Upload missing required columns: ${missingHeaders.join(", ")}. Found: ${Array.from(keys).join(", ")}`
+      `Upload missing required columns: ${missingHeaders.join(", ")}. Found: ${Array.from(keyUnion).join(", ")}`
     );
   }
 
@@ -89,18 +135,22 @@ async function importLoanersFromSheet(rows: RawRow[]) {
   const payload: any[] = [];
 
   normalizedRows.forEach((r, idx) => {
-    const rowNum = idx + 2;
+    const rowNum = idx + 2; // assumes row 1 is header
 
     const setId = cleanString(r["set id"]);
     const setName = cleanString(r["set name"]);
     const fieldSalesRep = cleanString(r["current field sales name"]);
+
+    // Rep shown on card is Associate; fallback to "None"
     const assocRaw = cleanString(r["associate sales rep name"]);
     const repName = assocRaw ? assocRaw : "None";
+
     const accountName = cleanString(r["account name"]);
     const etchId = cleanString(r["etch id"]);
     const loanedDate = parseDate(r["loaned date"]);
     const expectedReturnDate = parseDate(r["expected return date"]);
 
+    // Required cell-level validation (associate rep NOT required)
     const missing: string[] = [];
     if (!setId) missing.push("Set ID");
     if (!setName) missing.push("Set Name");
@@ -124,6 +174,8 @@ async function importLoanersFromSheet(rows: RawRow[]) {
 
     payload.push({
       importKey,
+
+      // Card fields (bind these directly in UI)
       setName,
       etchId,
       accountName,
@@ -131,6 +183,8 @@ async function importLoanersFromSheet(rows: RawRow[]) {
       expectedReturnDate,
       fineAmount,
       isOverdue,
+
+      // Extras for sorting/reporting
       setId,
       fieldSalesRep,
       loanedDate,
@@ -149,52 +203,49 @@ async function importLoanersFromSheet(rows: RawRow[]) {
     );
   }
 
+  // Base44 entity (Service Role)
   const Loaners = base44.asServiceRole.entities.Loaners;
 
-  let created = 0;
-  let updated = 0;
-
-  // Batch lookup existing records
+  // Prefetch existing by importKey using IN operator (lowercase 'in')
+  const importKeys = payload.map((p) => p.importKey);
   const existingMap = new Map<string, { id: string }>();
-  const importKeys = payload.map(p => p.importKey);
-  
+
   for (const keyBatch of chunk(importKeys, 50)) {
-    const existing = await base44.asServiceRole.entities.Loaners.findMany({
+    const existing = await Loaners.findMany({
       filter: {
-        importKey: { in: keyBatch }
-      }
+        importKey: { in: keyBatch },
+      },
     });
 
     if (Array.isArray(existing)) {
       for (const e of existing) {
-        if (e?.importKey && e?.id) {
-          existingMap.set(e.importKey, { id: e.id });
-        }
+        if (e?.importKey && e?.id) existingMap.set(e.importKey, { id: e.id });
       }
     }
 
     await sleep(75);
   }
 
-  // Upsert records
+  // Write throttled to avoid rate limits
+  let created = 0;
+  let updated = 0;
+
   for (let i = 0; i < payload.length; i++) {
     const rec = payload[i];
-    const existingRecord = existingMap.get(rec.importKey);
+    const existing = existingMap.get(rec.importKey);
 
-    if (existingRecord?.id) {
-      await Loaners.update({
-        id: existingRecord.id,
-        data: rec,
-      });
+    if (existing?.id) {
+      await Loaners.update({ id: existing.id, data: rec });
       updated++;
     } else {
-      await Loaners.create({
-        data: rec,
-      });
+      const createdRec = await Loaners.create({ data: rec });
       created++;
+      if (createdRec?.importKey && createdRec?.id) {
+        existingMap.set(createdRec.importKey, { id: createdRec.id });
+      }
     }
 
-    if (i % 10 === 0) await sleep(75);
+    if (i % 10 === 0) await sleep(100);
   }
 
   return {
@@ -208,29 +259,32 @@ async function importLoanersFromSheet(rows: RawRow[]) {
   };
 }
 
+// -------------------- Base44 handler --------------------
 export default async function importMichiganLoanerReport(req: any, res: any) {
   try {
-    const { fileBuffer } = req.body;
+    // Accept a few common names Base44 might send
+    const fileBuffer = req?.body?.fileBuffer ?? req?.body?.file ?? req?.body?.buffer;
 
-    if (!fileBuffer) {
-      return res.status(400).json({ error: 'No file provided' });
-    }
+    const buffer = coerceToBuffer(fileBuffer);
 
-    const buffer = Buffer.isBuffer(fileBuffer)
-      ? fileBuffer
-      : Buffer.from(fileBuffer, 'base64');
+    // cellDates helps XLSX output actual Date objects
+    const workbook = XLSX.read(buffer, { type: "buffer", cellDates: true });
 
-    const workbook = XLSX.read(buffer, { type: 'buffer' });
-    
     const allRows: RawRow[] = [];
+
+    // If you only ever expect one sheet, you can switch to only the first sheet.
     for (const sheetName of workbook.SheetNames) {
       const worksheet = workbook.Sheets[sheetName];
-      const sheetData = XLSX.utils.sheet_to_json(worksheet, { defval: '' });
+      const sheetData = XLSX.utils.sheet_to_json(worksheet, {
+        defval: "",
+        raw: false,
+      }) as RawRow[];
+
       allRows.push(...sheetData);
     }
 
     const result = await importLoanersFromSheet(allRows);
-    
+
     return res.json({
       success: true,
       ...result,
@@ -238,7 +292,7 @@ export default async function importMichiganLoanerReport(req: any, res: any) {
   } catch (error) {
     return res.status(500).json({
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error',
+      error: error instanceof Error ? error.message : "Unknown error",
     });
   }
 }
