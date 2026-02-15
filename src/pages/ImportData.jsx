@@ -24,6 +24,9 @@ export default function ImportData() {
   const [isClearing, setIsClearing] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(null);
   const [failedRows, setFailedRows] = useState([]);
+  const [showMapping, setShowMapping] = useState(false);
+  const [detectedColumns, setDetectedColumns] = useState([]);
+  const [columnMapping, setColumnMapping] = useState({});
   
   const queryClient = useQueryClient();
 
@@ -96,13 +99,56 @@ export default function ImportData() {
     };
   };
 
-  const handleFileChange = (e) => {
+  const handleFileChange = async (e) => {
     const selectedFile = e.target.files?.[0];
     if (selectedFile) {
       setFile(selectedFile);
       setImportResult(null);
       setError(null);
       setFailedRows([]);
+      
+      // Detect columns from file
+      try {
+        const arrayBuffer = await selectedFile.arrayBuffer();
+        const wb = XLSX.read(arrayBuffer, { type: "array" });
+        const ws = wb.Sheets[wb.SheetNames[0]];
+        const rawRows = XLSX.utils.sheet_to_json(ws, { defval: "", header: 1 });
+        
+        if (rawRows.length > 0) {
+          const headers = rawRows[0].filter(h => h && h.toString().trim());
+          setDetectedColumns(headers);
+          
+          // Auto-map columns based on common patterns
+          const autoMapping = {};
+          const requiredFields = [
+            { field: 'setId', patterns: ['set id', 'setid'] },
+            { field: 'setName', patterns: ['set name', 'setname'] },
+            { field: 'currentFieldSalesName', patterns: ['current field sales name', 'field sales', 'current field sales'] },
+            { field: 'associateSalesRepName', patterns: ['associate sales rep name', 'associate rep', 'assoc rep'] },
+            { field: 'accountName', patterns: ['account name', 'account'] },
+            { field: 'etchId', patterns: ['etch id', 'etchid', 'etch'] },
+            { field: 'loanedDate', patterns: ['loaned date', 'loan date', 'date loaned'] },
+            { field: 'expectedReturnDate', patterns: ['expected return date', 'return date', 'due date'] }
+          ];
+          
+          headers.forEach(header => {
+            const normalized = header.toLowerCase().trim();
+            requiredFields.forEach(({ field, patterns }) => {
+              if (patterns.some(p => normalized === p || normalized.includes(p))) {
+                if (!autoMapping[field]) {
+                  autoMapping[field] = header;
+                }
+              }
+            });
+          });
+          
+          setColumnMapping(autoMapping);
+          setShowMapping(true);
+        }
+      } catch (err) {
+        console.error("Failed to detect columns:", err);
+        setError("Failed to read file headers");
+      }
     }
   };
 
@@ -115,63 +161,37 @@ export default function ImportData() {
     setFailedRows([]);
 
     try {
-      // Read file with XLSX
+      // Read file as base64
       const arrayBuffer = await file.arrayBuffer();
-      const wb = XLSX.read(arrayBuffer, { type: "array" });
-      const ws = wb.Sheets[wb.SheetNames[0]];
-      const rawRows = XLSX.utils.sheet_to_json(ws, { defval: "" });
+      const buffer = Buffer.from(arrayBuffer);
+      const fileBuffer = buffer.toString('base64');
 
-      if (!Array.isArray(rawRows) || rawRows.length === 0) {
-        throw new Error("No valid data found in the file");
-      }
-
-      // Map rows
-      const rows = [];
-      const skipped = [];
-      for (let i = 0; i < rawRows.length; i++) {
-        const mapped = mapRow(rawRows[i]);
-        if (mapped) {
-          rows.push(mapped);
-        } else {
-          skipped.push(i + 2); // +2 for header and 0-indexing
-        }
-      }
-
-      if (rows.length === 0) {
-        throw new Error("No valid rows found (all rows missing Set Name and Account Name)");
-      }
-
-      // Send to backend for batch insert
-      const response = await fetch('/api/bulkImportLoaners', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ rows })
+      // Send column mapping to backend
+      const response = await base44.functions.importMichiganLoanerReport({
+        fileBuffer,
+        columnMapping
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to import data");
-      }
-
-      const result = await response.json();
-      setFailedRows(result.failures || []);
-
-      if (result.success) {
+      if (response.success) {
         setImportResult({
           success: true,
-          count: result.recordCount
+          created: response.created,
+          updated: response.updated,
+          total: response.importedRows
         });
         queryClient.invalidateQueries({ queryKey: ["loaners"] });
         setFile(null);
+        setShowMapping(false);
+        setDetectedColumns([]);
+        setColumnMapping({});
       } else {
-        setError(`${result.failureCount} rows failed. ${result.recordCount} rows imported successfully.`);
+        throw new Error(response.error || "Import failed");
       }
 
     } catch (err) {
       setError(err.message || "Failed to import data");
     } finally {
       setIsUploading(false);
-      setUploadProgress(null);
     }
   };
 
@@ -249,37 +269,43 @@ export default function ImportData() {
             </div>
           </div>
 
-          {/* Column Mapping Info */}
-          <div className="bg-slate-50 rounded-lg p-4 mb-6">
-            <p className="text-sm font-medium text-slate-700 mb-2">Column Mapping:</p>
-            <div className="space-y-2 text-xs text-slate-600">
-              <div className="flex items-center justify-between">
-                <span>Set Name</span>
-                <span className="text-slate-400">→ set_name <span className="text-red-600">*</span></span>
+          {/* Column Mapping UI */}
+          {showMapping && detectedColumns.length > 0 && (
+            <div className="bg-slate-50 rounded-lg p-4 mb-6">
+              <p className="text-sm font-medium text-slate-700 mb-4">Column Mapping:</p>
+              <div className="space-y-3">
+                {[
+                  { field: 'setId', label: 'Set ID', required: true },
+                  { field: 'setName', label: 'Set Name', required: true },
+                  { field: 'currentFieldSalesName', label: 'Current Field Sales Name', required: true },
+                  { field: 'associateSalesRepName', label: 'Associate Sales Rep Name', required: false },
+                  { field: 'accountName', label: 'Account Name', required: true },
+                  { field: 'etchId', label: 'Etch ID', required: true },
+                  { field: 'loanedDate', label: 'Loaned Date', required: true },
+                  { field: 'expectedReturnDate', label: 'Expected Return Date', required: true }
+                ].map(({ field, label, required }) => (
+                  <div key={field} className="flex items-center justify-between gap-4">
+                    <label className="text-sm text-slate-600 flex-shrink-0">
+                      {label} {required && <span className="text-red-600">*</span>}
+                    </label>
+                    <select
+                      value={columnMapping[field] || ''}
+                      onChange={(e) => setColumnMapping({ ...columnMapping, [field]: e.target.value })}
+                      className="flex-1 max-w-xs text-sm border border-slate-300 rounded-md px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    >
+                      <option value="">-- Select Column --</option>
+                      {detectedColumns.map(col => (
+                        <option key={col} value={col}>{col}</option>
+                      ))}
+                    </select>
+                  </div>
+                ))}
               </div>
-              <div className="flex items-center justify-between">
-                <span>Account Name</span>
-                <span className="text-slate-400">→ account <span className="text-red-600">*</span></span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span>Etch Id</span>
-                <span className="text-slate-400">→ etch_id</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span>Current Field Sales Name</span>
-                <span className="text-slate-400">→ rep</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span>Associate Sales Rep Name</span>
-                <span className="text-slate-400">→ associate_rep</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span>Expected Return Date</span>
-                <span className="text-slate-400">→ due_date</span>
-              </div>
+              <p className="text-xs text-slate-500 mt-4">
+                <span className="text-red-600">*</span> Required fields must be mapped to proceed.
+              </p>
             </div>
-            <p className="text-xs text-slate-500 mt-3"><span className="text-red-600">*</span> Required. Other columns ignored. Invalid dates stored as text. Extra columns not imported.</p>
-          </div>
+          )}
 
           {/* File Input */}
           <div className="border-2 border-dashed border-slate-200 rounded-lg p-8 text-center hover:border-indigo-300 transition-colors">
@@ -350,22 +376,22 @@ export default function ImportData() {
 
           {/* Import Button */}
            <Button 
-             className="w-full mt-6 h-11"
-             onClick={handleImport}
-             disabled={!file || isUploading}
-           >
-             {isUploading ? (
-               <>
-                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                 Importing...
-               </>
-             ) : (
-               <>
-                 <Upload className="w-4 h-4 mr-2" />
-                 Import Data
-               </>
-             )}
-           </Button>
+            className="w-full mt-6 h-11"
+            onClick={handleImport}
+            disabled={!file || isUploading || !showMapping || !columnMapping.setId || !columnMapping.setName || !columnMapping.accountName || !columnMapping.etchId || !columnMapping.loanedDate || !columnMapping.expectedReturnDate || !columnMapping.currentFieldSalesName}
+          >
+            {isUploading ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Importing...
+              </>
+            ) : (
+              <>
+                <Upload className="w-4 h-4 mr-2" />
+                Import Data
+              </>
+            )}
+          </Button>
         </div>
 
         {/* Clear Confirmation Dialog */}
