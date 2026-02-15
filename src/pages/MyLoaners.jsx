@@ -22,7 +22,7 @@ export default function MyLoaners() {
   const { data: loaners = [], isLoading: loanersLoading } = useQuery({
     queryKey: ["loaners"],
     queryFn: async () => {
-      const result await base44.entities.Loaners.list();
+      const result = await base44.entities.Loaners.list();
       return result;
     }
   });
