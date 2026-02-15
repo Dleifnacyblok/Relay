@@ -173,10 +173,6 @@ Deno.serve(async (req) => {
           repName = "Graham Brown";
         } else if (lowerAccount.includes("henry ford macomb")) {
           repName = "Joshua Raptis";
-        } else if (lowerAccount.includes("corewell wm beaumont")) {
-          repName = "Kristine Binge";
-        } else if (lowerAccount.includes("children's hospital of michigan")) {
-          repName = "Graham Brown";
         }
       }
       const etchId = (r["etch id"] || "").toString().trim();
