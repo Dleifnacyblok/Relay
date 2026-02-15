@@ -212,7 +212,6 @@ Deno.serve(async (req) => {
 
     let created = 0;
     let updated = 0;
-    const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
     const BATCH_SIZE = 10;
     for (let i = 0; i < payload.length; i += BATCH_SIZE) {
