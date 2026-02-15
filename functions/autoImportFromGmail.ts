@@ -169,7 +169,7 @@ Deno.serve(async (req) => {
           repName = "John DeLeon";
         } else if (lowerAccount.includes("university of michigan") || lowerAccount.includes("va - ann arbor")) {
           repName = "Reid Butcher";
-        } else if (lowerAccount.includes("trinity health")) {
+        } else if (lowerAccount.includes("trinity health") || lowerAccount.includes("chelsea community")) {
           repName = "Graham Brown";
         }
       }
