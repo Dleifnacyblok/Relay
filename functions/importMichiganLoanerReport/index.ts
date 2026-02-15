@@ -59,6 +59,14 @@ function sleep(ms: number) {
   return new Promise((res) => setTimeout(res, ms));
 }
 
+function chunk<T>(arr: T[], size: number): T[][] {
+  const chunks: T[][] = [];
+  for (let i = 0; i < arr.length; i += size) {
+    chunks.push(arr.slice(i, i + size));
+  }
+  return chunks;
+}
+
 async function importLoanersFromSheet(rows: RawRow[]) {
   if (!Array.isArray(rows) || rows.length === 0) throw new Error("No rows found in upload.");
 
@@ -146,16 +154,30 @@ async function importLoanersFromSheet(rows: RawRow[]) {
   let created = 0;
   let updated = 0;
 
-  for (let i = 0; i < payload.length; i++) {
-    const rec = payload[i];
-
-    const existing = await Loaners.findFirst({
-      filter: { importKey: { eq: rec.importKey } },
+  // Batch lookup existing records
+  const existingMap = new Map<string, { id: string }>();
+  const importKeys = payload.map(p => p.importKey);
+  
+  for (const keyBatch of chunk(importKeys, 50)) {
+    const existing = await Loaners.findMany({
+      filter: { importKey: { in: keyBatch } },
     });
 
-    if (existing?.id) {
+    for (const e of existing || []) {
+      if (e?.importKey && e?.id) existingMap.set(e.importKey, { id: e.id });
+    }
+
+    await sleep(50);
+  }
+
+  // Upsert records
+  for (let i = 0; i < payload.length; i++) {
+    const rec = payload[i];
+    const existingRecord = existingMap.get(rec.importKey);
+
+    if (existingRecord?.id) {
       await Loaners.update({
-        id: existing.id,
+        id: existingRecord.id,
         data: rec,
       });
       updated++;
