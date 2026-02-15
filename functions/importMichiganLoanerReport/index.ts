@@ -245,7 +245,8 @@ async function importLoanersFromSheet(rows: RawRow[]) {
       }
     }
 
-    if (i % 10 === 0) await sleep(100);
+    // Aggressive throttling: wait after every 3 operations
+    if ((i + 1) % 3 === 0) await sleep(400);
   }
 
   return {
