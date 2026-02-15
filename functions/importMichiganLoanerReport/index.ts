@@ -264,7 +264,6 @@ export default async function importMichiganLoanerReport(req: any, res: any) {
   try {
     // Accept a few common names Base44 might send
     const fileBuffer = req?.body?.fileBuffer ?? req?.body?.file ?? req?.body?.buffer;
-    const columnMapping = req?.body?.columnMapping || {};
 
     const buffer = coerceToBuffer(fileBuffer);
 
@@ -284,26 +283,7 @@ export default async function importMichiganLoanerReport(req: any, res: any) {
       allRows.push(...sheetData);
     }
 
-    // Apply column mapping if provided
-    const mappedRows = columnMapping && Object.keys(columnMapping).length > 0
-      ? allRows.map(row => {
-          const mapped: RawRow = {};
-          
-          // Map user's columns to expected field names
-          if (columnMapping.setId) mapped["set id"] = row[columnMapping.setId];
-          if (columnMapping.setName) mapped["set name"] = row[columnMapping.setName];
-          if (columnMapping.currentFieldSalesName) mapped["current field sales name"] = row[columnMapping.currentFieldSalesName];
-          if (columnMapping.associateSalesRepName) mapped["associate sales rep name"] = row[columnMapping.associateSalesRepName];
-          if (columnMapping.accountName) mapped["account name"] = row[columnMapping.accountName];
-          if (columnMapping.etchId) mapped["etch id"] = row[columnMapping.etchId];
-          if (columnMapping.loanedDate) mapped["loaned date"] = row[columnMapping.loanedDate];
-          if (columnMapping.expectedReturnDate) mapped["expected return date"] = row[columnMapping.expectedReturnDate];
-          
-          return mapped;
-        })
-      : allRows;
-
-    const result = await importLoanersFromSheet(mappedRows);
+    const result = await importLoanersFromSheet(allRows);
 
     return res.json({
       success: true,
