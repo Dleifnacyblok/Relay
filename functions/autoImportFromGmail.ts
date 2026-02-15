@@ -165,7 +165,7 @@ Deno.serve(async (req) => {
       let repName = assocRaw || "None";
       const lowerAccount = accountName.toLowerCase();
       if (!assocRaw) {
-        if (lowerAccount.includes("mymichigan medical center")) {
+        if (lowerAccount.includes("mymichigan medical center") || lowerAccount.includes("mclaren bay region")) {
           repName = "John DeLeon";
         } else if (lowerAccount.includes("university of michigan") || lowerAccount.includes("va - ann arbor")) {
           repName = "Reid Butcher";
