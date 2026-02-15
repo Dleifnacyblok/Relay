@@ -275,11 +275,20 @@ export default function ImportData() {
         throw new Error(`${errors.length} rows have errors`);
       }
 
-      // Fetch ALL existing records once
+      // Fetch ALL existing records once and build multiple lookup maps
       const allExisting = await base44.entities.Loaners.list();
       const existingMap = new Map();
+      const existingBySetAccount = new Map();
+      
       allExisting.forEach(e => {
-        if (e?.importKey && e?.id) existingMap.set(e.importKey, e.id);
+        if (e?.importKey && e?.id) {
+          existingMap.set(e.importKey, e.id);
+        }
+        // Secondary lookup to prevent duplicates
+        if (e?.setId && e?.accountName && e?.id) {
+          const key = `${e.setId}__${e.accountName}`.toLowerCase();
+          existingBySetAccount.set(key, e.id);
+        }
       });
 
       let created = 0;
@@ -292,14 +301,24 @@ export default function ImportData() {
         const batch = payload.slice(i, i + BATCH_SIZE);
         
         for (const rec of batch) {
-          const existingId = existingMap.get(rec.importKey);
+          let existingId = existingMap.get(rec.importKey);
+          
+          // Fallback check to prevent duplicates
+          if (!existingId) {
+            const fallbackKey = `${rec.setId}__${rec.accountName}`.toLowerCase();
+            existingId = existingBySetAccount.get(fallbackKey);
+          }
           
           if (existingId) {
             await base44.entities.Loaners.update(existingId, rec);
             updated++;
           } else {
-            await base44.entities.Loaners.create(rec);
+            const newRecord = await base44.entities.Loaners.create(rec);
             created++;
+            // Update maps with new record to prevent duplicates within same import
+            existingMap.set(rec.importKey, newRecord.id);
+            const fallbackKey = `${rec.setId}__${rec.accountName}`.toLowerCase();
+            existingBySetAccount.set(fallbackKey, newRecord.id);
           }
           
           // Small delay between each record
