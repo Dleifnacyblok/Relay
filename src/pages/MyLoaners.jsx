@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { Package, User } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import LoanerTable from "@/components/loaners/LoanerTable";
-import { computeLoanerData, sortLoaners } from "@/components/loaners/loanerUtils";
+import { computeLoanerData, sortLoaners, formatCurrency } from "@/components/loaners/loanerUtils";
 
 export default function MyLoaners() {
   const { data: user, isLoading: userLoading } = useQuery({
@@ -40,6 +40,7 @@ export default function MyLoaners() {
 
   const overdueCount = myLoaners.filter(l => l.risk_status === "Overdue").length;
   const dueSoonCount = myLoaners.filter(l => l.risk_status === "Due Soon").length;
+  const totalFines = myLoaners.reduce((sum, l) => sum + (l.fineAmount || 0), 0);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
@@ -76,6 +77,12 @@ export default function MyLoaners() {
               <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-amber-50 border border-amber-200 rounded-full text-sm">
                 <span className="w-2 h-2 rounded-full bg-amber-500" />
                 <span className="font-semibold text-amber-700">{dueSoonCount} Due Soon</span>
+              </div>
+            )}
+            {totalFines > 0 && (
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-red-50 border border-red-200 rounded-full text-sm">
+                <span className="text-slate-500">Total Fines:</span>
+                <span className="font-bold text-red-700">{formatCurrency(totalFines)}</span>
               </div>
             )}
           </div>
