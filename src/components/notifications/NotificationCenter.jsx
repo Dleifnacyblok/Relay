@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Bell, X, CheckCheck, AlertCircle, Clock, Package } from "lucide-react";
@@ -18,6 +18,7 @@ import { computeLoanerData } from "@/components/loaners/loanerUtils";
 
 export default function NotificationCenter({ userName }) {
   const [open, setOpen] = useState(false);
+  const [seenNotificationIds, setSeenNotificationIds] = useState(new Set());
   const queryClient = useQueryClient();
 
   const { data: loaners = [] } = useQuery({
@@ -94,7 +95,16 @@ export default function NotificationCenter({ userName }) {
   }, [loaners, missingParts, userName]);
 
   const allNotifications = [...storedNotifications, ...liveNotifications];
-  const unreadCount = allNotifications.filter(n => !n.isRead).length;
+  const unreadCount = allNotifications.filter(n => !n.isRead && !seenNotificationIds.has(n.id)).length;
+
+  // Mark all notifications as seen when panel opens
+  useEffect(() => {
+    if (open && allNotifications.length > 0) {
+      const newSeenIds = new Set(seenNotificationIds);
+      allNotifications.forEach(n => newSeenIds.add(n.id));
+      setSeenNotificationIds(newSeenIds);
+    }
+  }, [open]);
 
   const markAllReadMutation = useMutation({
     mutationFn: async () => {
