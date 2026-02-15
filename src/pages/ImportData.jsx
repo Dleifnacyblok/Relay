@@ -301,8 +301,22 @@ export default function ImportData() {
         if ((i + 1) % 2 === 0) await sleep(500);
       }
 
+      // Update AppSetting with import timestamp
+      const appSettings = await base44.entities.AppSetting.filter({ key: 'import_metadata' });
+      if (appSettings.length > 0) {
+        await base44.entities.AppSetting.update(appSettings[0].id, {
+          last_imported_at: new Date().toISOString()
+        });
+      } else {
+        await base44.entities.AppSetting.create({
+          key: 'import_metadata',
+          last_imported_at: new Date().toISOString()
+        });
+      }
+
       setImportResult({ success: true, created, updated, total: created + updated });
       queryClient.invalidateQueries({ queryKey: ["loaners"] });
+      queryClient.invalidateQueries({ queryKey: ["appSetting"] });
       setFile(null);
 
     } catch (err) {
