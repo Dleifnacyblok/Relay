@@ -144,10 +144,14 @@ export default function ImportData() {
     setFailedRows([]);
 
     try {
-      // Convert file to base64
+      // Convert file to base64 (browser-compatible)
       const arrayBuffer = await file.arrayBuffer();
-      const buffer = Buffer.from(arrayBuffer);
-      const base64 = buffer.toString('base64');
+      const uint8Array = new Uint8Array(arrayBuffer);
+      let binary = '';
+      for (let i = 0; i < uint8Array.length; i++) {
+        binary += String.fromCharCode(uint8Array[i]);
+      }
+      const base64 = btoa(binary);
 
       // Call the importMichiganLoanerReport function
       const result = await base44.functions.importMichiganLoanerReport({ fileBuffer: base64 });
@@ -155,9 +159,9 @@ export default function ImportData() {
       if (result.success) {
         setImportResult({
           success: true,
-          created: result.created,
-          updated: result.updated,
-          total: result.created + result.updated
+          created: result.created || 0,
+          updated: result.updated || 0,
+          total: (result.created || 0) + (result.updated || 0)
         });
         queryClient.invalidateQueries({ queryKey: ["loaners"] });
         setFile(null);
