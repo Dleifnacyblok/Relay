@@ -274,19 +274,36 @@ Deno.serve(async (req) => {
       });
     }
 
+    const message = `Imported ${created + updated} records (${created} created, ${updated} updated)`;
+
+    // Send notification email
+    await base44.asServiceRole.integrations.Core.SendEmail({
+      to: 'kolby5canfield@gmail.com',
+      subject: '✅ Loaner Auto-Import Successful',
+      body: `The daily loaner import from Gmail completed successfully.\n\n${message}`
+    });
+
     return Response.json({ 
       success: true, 
       created, 
       updated, 
       total: created + updated,
-      message: `Imported ${created + updated} records (${created} created, ${updated} updated)`
+      message
     });
 
-  } catch (error) {
+    } catch (error) {
     console.error('Auto import error:', error);
+
+    // Send error notification email
+    await base44.asServiceRole.integrations.Core.SendEmail({
+      to: 'kolby5canfield@gmail.com',
+      subject: '❌ Loaner Auto-Import Failed',
+      body: `The daily loaner import from Gmail failed.\n\nError: ${error.message}\n\nPlease check the system logs for more details.`
+    });
+
     return Response.json({ 
       success: false, 
       error: error.message 
     }, { status: 500 });
-  }
-});
+    }
+    });
