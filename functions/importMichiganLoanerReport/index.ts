@@ -159,15 +159,21 @@ async function importLoanersFromSheet(rows: RawRow[]) {
   const importKeys = payload.map(p => p.importKey);
   
   for (const keyBatch of chunk(importKeys, 50)) {
-    const existing = await Loaners.findMany({
-      filter: { importKey: { in: keyBatch } },
+    const existing = await base44.asServiceRole.entities.Loaners.findMany({
+      filter: {
+        importKey: { in: keyBatch }
+      }
     });
 
-    for (const e of existing || []) {
-      if (e?.importKey && e?.id) existingMap.set(e.importKey, { id: e.id });
+    if (Array.isArray(existing)) {
+      for (const e of existing) {
+        if (e?.importKey && e?.id) {
+          existingMap.set(e.importKey, { id: e.id });
+        }
+      }
     }
 
-    await sleep(50);
+    await sleep(75);
   }
 
   // Upsert records
