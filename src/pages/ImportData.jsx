@@ -231,14 +231,8 @@ export default function ImportData() {
         const setName = (r["set name"] || "").toString().trim();
         const fieldSalesRep = (r["current field sales name"] || "").toString().trim();
         const assocRaw = (r["associate sales rep name"] || "").toString().trim();
+        const repName = assocRaw || "None";
         const accountName = (r["account name"] || "").toString().trim();
-        let repName = assocRaw || "None";
-        if (!assocRaw) {
-          const lowerAccount = accountName.toLowerCase();
-          if (lowerAccount.includes("corewell wm beaumont")) {
-            repName = "Kristine Binge";
-          }
-        }
         const etchId = (r["etch id"] || "").toString().trim();
         const loanedDate = parseDate(r["loaned date"]);
         const expectedReturnDate = parseDate(r["expected return date"]);
