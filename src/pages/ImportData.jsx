@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import * as XLSX from "xlsx";
-import { Upload, FileSpreadsheet, AlertCircle, CheckCircle, Loader2, Trash2 } from "lucide-react";
+import { Upload, FileSpreadsheet, AlertCircle, CheckCircle, Loader2, Trash2, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -106,6 +106,35 @@ export default function ImportData() {
     }
   };
 
+  const downloadErrorReport = () => {
+    if (failedRows.length === 0) return;
+
+    const reportLines = [
+      'Michigan Loaner Import - Error Report',
+      `Generated: ${new Date().toLocaleString()}`,
+      `Total Errors: ${failedRows.length}`,
+      '',
+      'Row Number | Set Name | Account | Error Details',
+      '-----------|----------|---------|---------------'
+    ];
+
+    failedRows.forEach(row => {
+      const setName = row.data?.set_name || '(unnamed)';
+      const account = row.data?.account || '(unnamed)';
+      reportLines.push(`${row.rowIndex} | ${setName} | ${account} | ${row.error}`);
+    });
+
+    const blob = new Blob([reportLines.join('\n')], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `import-errors-${new Date().toISOString().slice(0, 10)}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
   const handleImport = async () => {
     if (!file || isUploading) return;
 
@@ -115,60 +144,46 @@ export default function ImportData() {
     setFailedRows([]);
 
     try {
-      // Read file with XLSX
+      // Convert file to base64
       const arrayBuffer = await file.arrayBuffer();
-      const wb = XLSX.read(arrayBuffer, { type: "array" });
-      const ws = wb.Sheets[wb.SheetNames[0]];
-      const rawRows = XLSX.utils.sheet_to_json(ws, { defval: "" });
+      const buffer = Buffer.from(arrayBuffer);
+      const base64 = buffer.toString('base64');
 
-      if (!Array.isArray(rawRows) || rawRows.length === 0) {
-        throw new Error("No valid data found in the file");
-      }
-
-      // Map rows
-      const rows = [];
-      const skipped = [];
-      for (let i = 0; i < rawRows.length; i++) {
-        const mapped = mapRow(rawRows[i]);
-        if (mapped) {
-          rows.push(mapped);
-        } else {
-          skipped.push(i + 2); // +2 for header and 0-indexing
-        }
-      }
-
-      if (rows.length === 0) {
-        throw new Error("No valid rows found (all rows missing Set Name and Account Name)");
-      }
-
-      // Send to backend for batch insert
-      const response = await fetch('/api/bulkImportLoaners', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ rows })
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to import data");
-      }
-
-      const result = await response.json();
-      setFailedRows(result.failures || []);
+      // Call the importMichiganLoanerReport function
+      const result = await base44.functions.importMichiganLoanerReport({ fileBuffer: base64 });
 
       if (result.success) {
         setImportResult({
           success: true,
-          count: result.recordCount
+          created: result.created,
+          updated: result.updated,
+          total: result.created + result.updated
         });
         queryClient.invalidateQueries({ queryKey: ["loaners"] });
         setFile(null);
       } else {
-        setError(`${result.failureCount} rows failed. ${result.recordCount} rows imported successfully.`);
+        throw new Error(result.error || "Import failed");
       }
 
     } catch (err) {
-      setError(err.message || "Failed to import data");
+      const errorMsg = err.message || "Failed to import data";
+      setError(errorMsg);
+      
+      // Parse detailed errors from backend if available
+      if (errorMsg.includes("Row ")) {
+        const errorLines = errorMsg.split('\n').filter(line => line.includes("Row "));
+        const parsedErrors = errorLines.map(line => {
+          const rowMatch = line.match(/Row (\d+):/);
+          const rowNum = rowMatch ? rowMatch[1] : '?';
+          const errorDetail = line.substring(line.indexOf(':') + 1).trim();
+          return {
+            rowIndex: rowNum,
+            error: errorDetail,
+            data: {}
+          };
+        });
+        setFailedRows(parsedErrors);
+      }
     } finally {
       setIsUploading(false);
       setUploadProgress(null);
@@ -319,22 +334,35 @@ export default function ImportData() {
 
            {/* Failed Rows */}
            {failedRows.length > 0 && (
-             <div className="mt-4 p-4 bg-amber-50 rounded-lg border border-amber-200">
-               <p className="text-sm font-medium text-amber-900 mb-3">
-                 {failedRows.length} row{failedRows.length !== 1 ? 's' : ''} failed:
-               </p>
-               <div className="space-y-2 max-h-48 overflow-y-auto">
-                 {failedRows.slice(0, 10).map((row, idx) => (
-                   <div key={idx} className="text-xs text-amber-800">
-                     <span className="font-medium">Row {row.rowIndex}:</span> {row.data.set_name || '(unnamed)'} - {row.error}
+             <div className="mt-4 p-4 bg-red-50 rounded-lg border border-red-200">
+               <div className="flex items-center justify-between mb-3">
+                 <p className="text-sm font-semibold text-red-900">
+                   {failedRows.length} row{failedRows.length !== 1 ? 's' : ''} failed validation
+                 </p>
+                 <Button 
+                   variant="outline" 
+                   size="sm"
+                   onClick={downloadErrorReport}
+                   className="text-red-700 hover:text-red-800 hover:bg-red-100 border-red-300"
+                 >
+                   <Download className="w-3 h-3 mr-1.5" />
+                   Download Report
+                 </Button>
+               </div>
+               <div className="space-y-2 max-h-60 overflow-y-auto bg-white rounded p-3">
+                 {failedRows.map((row, idx) => (
+                   <div key={idx} className="text-xs border-l-2 border-red-400 pl-3 py-1">
+                     <span className="font-semibold text-red-900">Row {row.rowIndex}:</span>
+                     <span className="text-red-700 ml-2">{row.error}</span>
+                     {row.data?.set_name && (
+                       <span className="text-gray-600 ml-2">({row.data.set_name})</span>
+                     )}
                    </div>
                  ))}
-                 {failedRows.length > 10 && (
-                   <p className="text-xs text-amber-700 italic">
-                     ... and {failedRows.length - 10} more
-                   </p>
-                 )}
                </div>
+               <p className="text-xs text-red-700 mt-3 italic">
+                 Fix the errors above and re-upload the file
+               </p>
              </div>
            )}
 
@@ -343,7 +371,9 @@ export default function ImportData() {
             <Alert className="mt-4 border-green-200 bg-green-50">
               <CheckCircle className="h-4 w-4 text-green-600" />
               <AlertDescription className="text-green-800">
-                Successfully imported {importResult.count} records
+                Successfully processed {importResult.total} records
+                {importResult.created > 0 && ` (${importResult.created} created)`}
+                {importResult.updated > 0 && ` (${importResult.updated} updated)`}
               </AlertDescription>
             </Alert>
           )}

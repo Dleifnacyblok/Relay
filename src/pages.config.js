@@ -49,20 +49,20 @@
  */
 import AllLoanersUnfiltered from './pages/AllLoanersUnfiltered';
 import Dashboard from './pages/Dashboard';
-import ImportData from './pages/ImportData';
 import LoanerDetail from './pages/LoanerDetail';
 import MyLoaners from './pages/MyLoaners';
 import Search from './pages/Search';
+import ImportData from './pages/ImportData';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
     "AllLoanersUnfiltered": AllLoanersUnfiltered,
     "Dashboard": Dashboard,
-    "ImportData": ImportData,
     "LoanerDetail": LoanerDetail,
     "MyLoaners": MyLoaners,
     "Search": Search,
+    "ImportData": ImportData,
 }
 
 export const pagesConfig = {
