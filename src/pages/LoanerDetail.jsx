@@ -59,6 +59,14 @@ export default function LoanerDetail() {
     },
   });
 
+  const toggleFeesWaivedMutation = useMutation({
+    mutationFn: (waived) => 
+      base44.entities.Loaners.update(loanerId, { feesWaived: waived }),
+    onSuccess: () => {
+      queryClient.invalidateQueries(["loaner", loanerId]);
+    },
+  });
+
   const isAdmin = user?.role === "admin";
 
   const formatDate = (dateStr) => {
@@ -187,7 +195,20 @@ export default function LoanerDetail() {
           </div>
 
           <div className="py-6 px-6">
-            <h2 className="text-lg font-semibold mb-4" style={{color: '#111111'}}>Risk Metrics</h2>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold" style={{color: '#111111'}}>Risk Metrics</h2>
+              {loaner.fineAmount > 0 && (
+                <Button
+                  variant={loaner.feesWaived ? "outline" : "default"}
+                  size="sm"
+                  onClick={() => toggleFeesWaivedMutation.mutate(!loaner.feesWaived)}
+                  disabled={toggleFeesWaivedMutation.isPending}
+                  className={loaner.feesWaived ? "" : "bg-green-600 hover:bg-green-700"}
+                >
+                  {loaner.feesWaived ? "Unwaive Fees" : "Waive Fees"}
+                </Button>
+              )}
+            </div>
             
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               <div className="bg-slate-50 rounded-lg p-4 text-center">
@@ -213,16 +234,21 @@ export default function LoanerDetail() {
               </div>
               
               <div className={`rounded-lg p-4 text-center col-span-2 ${
-                loaner.fineAmount > 0 ? "bg-red-50" : "bg-slate-50"
+                loaner.fineAmount > 0 ? (loaner.feesWaived ? "bg-green-50" : "bg-red-50") : "bg-slate-50"
               }`}>
                 <DollarSign className={`w-5 h-5 mx-auto mb-2 ${
-                  loaner.fineAmount > 0 ? "text-red-500" : "text-slate-400"
+                  loaner.fineAmount > 0 ? (loaner.feesWaived ? "text-green-500" : "text-red-500") : "text-slate-400"
                 }`} />
-                <p className={`text-2xl font-bold ${
-                  loaner.fineAmount > 0 ? "text-red-700" : "text-slate-900"
-                }`}>
-                  {formatCurrency(loaner.fineAmount)}
-                </p>
+                <div>
+                  <p className={`text-2xl font-bold ${
+                    loaner.fineAmount > 0 ? (loaner.feesWaived ? "text-green-700 line-through" : "text-red-700") : "text-slate-900"
+                  }`}>
+                    {formatCurrency(loaner.fineAmount)}
+                  </p>
+                  {loaner.feesWaived && (
+                    <p className="text-xs text-green-700 font-semibold mt-1">Fees Waived</p>
+                  )}
+                </div>
                 <p className="text-xs text-slate-500">Fine Exposure ($50/day)</p>
               </div>
             </div>

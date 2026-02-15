@@ -73,7 +73,10 @@ export default function LoanerTable({ loaners, compact = false }) {
               {loaner.fineAmount > 0 && (
                 <div>
                   <span className="text-gray-500">Fine:</span>
-                  <p className="font-semibold text-red-600">{formatCurrency(loaner.fineAmount)}</p>
+                  <p className={`font-semibold ${loaner.feesWaived ? "text-green-600 line-through" : "text-red-600"}`}>
+                    {formatCurrency(loaner.fineAmount)}
+                    {loaner.feesWaived && <span className="text-xs ml-1 no-underline">(Waived)</span>}
+                  </p>
                 </div>
               )}
             </div>
@@ -125,9 +128,14 @@ export default function LoanerTable({ loaners, compact = false }) {
                 </TableCell>
                 <TableCell className="text-right">
                   {loaner.fineAmount > 0 ? (
-                    <span className="font-semibold text-red-600">
-                      {formatCurrency(loaner.fineAmount)}
-                    </span>
+                    <div className="text-right">
+                      <span className={`font-semibold ${loaner.feesWaived ? "text-green-600 line-through" : "text-red-600"}`}>
+                        {formatCurrency(loaner.fineAmount)}
+                      </span>
+                      {loaner.feesWaived && (
+                        <span className="block text-xs text-green-600 font-medium">Waived</span>
+                      )}
+                    </div>
                   ) : (
                     <span className="text-gray-400">—</span>
                   )}
