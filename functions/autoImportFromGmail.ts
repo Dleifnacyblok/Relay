@@ -34,6 +34,7 @@ Deno.serve(async (req) => {
     
     // Get Gmail access token
     const accessToken = await base44.asServiceRole.connectors.getAccessToken("gmail");
+    const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
     
     // Search for recent emails with attachments (last 24 hours)
     const searchResponse = await fetch(
@@ -46,6 +47,10 @@ Deno.serve(async (req) => {
       }
     );
     
+    if (!searchResponse.ok) {
+      return Response.json({ success: false, error: `Gmail search failed: ${searchResponse.statusText}` }, { status: searchResponse.status });
+    }
+    
     const searchData = await searchResponse.json();
     
     if (!searchData.messages || searchData.messages.length === 0) {
@@ -54,6 +59,7 @@ Deno.serve(async (req) => {
     
     // Get the most recent message
     const messageId = searchData.messages[0].id;
+    await sleep(500);
     
     const messageResponse = await fetch(
       `https://gmail.googleapis.com/gmail/v1/users/me/messages/${messageId}`,
@@ -65,6 +71,10 @@ Deno.serve(async (req) => {
       }
     );
     
+    if (!messageResponse.ok) {
+      return Response.json({ success: false, error: `Gmail fetch failed: ${messageResponse.statusText}` }, { status: messageResponse.status });
+    }
+    
     const messageData = await messageResponse.json();
     
     // Find Excel attachment
@@ -72,6 +82,7 @@ Deno.serve(async (req) => {
     for (const part of messageData.payload.parts || []) {
       if (part.filename && (part.filename.endsWith('.xlsx') || part.filename.endsWith('.xls'))) {
         const attachmentId = part.body.attachmentId;
+        await sleep(500);
         
         const attachmentResponse = await fetch(
           `https://gmail.googleapis.com/gmail/v1/users/me/messages/${messageId}/attachments/${attachmentId}`,
@@ -82,6 +93,10 @@ Deno.serve(async (req) => {
             }
           }
         );
+        
+        if (!attachmentResponse.ok) {
+          return Response.json({ success: false, error: `Attachment fetch failed: ${attachmentResponse.statusText}` }, { status: attachmentResponse.status });
+        }
         
         const attachment = await attachmentResponse.json();
         
