@@ -45,7 +45,10 @@ export default function MyLoaners() {
 
   const overdueCount = myLoaners.filter(l => l.risk_status === "Overdue").length;
   const dueSoonCount = myLoaners.filter(l => l.risk_status === "Due Soon").length;
-  const totalLoanerFines = myLoaners.reduce((sum, l) => sum + (l.fineAmount || 0), 0);
+  const totalLoanerFines = myLoaners.reduce((sum, l) => {
+    if (l.feesWaived) return sum;
+    return sum + (l.fineAmount || 0);
+  }, 0);
   
   const myParts = missingParts.filter(p => 
     p.repName?.toLowerCase() === userName.toLowerCase() && p.status === "missing"
