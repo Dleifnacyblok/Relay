@@ -439,7 +439,7 @@ export default function ImportData() {
 
       normalizedRows.forEach((r, idx) => {
         const rowNum = idx + 2;
-        const repName = (r["assoc.rep"] || r["associate rep"] || r["assoc rep"] || "").toString().trim();
+        const repName = (r["assoc.rep"] || r["associate rep"] || r["assoc rep"] || r["rep name"] || "").toString().trim();
         const partName = (r["part description"] || r["part name"] || r["part"] || "").toString().trim();
         const partNumber = (r["part/set #"] || r["part number"] || r["part #"] || "").toString().trim();
         const loanerSetName = (r["set name"] || r["loaner"] || r["loaner set"] || "").toString().trim();
