@@ -439,18 +439,22 @@ export default function ImportData() {
 
       normalizedRows.forEach((r, idx) => {
         const rowNum = idx + 2;
-        const repName = (r["rep name"] || r["rep"] || "").toString().trim();
-        const partName = (r["part name"] || r["part"] || "").toString().trim();
-        const partNumber = (r["part number"] || r["part #"] || "").toString().trim();
-        const loanerSetName = (r["loaner"] || r["set name"] || r["loaner set"] || "").toString().trim();
+        const repName = (r["assoc.rep"] || r["associate rep"] || r["assoc rep"] || "").toString().trim();
+        const partName = (r["part description"] || r["part name"] || r["part"] || "").toString().trim();
+        const partNumber = (r["part/set #"] || r["part number"] || r["part #"] || "").toString().trim();
+        const loanerSetName = (r["set name"] || r["loaner"] || r["loaner set"] || "").toString().trim();
         const etchId = (r["etch id"] || r["etch"] || "").toString().trim();
-        const missingDate = parseDate(r["date"] || r["missing date"]);
-        const fineAmount = parseFloat(r["fine"] || r["fine amount"] || 0);
+        const missingDate = parseDate(r["deduction date"] || r["date"] || r["missing date"]);
+        const fineAmount = parseFloat(r["total charge"] || r["charge per part"] || r["fine"] || r["fine amount"] || 0);
+        const requestNumber = (r["request #"] || r["request number"] || "").toString().trim();
+        const partSetNumber = partNumber;
+        const deductionDate = missingDate ? missingDate.toISOString().slice(0, 10) : null;
+        const missingQuantity = parseInt(r["missing qty"] || r["quantity"] || 1) || 1;
 
         const missing = [];
-        if (!repName) missing.push("Rep Name");
-        if (!partName) missing.push("Part Name");
-        if (!missingDate) missing.push("Date");
+        if (!repName) missing.push("Assoc.Rep");
+        if (!partName) missing.push("Part Description");
+        if (!missingDate) missing.push("Deduction Date");
 
         if (missing.length) {
           errors.push({ row: rowNum, error: `Missing: ${missing.join(", ")}` });
@@ -465,7 +469,11 @@ export default function ImportData() {
           etchId,
           missingDate: missingDate.toISOString().slice(0, 10),
           fineAmount: fineAmount || 0,
-          status: "missing"
+          status: "missing",
+          requestNumber,
+          partSetNumber,
+          deductionDate,
+          missingQuantity
         });
       });
 
@@ -745,21 +753,23 @@ export default function ImportData() {
             <p className="text-sm font-medium text-slate-700 mb-2">Expected Columns:</p>
             <div className="space-y-2 text-xs text-slate-600">
               <div className="flex items-center justify-between">
-                <span>Rep Name (or "Rep")</span>
+                <span>Assoc.Rep</span>
                 <span className="text-red-600">* Required</span>
               </div>
               <div className="flex items-center justify-between">
-                <span>Part Name (or "Part")</span>
+                <span>Part Description</span>
                 <span className="text-red-600">* Required</span>
               </div>
               <div className="flex items-center justify-between">
-                <span>Date (or "Missing Date")</span>
+                <span>Deduction Date</span>
                 <span className="text-red-600">* Required</span>
               </div>
-              <div>Part Number (or "Part #") - Optional</div>
-              <div>Loaner (or "Set Name", "Loaner Set") - Optional</div>
-              <div>Etch ID (or "Etch") - Optional</div>
-              <div>Fine Amount (or "Fine") - Optional</div>
+              <div>Request # - Used for unique identifier</div>
+              <div>Part/Set # - Used for unique identifier</div>
+              <div>Set Name - Optional</div>
+              <div>Etch ID - Optional</div>
+              <div>Total Charge - Used for fine amount</div>
+              <div>Missing Qty - Optional</div>
             </div>
           </div>
 
