@@ -13,21 +13,11 @@ const REQUIRED_HEADERS = [
   "expected return date",
 ];
 
-const IGNORE_HEADERS = new Set([
-  "area",
-  "loaner id",
-  "consignment id",
-  "status",
-]);
-
+const IGNORE_HEADERS = new Set(["area", "loaner id", "consignment id", "status"]);
 const FINE_PER_DAY = 50;
 
 function normalizeHeader(h: string): string {
-  return (h || "")
-    .toString()
-    .trim()
-    .toLowerCase()
-    .replace(/\s+/g, " ");
+  return (h || "").toString().trim().toLowerCase().replace(/\s+/g, " ");
 }
 
 function cleanString(v: any): string {
@@ -65,6 +55,131 @@ function makeImportKey(setId: string, etchId: string, accountName: string, loane
   return `${setId}__${etchId}__${safeAccount}__${loanedISO}`.toLowerCase();
 }
 
+function sleep(ms: number) {
+  return new Promise((res) => setTimeout(res, ms));
+}
+
+async function importLoanersFromSheet(rows: RawRow[]) {
+  if (!Array.isArray(rows) || rows.length === 0) throw new Error("No rows found in upload.");
+
+  const normalizedRows = rows.map((r) => {
+    const out: Record<string, any> = {};
+    for (const k of Object.keys(r)) out[normalizeHeader(k)] = r[k];
+    return out;
+  });
+
+  const keys = new Set(Object.keys(normalizedRows[0] || {}));
+  const missingHeaders = REQUIRED_HEADERS.filter((h) => !keys.has(h));
+  if (missingHeaders.length) {
+    throw new Error(
+      `Upload missing required columns: ${missingHeaders.join(", ")}. Found: ${Array.from(keys).join(", ")}`
+    );
+  }
+
+  const now = new Date();
+  const errors: string[] = [];
+  const payload: any[] = [];
+
+  normalizedRows.forEach((r, idx) => {
+    const rowNum = idx + 2;
+
+    const setId = cleanString(r["set id"]);
+    const setName = cleanString(r["set name"]);
+    const fieldSalesRep = cleanString(r["current field sales name"]);
+    const assocRaw = cleanString(r["associate sales rep name"]);
+    const repName = assocRaw ? assocRaw : "None";
+    const accountName = cleanString(r["account name"]);
+    const etchId = cleanString(r["etch id"]);
+    const loanedDate = parseDate(r["loaned date"]);
+    const expectedReturnDate = parseDate(r["expected return date"]);
+
+    const missing: string[] = [];
+    if (!setId) missing.push("Set ID");
+    if (!setName) missing.push("Set Name");
+    if (!accountName) missing.push("Account Name");
+    if (!etchId) missing.push("Etch Id");
+    if (!loanedDate) missing.push("Loaned Date");
+    if (!expectedReturnDate) missing.push("Expected Return Date");
+    if (!fieldSalesRep) missing.push("Current Field Sales Name");
+
+    if (missing.length) {
+      errors.push(`Row ${rowNum}: missing ${missing.join(", ")}`);
+      return;
+    }
+
+    const daysUntilDue = daysDiff(now, expectedReturnDate!);
+    const isOverdue = daysUntilDue < 0;
+    const daysOverdue = isOverdue ? Math.abs(daysUntilDue) : 0;
+    const fineAmount = daysOverdue * FINE_PER_DAY;
+
+    const importKey = makeImportKey(setId, etchId, accountName, loanedDate!);
+
+    payload.push({
+      importKey,
+      setName,
+      etchId,
+      accountName,
+      repName,
+      expectedReturnDate,
+      fineAmount,
+      isOverdue,
+      setId,
+      fieldSalesRep,
+      loanedDate,
+      daysUntilDue,
+      daysOverdue,
+      finePerDay: FINE_PER_DAY,
+      lastImportedAt: now,
+    });
+  });
+
+  if (errors.length) {
+    throw new Error(
+      `Import blocked. Fix these:\n- ${errors.slice(0, 20).join("\n- ")}${
+        errors.length > 20 ? `\n...and ${errors.length - 20} more` : ""
+      }`
+    );
+  }
+
+  const Loaners = base44.asServiceRole.entities.Loaners;
+
+  let created = 0;
+  let updated = 0;
+
+  for (let i = 0; i < payload.length; i++) {
+    const rec = payload[i];
+
+    const existing = await Loaners.findFirst({
+      filter: { importKey: { eq: rec.importKey } },
+    });
+
+    if (existing?.id) {
+      await Loaners.update({
+        id: existing.id,
+        data: rec,
+      });
+      updated++;
+    } else {
+      await Loaners.create({
+        data: rec,
+      });
+      created++;
+    }
+
+    if (i % 10 === 0) await sleep(75);
+  }
+
+  return {
+    receivedRows: rows.length,
+    importedRows: payload.length,
+    created,
+    updated,
+    ignoredColumns: Array.from(IGNORE_HEADERS),
+    repFallback: 'Blank Associate Sales Rep Name → "None"',
+    fineRule: `$${FINE_PER_DAY}/day overdue`,
+  };
+}
+
 export default async function importMichiganLoanerReport(req: any, res: any) {
   try {
     const { fileBuffer } = req.body;
@@ -79,7 +194,6 @@ export default async function importMichiganLoanerReport(req: any, res: any) {
 
     const workbook = XLSX.read(buffer, { type: 'buffer' });
     
-    // Process all sheets
     const allRows: RawRow[] = [];
     for (const sheetName of workbook.SheetNames) {
       const worksheet = workbook.Sheets[sheetName];
@@ -87,138 +201,15 @@ export default async function importMichiganLoanerReport(req: any, res: any) {
       allRows.push(...sheetData);
     }
 
-    if (allRows.length === 0) {
-      return res.status(400).json({ error: 'No rows found in upload' });
-    }
-
-    // Normalize headers
-    const normalizedRows = allRows.map((r) => {
-      const out: Record<string, any> = {};
-      for (const key of Object.keys(r)) {
-        out[normalizeHeader(key)] = r[key];
-      }
-      return out;
-    });
-
-    // Validate required headers
-    const keys = new Set(Object.keys(normalizedRows[0] || {}));
-    const missingHeaders = REQUIRED_HEADERS.filter((h) => !keys.has(h));
-    if (missingHeaders.length) {
-      return res.status(400).json({
-        error: `Upload missing required columns: ${missingHeaders.join(", ")}. Found columns: ${Array.from(keys).join(", ")}`
-      });
-    }
-
-    const now = new Date();
-    const errors: string[] = [];
-    const payload: any[] = [];
-
-    normalizedRows.forEach((r, idx) => {
-      const rowNum = idx + 2;
-
-      const setId = cleanString(r["set id"]);
-      const setName = cleanString(r["set name"]);
-      const fieldSalesRep = cleanString(r["current field sales name"]);
-      const assocRaw = cleanString(r["associate sales rep name"]);
-      const repName = assocRaw || "None";
-      const accountName = cleanString(r["account name"]);
-      const etchId = cleanString(r["etch id"]);
-
-      const loanedDate = parseDate(r["loaned date"]);
-      const expectedReturnDate = parseDate(r["expected return date"]);
-
-      const missing: string[] = [];
-      if (!setId) missing.push("Set ID");
-      if (!setName) missing.push("Set Name");
-      if (!accountName) missing.push("Account Name");
-      if (!etchId) missing.push("Etch Id");
-      if (!loanedDate) missing.push("Loaned Date");
-      if (!expectedReturnDate) missing.push("Expected Return Date");
-      if (!fieldSalesRep) missing.push("Current Field Sales Name");
-
-      if (missing.length) {
-        errors.push(`Row ${rowNum}: missing ${missing.join(", ")}`);
-        return;
-      }
-
-      const daysUntilDue = daysDiff(now, expectedReturnDate!);
-      const isOverdue = daysUntilDue < 0;
-      const daysOverdue = isOverdue ? Math.abs(daysUntilDue) : 0;
-      const fineAmount = daysOverdue * FINE_PER_DAY;
-
-      const importKey = makeImportKey(setId, etchId, accountName, loanedDate!);
-
-      payload.push({
-        importKey,
-        setName,
-        etchId,
-        accountName,
-        repName,
-        expectedReturnDate: expectedReturnDate!.toISOString().split('T')[0],
-        fineAmount,
-        setId,
-        fieldSalesRep,
-        associateSalesRep: repName,
-        loanedDate: loanedDate!.toISOString().split('T')[0],
-        daysUntilDue,
-        daysOverdue,
-        isOverdue,
-        finePerDay: FINE_PER_DAY,
-        lastImportedAt: now.toISOString(),
-      });
-    });
-
-    if (errors.length) {
-      return res.status(400).json({
-        error: `Import blocked. Fix these issues:\n- ${errors.slice(0, 20).join("\n- ")}${
-          errors.length > 20 ? `\n...and ${errors.length - 20} more` : ""
-        }`
-      });
-    }
-
-    // Upsert in batches
-    const BATCH_SIZE = 25;
-    let created = 0;
-    let updated = 0;
-
-    for (let i = 0; i < payload.length; i += BATCH_SIZE) {
-      const batch = payload.slice(i, i + BATCH_SIZE);
-
-      for (const record of batch) {
-        try {
-          const existing = await base44.asServiceRole.entities.Loaners.filter(
-            { importKey: record.importKey },
-            '',
-            1
-          );
-
-          if (existing && existing.length > 0) {
-            await base44.asServiceRole.entities.Loaners.update(existing[0].id, record);
-            updated++;
-          } else {
-            await base44.asServiceRole.entities.Loaners.create(record);
-            created++;
-          }
-        } catch (error) {
-          errors.push(`Failed to upsert record with importKey ${record.importKey}: ${error instanceof Error ? error.message : String(error)}`);
-        }
-      }
-    }
-
+    const result = await importLoanersFromSheet(allRows);
+    
     return res.json({
-      success: errors.length === 0,
-      created,
-      updated,
-      total: payload.length,
-      receivedRows: allRows.length,
-      importedRows: created + updated,
-      ignoredColumns: Array.from(IGNORE_HEADERS),
-      repFallback: 'Blank Associate Sales Rep Name → "None"',
-      fineRule: `$${FINE_PER_DAY}/day overdue`,
-      errors: errors.length > 0 ? errors : undefined,
+      success: true,
+      ...result,
     });
   } catch (error) {
     return res.status(500).json({
+      success: false,
       error: error instanceof Error ? error.message : 'Unknown error',
     });
   }
