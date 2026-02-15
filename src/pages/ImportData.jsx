@@ -188,14 +188,20 @@ export default function ImportData() {
       const arrayBuffer = await file.arrayBuffer();
       const workbook = XLSX.read(arrayBuffer, { type: "array", cellDates: true });
       
-      const allRows = [];
-      for (const sheetName of workbook.SheetNames) {
-        const worksheet = workbook.Sheets[sheetName];
-        const sheetData = XLSX.utils.sheet_to_json(worksheet, { defval: "", raw: false });
-        allRows.push(...sheetData);
+      // Only import from "All Pending Return" sheet
+      const targetSheet = workbook.SheetNames.find(name => 
+        name.toLowerCase().includes('all pending') || 
+        name.toLowerCase().includes('pending return')
+      );
+      
+      if (!targetSheet) {
+        throw new Error('Could not find "All Pending Return" sheet in workbook');
       }
 
-      if (!allRows.length) throw new Error("No data found in file");
+      const worksheet = workbook.Sheets[targetSheet];
+      const allRows = XLSX.utils.sheet_to_json(worksheet, { defval: "", raw: false });
+
+      if (!allRows.length) throw new Error("No data found in 'All Pending Return' sheet");
 
       const normalizedRows = allRows.map((r) => {
         const out = {};
