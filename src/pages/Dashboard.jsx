@@ -4,7 +4,7 @@ import { AlertTriangle, Clock, DollarSign, Package, User } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import StatCard from "@/components/loaners/StatCard";
 import LoanerTable from "@/components/loaners/LoanerTable";
-import { computeLoanerFields, sortLoanersByRisk, formatCurrency } from "@/components/loaners/loanerUtils";
+import { computeLoanerData, sortLoaners, formatCurrency } from "@/components/loaners/loanerUtils";
 
 export default function Dashboard() {
   const { data: user } = useQuery({
@@ -21,36 +21,29 @@ export default function Dashboard() {
   });
 
   const { data: loaners = [], isLoading } = useQuery({
-    queryKey: ["loaners", appSetting?.last_import_batch_id],
+    queryKey: ["loaners"],
     queryFn: async () => {
-      if (!appSetting?.last_import_batch_id) return [];
-      const result = await base44.entities.Loaners.filter({ 
-        import_batch_id: appSetting.last_import_batch_id 
-      });
+      const result = await base44.entities.Loaners.list();
       return result;
-    },
-    enabled: !!appSetting?.last_import_batch_id
+    }
   });
 
   const userName = user?.full_name || "";
 
-  const computedLoaners = loaners.map(computeLoanerFields);
+  const computedLoaners = loaners.map(computeLoanerData);
   const overdueCount = computedLoaners.filter(l => l.risk_status === "Overdue").length;
   const dueSoonCount = computedLoaners.filter(l => l.risk_status === "Due Soon").length;
-  const totalFineExposure = computedLoaners.reduce((sum, l) => sum + (l.fine_exposure || 0), 0);
+  const totalFineExposure = computedLoaners.reduce((sum, l) => sum + (l.fineAmount || 0), 0);
   
-  // Show all loaners - no filters
-  const myLoaners = sortLoanersByRisk(
+  const myLoaners = sortLoaners(
     computedLoaners.filter(l => 
-      l.primary_rep?.toLowerCase() === userName.toLowerCase() ||
-      l.associate_rep?.toLowerCase() === userName.toLowerCase()
+      l.repName?.toLowerCase() === userName.toLowerCase()
     )
   );
   
-  const otherLoaners = sortLoanersByRisk(
+  const otherLoaners = sortLoaners(
     computedLoaners.filter(l => 
-      l.primary_rep?.toLowerCase() !== userName.toLowerCase() &&
-      l.associate_rep?.toLowerCase() !== userName.toLowerCase()
+      l.repName?.toLowerCase() !== userName.toLowerCase()
     )
   );
   

@@ -9,7 +9,6 @@ import {
   Calendar, 
   Building2, 
   User, 
-  Users, 
   Package,
   Clock,
   DollarSign,
@@ -21,7 +20,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
 import RiskBadge from "@/components/loaners/RiskBadge";
-import { computeLoanerFields, formatCurrency } from "@/components/loaners/loanerUtils";
+import { computeLoanerData, formatCurrency } from "@/components/loaners/loanerUtils";
 
 export default function LoanerDetail() {
   const urlParams = new URLSearchParams(window.location.search);
@@ -40,7 +39,7 @@ export default function LoanerDetail() {
     queryKey: ["loaner", loanerId],
     queryFn: async () => {
       const loaners = await base44.entities.Loaners.filter({ id: loanerId });
-      return loaners[0] ? computeLoanerFields(loaners[0]) : null;
+      return loaners[0] ? computeLoanerData(loaners[0]) : null;
     },
     enabled: !!loanerId,
   });
@@ -117,7 +116,6 @@ export default function LoanerDetail() {
   return (
     <div className="min-h-screen" style={{backgroundColor: '#FFFFFF'}}>
       <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
-        {/* Back Button */}
         <Link 
           to={createPageUrl("Dashboard")}
           className="inline-flex items-center gap-2 text-slate-600 hover:text-slate-900 mb-6 transition-colors"
@@ -126,7 +124,6 @@ export default function LoanerDetail() {
           <span className="text-sm font-medium">Back</span>
         </Link>
 
-        {/* Header Card */}
         <div className="rounded-xl py-6 px-6 mb-6" style={{
           backgroundColor: '#FFFFFF',
           border: '1px solid #EEEEEE',
@@ -134,16 +131,15 @@ export default function LoanerDetail() {
         }}>
           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
             <div>
-              <h1 className="text-2xl font-bold" style={{color: '#000000'}}>{loaner.set_name}</h1>
+              <h1 className="text-2xl font-bold" style={{color: '#000000'}}>{loaner.setName}</h1>
               <p className="mt-1">
                 <span style={{color: '#777777'}}>Etch ID: </span>
-                <span style={{color: '#222222', letterSpacing: '0.02em'}}>{loaner.etch_id || "(missing)"}</span>
+                <span style={{color: '#222222', letterSpacing: '0.02em'}}>{loaner.etchId || "(missing)"}</span>
               </p>
             </div>
             <RiskBadge riskStatus={loaner.risk_status} />
           </div>
 
-          {/* Risk Summary */}
           {loaner.risk_status !== "Safe" && (
             <div className={`mt-6 p-4 rounded-lg ${
               loaner.risk_status === "Overdue" 
@@ -159,13 +155,13 @@ export default function LoanerDetail() {
                     loaner.risk_status === "Overdue" ? "text-red-900" : "text-amber-900"
                   }`}>
                     {loaner.risk_status === "Overdue" 
-                      ? `${loaner.days_overdue} days overdue`
-                      : `Due in ${loaner.days_until_due} days`
+                      ? `${loaner.daysOverdue} days overdue`
+                      : `Due in ${loaner.daysUntilDue} days`
                     }
                   </p>
-                  {loaner.fine_exposure > 0 && (
+                  {loaner.fineAmount > 0 && (
                     <p className="text-sm text-red-700">
-                      Fine exposure: {formatCurrency(loaner.fine_exposure)}
+                      Fine exposure: {formatCurrency(loaner.fineAmount)}
                     </p>
                   )}
                 </div>
@@ -174,7 +170,6 @@ export default function LoanerDetail() {
           )}
         </div>
 
-        {/* Details Card */}
         <div className="rounded-xl divide-y divide-slate-100" style={{
           backgroundColor: '#FFFFFF',
           border: '1px solid #EEEEEE',
@@ -184,45 +179,13 @@ export default function LoanerDetail() {
             <h2 className="text-lg font-semibold mb-2" style={{color: '#111111'}}>Loaner Details</h2>
             
             <div className="grid sm:grid-cols-2 gap-x-6">
-              <DetailRow 
-                icon={Package} 
-                label="Etch ID" 
-                value={loaner.etch_id} 
-              />
-              <DetailRow 
-                icon={Building2} 
-                label="Account" 
-                value={loaner.account_name} 
-              />
-              <DetailRow 
-                icon={Package} 
-                label="Status" 
-                value={loaner.status} 
-              />
-              <DetailRow 
-                icon={User} 
-                label="Rep" 
-                value={loaner.associate_rep || loaner.primary_rep} 
-              />
-              <DetailRow 
-                icon={Users} 
-                label={loaner.associate_rep ? "Primary Rep" : "Associate Rep"} 
-                value={loaner.associate_rep ? loaner.primary_rep : loaner.associate_rep_display} 
-              />
-              <DetailRow 
-                icon={Calendar} 
-                label="Loaned Date" 
-                value={formatDate(loaner.loaned_date)} 
-              />
-              <DetailRow 
-                icon={Calendar} 
-                label="Expected Return" 
-                value={formatDate(loaner.expected_return_date)} 
-              />
+              <DetailRow icon={Package} label="Etch ID" value={loaner.etchId} />
+              <DetailRow icon={Building2} label="Account" value={loaner.accountName} />
+              <DetailRow icon={User} label="Rep" value={loaner.repName} />
+              <DetailRow icon={Calendar} label="Expected Return" value={formatDate(loaner.expectedReturnDate)} />
             </div>
           </div>
 
-          {/* Risk Metrics */}
           <div className="py-6 px-6">
             <h2 className="text-lg font-semibold mb-4" style={{color: '#111111'}}>Risk Metrics</h2>
             
@@ -230,42 +193,41 @@ export default function LoanerDetail() {
               <div className="bg-slate-50 rounded-lg p-4 text-center">
                 <Clock className="w-5 h-5 text-slate-400 mx-auto mb-2" />
                 <p className="text-2xl font-bold text-slate-900">
-                  {loaner.days_until_due !== null ? loaner.days_until_due : "—"}
+                  {loaner.daysUntilDue !== null && loaner.daysUntilDue !== undefined ? loaner.daysUntilDue : "—"}
                 </p>
                 <p className="text-xs text-slate-500">Days Until Due</p>
               </div>
               
               <div className={`rounded-lg p-4 text-center ${
-                loaner.days_overdue > 0 ? "bg-red-50" : "bg-slate-50"
+                loaner.daysOverdue > 0 ? "bg-red-50" : "bg-slate-50"
               }`}>
                 <AlertTriangle className={`w-5 h-5 mx-auto mb-2 ${
-                  loaner.days_overdue > 0 ? "text-red-500" : "text-slate-400"
+                  loaner.daysOverdue > 0 ? "text-red-500" : "text-slate-400"
                 }`} />
                 <p className={`text-2xl font-bold ${
-                  loaner.days_overdue > 0 ? "text-red-700" : "text-slate-900"
+                  loaner.daysOverdue > 0 ? "text-red-700" : "text-slate-900"
                 }`}>
-                  {loaner.days_overdue}
+                  {loaner.daysOverdue}
                 </p>
                 <p className="text-xs text-slate-500">Days Overdue</p>
               </div>
               
               <div className={`rounded-lg p-4 text-center col-span-2 ${
-                loaner.fine_exposure > 0 ? "bg-red-50" : "bg-slate-50"
+                loaner.fineAmount > 0 ? "bg-red-50" : "bg-slate-50"
               }`}>
                 <DollarSign className={`w-5 h-5 mx-auto mb-2 ${
-                  loaner.fine_exposure > 0 ? "text-red-500" : "text-slate-400"
+                  loaner.fineAmount > 0 ? "text-red-500" : "text-slate-400"
                 }`} />
                 <p className={`text-2xl font-bold ${
-                  loaner.fine_exposure > 0 ? "text-red-700" : "text-slate-900"
+                  loaner.fineAmount > 0 ? "text-red-700" : "text-slate-900"
                 }`}>
-                  {formatCurrency(loaner.fine_exposure)}
+                  {formatCurrency(loaner.fineAmount)}
                 </p>
                 <p className="text-xs text-slate-500">Fine Exposure ($50/day)</p>
               </div>
             </div>
           </div>
 
-          {/* Notes Section */}
           <div className="py-6 px-6">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">

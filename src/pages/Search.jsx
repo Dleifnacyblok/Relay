@@ -20,14 +20,12 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import LoanerTable from "@/components/loaners/LoanerTable";
-import { computeLoanerFields, sortLoanersByRisk } from "@/components/loaners/loanerUtils";
+import { computeLoanerData, sortLoaners } from "@/components/loaners/loanerUtils";
 
 export default function Search() {
   const [searchQuery, setSearchQuery] = useState("");
   const [riskFilter, setRiskFilter] = useState("all");
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [primaryRepFilter, setPrimaryRepFilter] = useState("all");
-  const [associateRepFilter, setAssociateRepFilter] = useState("all");
+  const [repFilter, setRepFilter] = useState("all");
   const [filtersOpen, setFiltersOpen] = useState(false);
 
   const { data: appSetting } = useQuery({
@@ -39,93 +37,53 @@ export default function Search() {
   });
 
   const { data: loaners = [], isLoading } = useQuery({
-    queryKey: ["loaners", appSetting?.last_import_batch_id],
+    queryKey: ["loaners"],
     queryFn: async () => {
-      if (!appSetting?.last_import_batch_id) return [];
-      const result = await base44.entities.Loaners.filter({ 
-        import_batch_id: appSetting.last_import_batch_id 
-      });
+      const result = await base44.entities.Loaners.list();
       return result;
-    },
-    enabled: !!appSetting?.last_import_batch_id
+    }
   });
 
   const computedLoaners = useMemo(() => 
-    loaners.map(computeLoanerFields), [loaners]
+    loaners.map(computeLoanerData), [loaners]
   );
 
-  // Get unique values for filter dropdowns
-  const uniqueStatuses = useMemo(() => 
-    [...new Set(computedLoaners.map(l => l.status).filter(Boolean))].sort(),
-    [computedLoaners]
-  );
-  
-  const uniquePrimaryReps = useMemo(() => 
-    [...new Set(computedLoaners.map(l => l.primary_rep).filter(Boolean))].sort(),
-    [computedLoaners]
-  );
-  
-  const uniqueAssociateReps = useMemo(() => 
-    [...new Set(computedLoaners.map(l => l.associate_rep).filter(Boolean))].sort(),
+  const uniqueReps = useMemo(() => 
+    [...new Set(computedLoaners.map(l => l.repName).filter(Boolean))].sort(),
     [computedLoaners]
   );
 
-  // Apply filters
   const filteredLoaners = useMemo(() => {
     let results = computedLoaners;
 
-    // Text search
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
       results = results.filter(l =>
-        l.set_name?.toLowerCase().includes(query) ||
-        l.set_id?.toLowerCase().includes(query) ||
-        l.primary_rep?.toLowerCase().includes(query) ||
-        l.associate_rep?.toLowerCase().includes(query) ||
-        l.account_name?.toLowerCase().includes(query)
+        l.setName?.toLowerCase().includes(query) ||
+        l.setId?.toLowerCase().includes(query) ||
+        l.repName?.toLowerCase().includes(query) ||
+        l.accountName?.toLowerCase().includes(query) ||
+        l.etchId?.toLowerCase().includes(query)
       );
     }
 
-    // Risk filter
     if (riskFilter !== "all") {
       results = results.filter(l => l.risk_status === riskFilter);
     }
 
-    // Status filter
-    if (statusFilter !== "all") {
-      results = results.filter(l => l.status === statusFilter);
+    if (repFilter !== "all") {
+      results = results.filter(l => l.repName === repFilter);
     }
 
-    // Primary rep filter
-    if (primaryRepFilter !== "all") {
-      results = results.filter(l => l.primary_rep === primaryRepFilter);
-    }
+    return sortLoaners(results);
+  }, [computedLoaners, searchQuery, riskFilter, repFilter]);
 
-    // Associate rep filter
-    if (associateRepFilter !== "all") {
-      results = results.filter(l => l.associate_rep === associateRepFilter);
-    }
-
-    // Sort: expected_return_date earliest first, then risk_status
-    return results.sort((a, b) => {
-      const dateA = a.expected_return_date ? new Date(a.expected_return_date) : new Date('9999-12-31');
-      const dateB = b.expected_return_date ? new Date(b.expected_return_date) : new Date('9999-12-31');
-      const dateDiff = dateA - dateB;
-      if (dateDiff !== 0) return dateDiff;
-      
-      const riskOrder = { "Overdue": 0, "Due Soon": 1, "Safe": 2 };
-      return riskOrder[a.risk_status] - riskOrder[b.risk_status];
-    });
-  }, [computedLoaners, searchQuery, riskFilter, statusFilter, primaryRepFilter, associateRepFilter]);
-
-  const activeFilterCount = [riskFilter, statusFilter, primaryRepFilter, associateRepFilter]
+  const activeFilterCount = [riskFilter, repFilter]
     .filter(f => f !== "all").length;
 
   const clearFilters = () => {
     setRiskFilter("all");
-    setStatusFilter("all");
-    setPrimaryRepFilter("all");
-    setAssociateRepFilter("all");
+    setRepFilter("all");
   };
 
   const FilterControls = () => (
@@ -146,44 +104,14 @@ export default function Search() {
       </div>
 
       <div>
-        <label className="text-sm font-medium text-slate-700 mb-1.5 block">Status</label>
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger>
-            <SelectValue placeholder="All statuses" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All</SelectItem>
-            {uniqueStatuses.map(status => (
-              <SelectItem key={status} value={status}>{status}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div>
-        <label className="text-sm font-medium text-slate-700 mb-1.5 block">Primary Rep</label>
-        <Select value={primaryRepFilter} onValueChange={setPrimaryRepFilter}>
+        <label className="text-sm font-medium text-slate-700 mb-1.5 block">Rep</label>
+        <Select value={repFilter} onValueChange={setRepFilter}>
           <SelectTrigger>
             <SelectValue placeholder="All reps" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All</SelectItem>
-            {uniquePrimaryReps.map(rep => (
-              <SelectItem key={rep} value={rep}>{rep}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div>
-        <label className="text-sm font-medium text-slate-700 mb-1.5 block">Associate Rep</label>
-        <Select value={associateRepFilter} onValueChange={setAssociateRepFilter}>
-          <SelectTrigger>
-            <SelectValue placeholder="All associates" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All</SelectItem>
-            {uniqueAssociateReps.map(rep => (
+            {uniqueReps.map(rep => (
               <SelectItem key={rep} value={rep}>{rep}</SelectItem>
             ))}
           </SelectContent>

@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { Package, User } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import LoanerTable from "@/components/loaners/LoanerTable";
-import { computeLoanerFields, sortLoanersByRisk } from "@/components/loaners/loanerUtils";
+import { computeLoanerData, sortLoaners } from "@/components/loaners/loanerUtils";
 
 export default function MyLoaners() {
   const { data: user, isLoading: userLoading } = useQuery({
@@ -20,27 +20,21 @@ export default function MyLoaners() {
   });
 
   const { data: loaners = [], isLoading: loanersLoading } = useQuery({
-    queryKey: ["loaners", appSetting?.last_import_batch_id],
+    queryKey: ["loaners"],
     queryFn: async () => {
-      if (!appSetting?.last_import_batch_id) return [];
-      const result = await base44.entities.Loaners.filter({ 
-        import_batch_id: appSetting.last_import_batch_id 
-      });
+      const result = await base44.entities.Loaners.list();
       return result;
-    },
-    enabled: !!appSetting?.last_import_batch_id
+    }
   });
 
   const isLoading = userLoading || loanersLoading;
   const userName = user?.full_name || "";
 
-  const computedLoaners = loaners.map(computeLoanerFields);
+  const computedLoaners = loaners.map(computeLoanerData);
   
-  // Filter by primary OR associate rep matching current user name
-  const myLoaners = sortLoanersByRisk(
+  const myLoaners = sortLoaners(
     computedLoaners.filter(l => 
-      l.primary_rep?.toLowerCase() === userName.toLowerCase() ||
-      l.associate_rep?.toLowerCase() === userName.toLowerCase()
+      l.repName?.toLowerCase() === userName.toLowerCase()
     )
   );
 

@@ -49,10 +49,10 @@ export default function LoanerTable({ loaners, compact = false }) {
             >
             <div className="flex items-start justify-between mb-3">
               <div className="flex-1 min-w-0">
-                <h3 className="font-bold truncate" style={{color: '#000000'}}>{loaner.set_name}</h3>
+                <h3 className="font-bold truncate" style={{color: '#000000'}}>{loaner.setName}</h3>
                 <p className="text-xs mt-0.5">
                   <span style={{color: '#777777'}}>Etch ID: </span>
-                  <span style={{color: '#222222', letterSpacing: '0.02em'}}>{loaner.etch_id || "(missing)"}</span>
+                  <span style={{color: '#222222', letterSpacing: '0.02em'}}>{loaner.etchId || "(missing)"}</span>
                 </p>
               </div>
               <RiskBadge riskStatus={loaner.risk_status} />
@@ -60,20 +60,20 @@ export default function LoanerTable({ loaners, compact = false }) {
             <div className="grid grid-cols-2 gap-2 text-sm">
               <div>
                 <span className="text-gray-500">Account:</span>
-                <p className="font-medium text-gray-900 truncate">{loaner.account_name || "—"}</p>
+                <p className="font-medium text-gray-900 truncate">{loaner.accountName || "—"}</p>
               </div>
               <div>
                 <span className="text-gray-500">Due:</span>
-                <p className="font-medium text-gray-900">{formatDate(loaner.expected_return_date)}</p>
+                <p className="font-medium text-gray-900">{formatDate(loaner.expectedReturnDate)}</p>
               </div>
               <div>
                 <span className="text-gray-500">Rep:</span>
-                <p className="font-medium text-gray-900 truncate">{loaner.associate_rep || loaner.primary_rep || "—"}</p>
+                <p className="font-medium text-gray-900 truncate">{loaner.repName || "—"}</p>
               </div>
-              {loaner.fine_exposure > 0 && (
+              {loaner.fineAmount > 0 && (
                 <div>
                   <span className="text-gray-500">Fine:</span>
-                  <p className="font-semibold text-red-600">{formatCurrency(loaner.fine_exposure)}</p>
+                  <p className="font-semibold text-red-600">{formatCurrency(loaner.fineAmount)}</p>
                 </div>
               )}
             </div>
@@ -88,8 +88,7 @@ export default function LoanerTable({ loaners, compact = false }) {
             <TableRow className="border-gray-200 hover:bg-transparent">
               <TableHead className="font-semibold text-gray-600">Set</TableHead>
               <TableHead className="font-semibold text-gray-600">Account</TableHead>
-              {!compact && <TableHead className="font-semibold text-gray-600">Reps</TableHead>}
-              <TableHead className="font-semibold text-gray-600">Status</TableHead>
+              {!compact && <TableHead className="font-semibold text-gray-600">Rep</TableHead>}
               <TableHead className="font-semibold text-gray-600">Expected Return</TableHead>
               <TableHead className="font-semibold text-gray-600">Risk</TableHead>
               <TableHead className="font-semibold text-gray-600 text-right">Fine</TableHead>
@@ -107,35 +106,27 @@ export default function LoanerTable({ loaners, compact = false }) {
                       to={createPageUrl("LoanerDetail") + `?id=${loaner.id}`}
                       className="hover:text-black"
                     >
-                      <div className="font-bold" style={{color: '#000000'}}>{loaner.set_name}</div>
+                      <div className="font-bold" style={{color: '#000000'}}>{loaner.setName}</div>
                       <div className="text-xs mt-0.5">
                         <span style={{color: '#777777'}}>Etch ID: </span>
-                        <span style={{color: '#222222', letterSpacing: '0.02em'}}>{loaner.etch_id || "(missing)"}</span>
+                        <span style={{color: '#222222', letterSpacing: '0.02em'}}>{loaner.etchId || "(missing)"}</span>
                       </div>
                     </Link>
                 </TableCell>
-                <TableCell className="text-gray-900">{loaner.account_name || "—"}</TableCell>
+                <TableCell className="text-gray-900">{loaner.accountName || "—"}</TableCell>
                 {!compact && (
                   <TableCell>
-                    <div className="text-gray-900">{loaner.associate_rep || loaner.primary_rep || "—"}</div>
-                    {loaner.associate_rep && loaner.primary_rep && (
-                      <div className="text-xs text-gray-500">{loaner.primary_rep}</div>
-                    )}
+                    <div className="text-gray-900">{loaner.repName || "—"}</div>
                   </TableCell>
                 )}
-                <TableCell>
-                  <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs font-medium border border-gray-200">
-                    {loaner.status || "—"}
-                  </span>
-                </TableCell>
-                <TableCell className="text-gray-900">{formatDate(loaner.expected_return_date)}</TableCell>
+                <TableCell className="text-gray-900">{formatDate(loaner.expectedReturnDate)}</TableCell>
                 <TableCell>
                   <RiskBadge riskStatus={loaner.risk_status} />
                 </TableCell>
                 <TableCell className="text-right">
-                  {loaner.fine_exposure > 0 ? (
+                  {loaner.fineAmount > 0 ? (
                     <span className="font-semibold text-red-600">
-                      {formatCurrency(loaner.fine_exposure)}
+                      {formatCurrency(loaner.fineAmount)}
                     </span>
                   ) : (
                     <span className="text-gray-400">—</span>
