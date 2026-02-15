@@ -15,6 +15,7 @@ import {
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import NotificationCenter from "@/components/notifications/NotificationCenter";
 
 export default function Layout({ children }) {
   const location = useLocation();
@@ -114,6 +115,7 @@ export default function Layout({ children }) {
                 </p>
                 <p className="text-xs text-gray-600 capitalize">{user?.role || "Rep"}</p>
               </div>
+              <NotificationCenter userName={user?.full_name} />
               <Button 
                 variant="ghost" 
                 size="icon"
@@ -184,10 +186,11 @@ export default function Layout({ children }) {
                 );
               })}
             </nav>
-            <div className="p-3" style={{borderTop: '1px solid rgba(0,0,0,0.06)'}}>
+            <div className="p-3 flex items-center gap-2" style={{borderTop: '1px solid rgba(0,0,0,0.06)'}}>
+              <NotificationCenter userName={user?.full_name} />
               <Button 
                 variant="ghost" 
-                className="w-full justify-start text-gray-600 hover:text-black hover:bg-gray-100"
+                className="flex-1 justify-start text-gray-600 hover:text-black hover:bg-gray-100"
                 onClick={handleLogout}
               >
                 <LogOut className="w-4 h-4 mr-3" />
