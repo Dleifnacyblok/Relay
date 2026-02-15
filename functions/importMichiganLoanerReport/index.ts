@@ -158,6 +158,7 @@ export default async function importMichiganLoanerReport(req: any, res: any) {
       'overdue': 'OVERDUE',
       'all pending': 'ALL_PENDING',
       'all_pending': 'ALL_PENDING',
+      'all_pending_return': 'ALL_PENDING',
     };
 
     for (const sheetName of workbook.SheetNames) {
