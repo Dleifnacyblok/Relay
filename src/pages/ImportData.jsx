@@ -182,6 +182,7 @@ export default function ImportData() {
     setError(null);
     setImportResult(null);
     setFailedRows([]);
+    setUploadProgress(null);
 
     try {
       const arrayBuffer = await file.arrayBuffer();
@@ -285,20 +286,32 @@ export default function ImportData() {
       let updated = 0;
       const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
-      for (let i = 0; i < payload.length; i++) {
-        const rec = payload[i];
-        const existingId = existingMap.get(rec.importKey);
+      // Process in smaller batches with delays
+      const BATCH_SIZE = 10;
+      for (let i = 0; i < payload.length; i += BATCH_SIZE) {
+        const batch = payload.slice(i, i + BATCH_SIZE);
         
-        if (existingId) {
-          await base44.entities.Loaners.update(existingId, rec);
-          updated++;
-        } else {
-          await base44.entities.Loaners.create(rec);
-          created++;
+        for (const rec of batch) {
+          const existingId = existingMap.get(rec.importKey);
+          
+          if (existingId) {
+            await base44.entities.Loaners.update(existingId, rec);
+            updated++;
+          } else {
+            await base44.entities.Loaners.create(rec);
+            created++;
+          }
+          
+          // Small delay between each record
+          await sleep(100);
         }
-
-        // Very aggressive throttling
-        if ((i + 1) % 2 === 0) await sleep(500);
+        
+        // Longer delay between batches
+        if (i + BATCH_SIZE < payload.length) {
+          await sleep(1000);
+        }
+        
+        setUploadProgress({ current: Math.min(i + BATCH_SIZE, payload.length), total: payload.length });
       }
 
       // Update AppSetting with import timestamp
@@ -438,10 +451,20 @@ export default function ImportData() {
       let created = 0;
       const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
-      for (let i = 0; i < payload.length; i++) {
-        await base44.entities.MissingPart.create(payload[i]);
-        created++;
-        if ((i + 1) % 2 === 0) await sleep(500);
+      // Process in smaller batches with delays
+      const BATCH_SIZE = 10;
+      for (let i = 0; i < payload.length; i += BATCH_SIZE) {
+        const batch = payload.slice(i, i + BATCH_SIZE);
+        
+        for (const rec of batch) {
+          await base44.entities.MissingPart.create(rec);
+          created++;
+          await sleep(100);
+        }
+        
+        if (i + BATCH_SIZE < payload.length) {
+          await sleep(1000);
+        }
       }
 
       setPartsImportResult({ success: true, created, total: created });
@@ -643,6 +666,22 @@ export default function ImportData() {
                 {importResult.updated > 0 && ` (${importResult.updated} updated)`}
               </AlertDescription>
             </Alert>
+          )}
+
+          {/* Import Progress */}
+          {uploadProgress && (
+            <div className="mt-4">
+              <div className="flex items-center justify-between text-sm text-slate-600 mb-2">
+                <span>Processing records...</span>
+                <span>{uploadProgress.current} / {uploadProgress.total}</span>
+              </div>
+              <div className="w-full bg-slate-200 rounded-full h-2">
+                <div 
+                  className="bg-indigo-600 h-2 rounded-full transition-all duration-300"
+                  style={{ width: `${(uploadProgress.current / uploadProgress.total) * 100}%` }}
+                />
+              </div>
+            </div>
           )}
 
           {/* Import Button */}
