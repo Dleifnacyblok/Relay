@@ -169,6 +169,8 @@ Deno.serve(async (req) => {
           repName = "John DeLeon";
         } else if (lowerAccount.includes("university of michigan") || lowerAccount.includes("va - ann arbor")) {
           repName = "Reid Butcher";
+        } else if (lowerAccount.includes("trinity health")) {
+          repName = "Graham Brown";
         }
       }
       const etchId = (r["etch id"] || "").toString().trim();
