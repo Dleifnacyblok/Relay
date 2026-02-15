@@ -231,7 +231,17 @@ export default function ImportData() {
         const setName = (r["set name"] || "").toString().trim();
         const fieldSalesRep = (r["current field sales name"] || "").toString().trim();
         const assocRaw = (r["associate sales rep name"] || "").toString().trim();
-        const repName = assocRaw || "None";
+        let repName = assocRaw || "None";
+
+        // Default reps for accounts without associate rep
+        if (!assocRaw) {
+          const lowerAccount = accountName.toLowerCase();
+          if (lowerAccount.includes("corewell wm beaumont")) {
+            repName = "Kristine Binge";
+          } else if (lowerAccount.includes("childrens hospital of mi")) {
+            repName = "Graham Brown";
+          }
+        }
         const accountName = (r["account name"] || "").toString().trim();
         const etchId = (r["etch id"] || "").toString().trim();
         const loanedDate = parseDate(r["loaned date"]);
