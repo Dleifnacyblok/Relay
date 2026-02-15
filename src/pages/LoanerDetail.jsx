@@ -21,6 +21,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
 import RiskBadge from "@/components/loaners/RiskBadge";
 import { computeLoanerData, formatCurrency } from "@/components/loaners/loanerUtils";
+import RequestLoanerDialog from "@/components/loaners/RequestLoanerDialog";
+import LoanerRequests from "@/components/loaners/LoanerRequests";
 
 export default function LoanerDetail() {
   const urlParams = new URLSearchParams(window.location.search);
@@ -137,7 +139,7 @@ export default function LoanerDetail() {
           border: '1px solid #EEEEEE',
           boxShadow: '0px 8px 24px rgba(0, 0, 0, 0.06)'
         }}>
-          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-4">
             <div>
               <h1 className="text-2xl font-bold" style={{color: '#000000'}}>{loaner.setName}</h1>
               <p className="mt-1">
@@ -147,6 +149,8 @@ export default function LoanerDetail() {
             </div>
             <RiskBadge riskStatus={loaner.risk_status} />
           </div>
+
+          <RequestLoanerDialog loaner={loaner} currentUser={user} />
 
           {loaner.risk_status !== "Safe" && (
             <div className={`mt-6 p-4 rounded-lg ${
@@ -178,7 +182,9 @@ export default function LoanerDetail() {
           )}
         </div>
 
-        <div className="rounded-xl divide-y divide-slate-100" style={{
+        <LoanerRequests loanerId={loanerId} />
+
+        <div className="rounded-xl divide-y divide-slate-100 mt-6" style={{
           backgroundColor: '#FFFFFF',
           border: '1px solid #EEEEEE',
           boxShadow: '0px 8px 24px rgba(0, 0, 0, 0.06)'

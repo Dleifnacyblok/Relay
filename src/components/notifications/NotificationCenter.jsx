@@ -126,6 +126,8 @@ export default function NotificationCenter({ userName }) {
         return <Clock className="w-4 h-4 text-amber-500" />;
       case "missing_part":
         return <Package className="w-4 h-4 text-orange-500" />;
+      case "loaner_request":
+        return <Bell className="w-4 h-4 text-blue-500" />;
       default:
         return <Bell className="w-4 h-4 text-slate-500" />;
     }
