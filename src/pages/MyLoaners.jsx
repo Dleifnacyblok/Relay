@@ -22,9 +22,14 @@ export default function MyLoaners() {
   const { data: loaners = [], isLoading: loanersLoading } = useQuery({
     queryKey: ["loaners"],
     queryFn: async () => {
-      const result = await base44.entities.Loaners.list();
+      const result await base44.entities.Loaners.list();
       return result;
     }
+  });
+
+  const { data: missingParts = [] } = useQuery({
+    queryKey: ["missingParts"],
+    queryFn: () => base44.entities.MissingPart.list(),
   });
 
   const isLoading = userLoading || loanersLoading;
@@ -40,7 +45,13 @@ export default function MyLoaners() {
 
   const overdueCount = myLoaners.filter(l => l.risk_status === "Overdue").length;
   const dueSoonCount = myLoaners.filter(l => l.risk_status === "Due Soon").length;
-  const totalFines = myLoaners.reduce((sum, l) => sum + (l.fineAmount || 0), 0);
+  const totalLoanerFines = myLoaners.reduce((sum, l) => sum + (l.fineAmount || 0), 0);
+  
+  const myParts = missingParts.filter(p => 
+    p.repName?.toLowerCase() === userName.toLowerCase() && p.status === "missing"
+  );
+  const totalPartFines = myParts.reduce((sum, p) => sum + (p.fineAmount || 0), 0);
+  const totalFines = totalLoanerFines + totalPartFines;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
@@ -83,6 +94,11 @@ export default function MyLoaners() {
               <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-red-50 border border-red-200 rounded-full text-sm">
                 <span className="text-slate-500">Total Fines:</span>
                 <span className="font-bold text-red-700">{formatCurrency(totalFines)}</span>
+                {myParts.length > 0 && (
+                  <span className="text-xs text-slate-500">
+                    ({myParts.length} missing parts)
+                  </span>
+                )}
               </div>
             )}
           </div>

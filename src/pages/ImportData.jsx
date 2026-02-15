@@ -25,6 +25,14 @@ export default function ImportData() {
   const [uploadProgress, setUploadProgress] = useState(null);
   const [failedRows, setFailedRows] = useState([]);
   
+  // Missing Parts state
+  const [partsFile, setPartsFile] = useState(null);
+  const [isUploadingParts, setIsUploadingParts] = useState(false);
+  const [partsImportResult, setPartsImportResult] = useState(null);
+  const [partsError, setPartsError] = useState(null);
+  const [showClearPartsDialog, setShowClearPartsDialog] = useState(false);
+  const [isClearingParts, setIsClearingParts] = useState(false);
+  
   const queryClient = useQueryClient();
 
   const { data: user } = useQuery({
@@ -35,6 +43,11 @@ export default function ImportData() {
   const { data: existingLoaners = [] } = useQuery({
     queryKey: ["loaners"],
     queryFn: () => base44.entities.Loaners.list(),
+  });
+
+  const { data: existingParts = [] } = useQuery({
+    queryKey: ["missingParts"],
+    queryFn: () => base44.entities.MissingPart.list(),
   });
 
   const isAdmin = user?.role === "admin";
@@ -317,6 +330,117 @@ export default function ImportData() {
     }
   };
 
+  const handleClearParts = async () => {
+    setIsClearingParts(true);
+    try {
+      for (const part of existingParts) {
+        await base44.entities.MissingPart.delete(part.id);
+      }
+      queryClient.invalidateQueries(["missingParts"]);
+      setShowClearPartsDialog(false);
+    } catch (err) {
+      setPartsError("Failed to clear parts data");
+    } finally {
+      setIsClearingParts(false);
+    }
+  };
+
+  const handlePartsFileChange = (e) => {
+    const selectedFile = e.target.files?.[0];
+    if (selectedFile) {
+      setPartsFile(selectedFile);
+      setPartsImportResult(null);
+      setPartsError(null);
+    }
+  };
+
+  const handleImportParts = async () => {
+    if (!partsFile || isUploadingParts) return;
+
+    setIsUploadingParts(true);
+    setPartsError(null);
+    setPartsImportResult(null);
+
+    try {
+      const arrayBuffer = await partsFile.arrayBuffer();
+      const workbook = XLSX.read(arrayBuffer, { type: "array", cellDates: true });
+      
+      const allRows = [];
+      for (const sheetName of workbook.SheetNames) {
+        const worksheet = workbook.Sheets[sheetName];
+        const sheetData = XLSX.utils.sheet_to_json(worksheet, { defval: "", raw: false });
+        allRows.push(...sheetData);
+      }
+
+      if (!allRows.length) throw new Error("No data found in file");
+
+      const normalizedRows = allRows.map((r) => {
+        const out = {};
+        for (const k of Object.keys(r)) {
+          out[k.toString().trim().toLowerCase().replace(/\s+/g, " ")] = r[k];
+        }
+        return out;
+      });
+
+      const payload = [];
+      const errors = [];
+
+      normalizedRows.forEach((r, idx) => {
+        const rowNum = idx + 2;
+        const repName = (r["rep name"] || r["rep"] || "").toString().trim();
+        const partName = (r["part name"] || r["part"] || "").toString().trim();
+        const partNumber = (r["part number"] || r["part #"] || "").toString().trim();
+        const loanerSetName = (r["loaner"] || r["set name"] || r["loaner set"] || "").toString().trim();
+        const etchId = (r["etch id"] || r["etch"] || "").toString().trim();
+        const missingDate = parseDate(r["date"] || r["missing date"]);
+        const fineAmount = parseFloat(r["fine"] || r["fine amount"] || 0);
+
+        const missing = [];
+        if (!repName) missing.push("Rep Name");
+        if (!partName) missing.push("Part Name");
+        if (!missingDate) missing.push("Date");
+
+        if (missing.length) {
+          errors.push({ row: rowNum, error: `Missing: ${missing.join(", ")}` });
+          return;
+        }
+
+        payload.push({
+          repName,
+          partName,
+          partNumber,
+          loanerSetName,
+          etchId,
+          missingDate: missingDate.toISOString().slice(0, 10),
+          fineAmount: fineAmount || 0,
+          status: "missing"
+        });
+      });
+
+      if (errors.length > 0) {
+        throw new Error(`${errors.length} rows have errors: ${errors.map(e => `Row ${e.row}: ${e.error}`).join("; ")}`);
+      }
+
+      let created = 0;
+      const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+      for (let i = 0; i < payload.length; i++) {
+        await base44.entities.MissingPart.create(payload[i]);
+        created++;
+        if ((i + 1) % 2 === 0) await sleep(500);
+      }
+
+      setPartsImportResult({ success: true, created, total: created });
+      queryClient.invalidateQueries({ queryKey: ["missingParts"] });
+      setPartsFile(null);
+
+    } catch (err) {
+      setPartsError(err.message || "Failed to import parts data");
+    } finally {
+      setIsUploadingParts(false);
+    }
+  };
+
   if (!isAdmin) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-4">
@@ -342,22 +466,42 @@ export default function ImportData() {
         </div>
 
         {/* Current Data Status */}
-        <div className="bg-white rounded-xl border border-slate-200 p-6 mb-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-slate-500">Current Records</p>
-              <p className="text-2xl font-bold text-slate-900">{existingLoaners.length}</p>
+        <div className="grid md:grid-cols-2 gap-4 mb-6">
+          <div className="bg-white rounded-xl border border-slate-200 p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-slate-500">Loaner Records</p>
+                <p className="text-2xl font-bold text-slate-900">{existingLoaners.length}</p>
+              </div>
+              {existingLoaners.length > 0 && (
+                <Button 
+                  variant="outline" 
+                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                  onClick={() => setShowClearDialog(true)}
+                >
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Clear
+                </Button>
+              )}
             </div>
-            {existingLoaners.length > 0 && (
-              <Button 
-                variant="outline" 
-                className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                onClick={() => setShowClearDialog(true)}
-              >
-                <Trash2 className="w-4 h-4 mr-2" />
-                Clear All
-              </Button>
-            )}
+          </div>
+          <div className="bg-white rounded-xl border border-slate-200 p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-slate-500">Missing Parts</p>
+                <p className="text-2xl font-bold text-slate-900">{existingParts.length}</p>
+              </div>
+              {existingParts.length > 0 && (
+                <Button 
+                  variant="outline" 
+                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                  onClick={() => setShowClearPartsDialog(true)}
+                >
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Clear
+                </Button>
+              )}
+            </div>
           </div>
         </div>
 
@@ -507,11 +651,105 @@ export default function ImportData() {
            </Button>
         </div>
 
+        {/* Missing Parts Upload */}
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6 mt-6">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="p-2.5 rounded-lg bg-orange-100">
+              <FileSpreadsheet className="w-5 h-5 text-orange-600" />
+            </div>
+            <div>
+              <h2 className="font-semibold text-slate-900">Upload Missing Parts</h2>
+              <p className="text-sm text-slate-500">Separate spreadsheet for missing parts</p>
+            </div>
+          </div>
+
+          <div className="bg-slate-50 rounded-lg p-4 mb-6">
+            <p className="text-sm font-medium text-slate-700 mb-2">Expected Columns:</p>
+            <div className="space-y-2 text-xs text-slate-600">
+              <div className="flex items-center justify-between">
+                <span>Rep Name (or "Rep")</span>
+                <span className="text-red-600">* Required</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span>Part Name (or "Part")</span>
+                <span className="text-red-600">* Required</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span>Date (or "Missing Date")</span>
+                <span className="text-red-600">* Required</span>
+              </div>
+              <div>Part Number (or "Part #") - Optional</div>
+              <div>Loaner (or "Set Name", "Loaner Set") - Optional</div>
+              <div>Etch ID (or "Etch") - Optional</div>
+              <div>Fine Amount (or "Fine") - Optional</div>
+            </div>
+          </div>
+
+          <div className="border-2 border-dashed border-slate-200 rounded-lg p-8 text-center hover:border-orange-300 transition-colors">
+            <Upload className="w-10 h-10 text-slate-400 mx-auto mb-4" />
+            <Input
+              type="file"
+              accept=".csv,.xlsx,.xls"
+              onChange={handlePartsFileChange}
+              className="hidden"
+              id="parts-file-upload"
+            />
+            <label 
+              htmlFor="parts-file-upload" 
+              className="cursor-pointer text-orange-600 hover:text-orange-700 font-medium"
+            >
+              Choose a file
+            </label>
+            <p className="text-sm text-slate-500 mt-2">or drag and drop</p>
+
+            {partsFile && (
+              <div className="mt-4 p-3 bg-slate-100 rounded-lg inline-flex items-center gap-2">
+                <FileSpreadsheet className="w-4 h-4 text-slate-500" />
+                <span className="text-sm font-medium text-slate-700">{partsFile.name}</span>
+              </div>
+            )}
+          </div>
+
+          {partsError && (
+            <Alert variant="destructive" className="mt-4">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{partsError}</AlertDescription>
+            </Alert>
+          )}
+
+          {partsImportResult?.success && (
+            <Alert className="mt-4 border-green-200 bg-green-50">
+              <CheckCircle className="h-4 w-4 text-green-600" />
+              <AlertDescription className="text-green-800">
+                Successfully imported {partsImportResult.total} missing parts
+              </AlertDescription>
+            </Alert>
+          )}
+
+          <Button 
+            className="w-full mt-6 h-11 bg-orange-600 hover:bg-orange-700"
+            onClick={handleImportParts}
+            disabled={!partsFile || isUploadingParts}
+          >
+            {isUploadingParts ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Importing...
+              </>
+            ) : (
+              <>
+                <Upload className="w-4 h-4 mr-2" />
+                Import Missing Parts
+              </>
+            )}
+          </Button>
+        </div>
+
         {/* Clear Confirmation Dialog */}
         <Dialog open={showClearDialog} onOpenChange={setShowClearDialog}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Clear All Data?</DialogTitle>
+              <DialogTitle>Clear All Loaners?</DialogTitle>
               <DialogDescription>
                 This will permanently delete all {existingLoaners.length} loaner records. 
                 This action cannot be undone.
@@ -527,6 +765,38 @@ export default function ImportData() {
                 disabled={isClearing}
               >
                 {isClearing ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Clearing...
+                  </>
+                ) : (
+                  "Clear All"
+                )}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Clear Parts Confirmation Dialog */}
+        <Dialog open={showClearPartsDialog} onOpenChange={setShowClearPartsDialog}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Clear All Missing Parts?</DialogTitle>
+              <DialogDescription>
+                This will permanently delete all {existingParts.length} missing part records. 
+                This action cannot be undone.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setShowClearPartsDialog(false)}>
+                Cancel
+              </Button>
+              <Button 
+                variant="destructive" 
+                onClick={handleClearParts}
+                disabled={isClearingParts}
+              >
+                {isClearingParts ? (
                   <>
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                     Clearing...
