@@ -107,6 +107,11 @@ const processSheet = (
       const normalizedKey = normalizeHeader(key);
       const mappedKey = mapFieldName(normalizedKey);
 
+      // Skip Area, Set ID, Loaner ID, Consignment ID
+      if (mappedKey === 'area' || mappedKey === 'setId' || mappedKey === 'loanerId' || mappedKey === 'consignmentId') {
+        continue;
+      }
+
       // Handle date fields
       if (mappedKey === 'loanedDate' || mappedKey === 'expectedReturnDate') {
         (record as any)[mappedKey] = parseDate(value);
@@ -117,11 +122,10 @@ const processSheet = (
       }
     }
 
-    // Generate upsertKey: loanerId + etchId + expectedReturnDate + bucket
-    const loanerId = record.loanerId || '';
+    // Generate upsertKey: etchId + expectedReturnDate + bucket
     const etchId = record.etchId || '';
     const expectedReturnDate = record.expectedReturnDate || '';
-    record.upsertKey = `${loanerId}|${etchId}|${expectedReturnDate}|${bucket}`;
+    record.upsertKey = `${etchId}|${expectedReturnDate}|${bucket}`;
 
     // Only include if upsertKey has at least some component
     if (record.upsertKey !== '|||' + bucket) {
