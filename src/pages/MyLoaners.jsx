@@ -1,11 +1,18 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
-import { Package, User } from "lucide-react";
+import { Package, User, Send } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import LoanerTable from "@/components/loaners/LoanerTable";
+import SendBackDialog from "@/components/sendback/SendBackDialog";
 import { computeLoanerData, sortLoaners, formatCurrency } from "@/components/loaners/loanerUtils";
 
 export default function MyLoaners() {
+  const [selectedIds, setSelectedIds] = useState([]);
+  const [showSendBack, setShowSendBack] = useState(false);
+
   const { data: user, isLoading: userLoading } = useQuery({
     queryKey: ["currentUser"],
     queryFn: () => base44.auth.me(),
@@ -39,9 +46,26 @@ export default function MyLoaners() {
   
   const myLoaners = sortLoaners(
     computedLoaners.filter(l => 
-      l.repName?.toLowerCase() === userName.toLowerCase()
+      l.repName?.toLowerCase() === userName.toLowerCase() &&
+      l.returnStatus !== "sent_back" && l.returnStatus !== "received"
     )
   );
+
+  const selectedLoaners = myLoaners.filter(l => selectedIds.includes(l.id));
+
+  const handleSelectAll = () => {
+    if (selectedIds.length === myLoaners.length) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(myLoaners.map(l => l.id));
+    }
+  };
+
+  const handleSelectOne = (id) => {
+    setSelectedIds(prev => 
+      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+    );
+  };
 
   const overdueCount = myLoaners.filter(l => l.risk_status === "Overdue").length;
   const dueSoonCount = myLoaners.filter(l => l.risk_status === "Due Soon").length;
@@ -51,7 +75,9 @@ export default function MyLoaners() {
   }, 0);
   
   const myParts = missingParts.filter(p => 
-    p.repName?.toLowerCase() === userName.toLowerCase() && p.status === "missing"
+    p.repName?.toLowerCase() === userName.toLowerCase() && 
+    p.status === "missing" &&
+    p.returnStatus !== "sent_back" && p.returnStatus !== "received"
   );
   const totalPartFines = myParts.reduce((sum, p) => sum + (p.fineAmount || 0), 0);
   const totalFines = totalLoanerFines + totalPartFines;
@@ -107,6 +133,32 @@ export default function MyLoaners() {
           </div>
         )}
 
+        {/* Actions Bar */}
+        {!isLoading && myLoaners.length > 0 && (
+          <div className="bg-white rounded-lg border border-slate-200 p-4 mb-4 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Checkbox
+                checked={selectedIds.length === myLoaners.length}
+                onCheckedChange={handleSelectAll}
+              />
+              <span className="text-sm text-slate-600">
+                {selectedIds.length > 0 
+                  ? `${selectedIds.length} selected`
+                  : "Select all"
+                }
+              </span>
+            </div>
+            <Button
+              disabled={selectedIds.length === 0}
+              onClick={() => setShowSendBack(true)}
+              className="gap-2"
+            >
+              <Send className="w-4 h-4" />
+              Send Back
+            </Button>
+          </div>
+        )}
+
         {/* Table */}
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
           {isLoading ? (
@@ -126,10 +178,24 @@ export default function MyLoaners() {
               </p>
             </div>
           ) : (
-            <LoanerTable loaners={myLoaners} />
+            <LoanerTable 
+              loaners={myLoaners}
+              selectable
+              selectedIds={selectedIds}
+              onSelectOne={handleSelectOne}
+            />
           )}
         </div>
       </div>
+
+      <SendBackDialog
+        open={showSendBack}
+        onOpenChange={setShowSendBack}
+        selectedLoaners={selectedLoaners}
+        selectedParts={[]}
+        userName={userName}
+        onSuccess={() => setSelectedIds([])}
+      />
     </div>
   );
 }

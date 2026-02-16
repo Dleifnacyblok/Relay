@@ -51,10 +51,11 @@ import AllLoanersUnfiltered from './pages/AllLoanersUnfiltered';
 import Dashboard from './pages/Dashboard';
 import ImportData from './pages/ImportData';
 import LoanerDetail from './pages/LoanerDetail';
+import MyAccount from './pages/MyAccount';
 import MyLoaners from './pages/MyLoaners';
 import MyMissingParts from './pages/MyMissingParts';
 import Search from './pages/Search';
-import MyAccount from './pages/MyAccount';
+import SendBackLog from './pages/SendBackLog';
 import __Layout from './Layout.jsx';
 
 
@@ -63,10 +64,11 @@ export const PAGES = {
     "Dashboard": Dashboard,
     "ImportData": ImportData,
     "LoanerDetail": LoanerDetail,
+    "MyAccount": MyAccount,
     "MyLoaners": MyLoaners,
     "MyMissingParts": MyMissingParts,
     "Search": Search,
-    "MyAccount": MyAccount,
+    "SendBackLog": SendBackLog,
 }
 
 export const pagesConfig = {

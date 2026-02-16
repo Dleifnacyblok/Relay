@@ -1,7 +1,11 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
-import { AlertCircle, Package } from "lucide-react";
+import { AlertCircle, Package, Send } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import SendBackDialog from "@/components/sendback/SendBackDialog";
 import { formatCurrency } from "@/components/loaners/loanerUtils";
 import { format, parseISO } from "date-fns";
 import {
@@ -15,6 +19,9 @@ import {
 import { Badge } from "@/components/ui/badge";
 
 export default function MyMissingParts() {
+  const [selectedIds, setSelectedIds] = useState([]);
+  const [showSendBack, setShowSendBack] = useState(false);
+
   const { data: user, isLoading: userLoading } = useQuery({
     queryKey: ["currentUser"],
     queryFn: () => base44.auth.me(),
@@ -29,8 +36,25 @@ export default function MyMissingParts() {
   const userName = user?.full_name || "";
 
   const myParts = missingParts.filter(p => 
-    p.repName?.toLowerCase() === userName.toLowerCase()
+    p.repName?.toLowerCase() === userName.toLowerCase() &&
+    p.returnStatus !== "sent_back" && p.returnStatus !== "received"
   );
+
+  const selectedParts = myParts.filter(p => selectedIds.includes(p.id));
+
+  const handleSelectAll = () => {
+    if (selectedIds.length === myParts.length) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(myParts.map(p => p.id));
+    }
+  };
+
+  const handleSelectOne = (id) => {
+    setSelectedIds(prev => 
+      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+    );
+  };
 
   const activeParts = myParts.filter(p => p.status === "missing");
   const totalFines = activeParts.reduce((sum, p) => sum + (p.fineAmount || 0), 0);
@@ -90,6 +114,32 @@ export default function MyMissingParts() {
           </div>
         )}
 
+        {/* Actions Bar */}
+        {!isLoading && myParts.length > 0 && (
+          <div className="bg-white rounded-lg border border-slate-200 p-4 mb-4 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Checkbox
+                checked={selectedIds.length === myParts.length}
+                onCheckedChange={handleSelectAll}
+              />
+              <span className="text-sm text-slate-600">
+                {selectedIds.length > 0 
+                  ? `${selectedIds.length} selected`
+                  : "Select all"
+                }
+              </span>
+            </div>
+            <Button
+              disabled={selectedIds.length === 0}
+              onClick={() => setShowSendBack(true)}
+              className="gap-2"
+            >
+              <Send className="w-4 h-4" />
+              Send Back
+            </Button>
+          </div>
+        )}
+
         {/* Table */}
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
           {isLoading ? (
@@ -122,7 +172,11 @@ export default function MyMissingParts() {
                       boxShadow: '0px 4px 16px rgba(0, 0, 0, 0.04)',
                     }}
                   >
-                    <div className="flex items-start justify-between mb-3">
+                    <div className="flex items-start gap-3 mb-3">
+                      <Checkbox
+                        checked={selectedIds.includes(part.id)}
+                        onCheckedChange={() => handleSelectOne(part.id)}
+                      />
                       <div className="flex-1 min-w-0">
                         <h3 className="font-bold text-gray-900">{part.partName}</h3>
                         {part.partNumber && (
@@ -172,6 +226,7 @@ export default function MyMissingParts() {
                 <Table>
                   <TableHeader>
                     <TableRow className="border-gray-200 hover:bg-transparent">
+                      <TableHead className="w-12"></TableHead>
                       <TableHead className="font-semibold text-gray-600">Part Name</TableHead>
                       <TableHead className="font-semibold text-gray-600">Part Number</TableHead>
                       <TableHead className="font-semibold text-gray-600">Loaner</TableHead>
@@ -188,6 +243,12 @@ export default function MyMissingParts() {
                         key={part.id} 
                         className="border-gray-200 hover:bg-gray-50 transition-colors"
                       >
+                        <TableCell>
+                          <Checkbox
+                            checked={selectedIds.includes(part.id)}
+                            onCheckedChange={() => handleSelectOne(part.id)}
+                          />
+                        </TableCell>
                         <TableCell className="font-medium text-gray-900">{part.partName}</TableCell>
                         <TableCell className="text-gray-600">{part.partNumber || "—"}</TableCell>
                         <TableCell className="text-gray-900">{part.loanerSetName || "—"}</TableCell>
@@ -217,6 +278,15 @@ export default function MyMissingParts() {
           )}
         </div>
       </div>
+
+      <SendBackDialog
+        open={showSendBack}
+        onOpenChange={setShowSendBack}
+        selectedLoaners={[]}
+        selectedParts={selectedParts}
+        userName={userName}
+        onSuccess={() => setSelectedIds([])}
+      />
     </div>
   );
 }
