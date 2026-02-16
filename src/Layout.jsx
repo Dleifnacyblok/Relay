@@ -90,7 +90,7 @@ export default function Layout({ children }) {
                   key={item.name}
                   to={createPageUrl(item.page)}
                   className={cn(
-                    "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all",
+                    "flex items-center gap-3 px-4 py-3.5 rounded-lg text-base font-medium transition-all",
                     active 
                       ? "bg-blue-50 text-black border border-blue-200" 
                       : "text-gray-600 hover:bg-gray-50 hover:text-black"
@@ -176,7 +176,7 @@ export default function Layout({ children }) {
                     to={createPageUrl(item.page)}
                     onClick={() => setMobileMenuOpen(false)}
                     className={cn(
-                      "flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium",
+                      "flex items-center gap-3 px-4 py-3.5 rounded-lg text-base font-medium",
                       active 
                         ? "bg-blue-50 text-black border border-blue-200" 
                         : "text-gray-600"
