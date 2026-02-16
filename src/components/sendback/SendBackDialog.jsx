@@ -13,12 +13,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Loader2, Package } from "lucide-react";
+import { Loader2, Package, Camera, X } from "lucide-react";
 import { toast } from "sonner";
 
 export default function SendBackDialog({ open, onOpenChange, selectedLoaners, selectedParts, userName, onSuccess }) {
   const [trackingNumber, setTrackingNumber] = useState("");
   const [notes, setNotes] = useState("");
+  const [photos, setPhotos] = useState([]);
+  const [uploading, setUploading] = useState(false);
   const queryClient = useQueryClient();
 
   const sendBackMutation = useMutation({
@@ -33,7 +35,8 @@ export default function SendBackDialog({ open, onOpenChange, selectedLoaners, se
         sentDate: new Date().toISOString().slice(0, 10),
         loanerIds,
         missingPartIds: partIds,
-        notes
+        notes,
+        photoUrls: photos
       });
 
       // Update loaner statuses
@@ -57,6 +60,7 @@ export default function SendBackDialog({ open, onOpenChange, selectedLoaners, se
       toast.success("Items marked as sent back");
       setTrackingNumber("");
       setNotes("");
+      setPhotos([]);
       onSuccess();
       onOpenChange(false);
     },
@@ -65,6 +69,31 @@ export default function SendBackDialog({ open, onOpenChange, selectedLoaners, se
       console.error(error);
     }
   });
+
+  const handlePhotoUpload = async (e) => {
+    const files = Array.from(e.target.files);
+    if (files.length === 0) return;
+
+    setUploading(true);
+    try {
+      const uploadedUrls = [];
+      for (const file of files) {
+        const { file_url } = await base44.integrations.Core.UploadFile({ file });
+        uploadedUrls.push(file_url);
+      }
+      setPhotos([...photos, ...uploadedUrls]);
+      toast.success(`${files.length} photo${files.length > 1 ? 's' : ''} uploaded`);
+    } catch (error) {
+      toast.error("Failed to upload photos");
+      console.error(error);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const removePhoto = (index) => {
+    setPhotos(photos.filter((_, i) => i !== index));
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -129,6 +158,68 @@ export default function SendBackDialog({ open, onOpenChange, selectedLoaners, se
                 placeholder="Add any additional details..."
                 rows={3}
               />
+            </div>
+
+            {/* Photos */}
+            <div className="space-y-2">
+              <Label>Photos (Optional)</Label>
+              <div className="space-y-3">
+                {photos.length > 0 && (
+                  <div className="grid grid-cols-3 gap-2">
+                    {photos.map((url, index) => (
+                      <div key={index} className="relative group">
+                        <img 
+                          src={url} 
+                          alt={`Photo ${index + 1}`}
+                          className="w-full h-20 object-cover rounded-lg border border-slate-200"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removePhoto(index)}
+                          className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <div>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    capture="environment"
+                    multiple
+                    onChange={handlePhotoUpload}
+                    className="hidden"
+                    id="photo-upload"
+                    disabled={uploading}
+                  />
+                  <label htmlFor="photo-upload">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="w-full"
+                      disabled={uploading}
+                      asChild
+                    >
+                      <span>
+                        {uploading ? (
+                          <>
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            Uploading...
+                          </>
+                        ) : (
+                          <>
+                            <Camera className="w-4 h-4 mr-2" />
+                            Take or Add Photo
+                          </>
+                        )}
+                      </span>
+                    </Button>
+                  </label>
+                </div>
+              </div>
             </div>
           </div>
 
