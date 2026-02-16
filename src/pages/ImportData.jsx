@@ -449,13 +449,18 @@ export default function ImportData() {
 
       normalizedRows.forEach((r, idx) => {
         const rowNum = idx + 2;
-        const repName = (r["assoc.rep"] || r["associate rep"] || r["assoc rep"] || r["rep name"] || "").toString().trim();
+        const repName = (r["assoc.rep"] || r["assoc. rep"] || r["associate rep"] || r["assoc rep"] || r["rep name"] || "").toString().trim();
         const partName = (r["part description"] || r["part name"] || r["part"] || "").toString().trim();
         const partNumber = (r["part/set #"] || r["part number"] || r["part #"] || "").toString().trim();
         const loanerSetName = (r["set name"] || r["loaner"] || r["loaner set"] || "").toString().trim();
         const etchId = (r["etch id"] || r["etch"] || "").toString().trim();
         const missingDate = parseDate(r["deduction date"] || r["date"] || r["missing date"]);
-        const fineAmount = parseFloat(r["total charge"] || r["charge per part"] || r["fine"] || r["fine amount"] || 0);
+
+        // Try multiple column name variations for charges
+        const chargeRaw = r["total charge"] || r["charge per part"] || r["fine"] || r["fine amount"] || r["charge"] || r["amount"] || "0";
+        const chargeStr = chargeRaw.toString().trim().replace(/[$,]/g, "");
+        const fineAmount = parseFloat(chargeStr) || 0;
+
         const requestNumber = (r["request #"] || r["request number"] || "").toString().trim();
         const partSetNumber = partNumber;
         const deductionDate = missingDate ? missingDate.toISOString().slice(0, 10) : null;
