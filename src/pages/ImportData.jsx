@@ -426,7 +426,7 @@ export default function ImportData() {
     try {
       const arrayBuffer = await partsFile.arrayBuffer();
       const workbook = XLSX.read(arrayBuffer, { type: "array", cellDates: true });
-      
+
       const allRows = [];
       for (const sheetName of workbook.SheetNames) {
         const worksheet = workbook.Sheets[sheetName];
@@ -471,7 +471,11 @@ export default function ImportData() {
           return;
         }
 
+        // Create unique key for upsert
+        const uniqueKey = `${requestNumber || 'none'}__${partSetNumber || 'none'}__${deductionDate || 'none'}__${repName}`.toLowerCase();
+
         payload.push({
+          uniqueKey,
           repName,
           partName,
           partNumber,
@@ -491,26 +495,48 @@ export default function ImportData() {
         throw new Error(`${errors.length} rows have errors: ${errors.map(e => `Row ${e.row}: ${e.error}`).join("; ")}`);
       }
 
+      // Fetch all existing parts and build lookup map
+      const allExisting = await base44.entities.MissingPart.list();
+      const existingMap = new Map();
+
+      allExisting.forEach(e => {
+        const key = `${e.requestNumber || 'none'}__${e.partSetNumber || 'none'}__${e.deductionDate || 'none'}__${e.repName}`.toLowerCase();
+        if (key && e.id) {
+          existingMap.set(key, e.id);
+        }
+      });
+
       let created = 0;
+      let updated = 0;
       const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
-      // Process in smaller batches with delays
-      const BATCH_SIZE = 10;
+      // Process in smaller batches with longer delays
+      const BATCH_SIZE = 5;
       for (let i = 0; i < payload.length; i += BATCH_SIZE) {
         const batch = payload.slice(i, i + BATCH_SIZE);
-        
+
         for (const rec of batch) {
-          await base44.entities.MissingPart.create(rec);
-          created++;
-          await sleep(100);
+          const existingId = existingMap.get(rec.uniqueKey);
+          const { uniqueKey, ...recordData } = rec;
+
+          if (existingId) {
+            await base44.entities.MissingPart.update(existingId, recordData);
+            updated++;
+          } else {
+            const newRecord = await base44.entities.MissingPart.create(recordData);
+            created++;
+            existingMap.set(rec.uniqueKey, newRecord.id);
+          }
+
+          await sleep(300);
         }
-        
+
         if (i + BATCH_SIZE < payload.length) {
-          await sleep(1000);
+          await sleep(2000);
         }
       }
 
-      setPartsImportResult({ success: true, created, total: created });
+      setPartsImportResult({ success: true, created, updated, total: created + updated });
       queryClient.invalidateQueries({ queryKey: ["missingParts"] });
       setPartsFile(null);
 
