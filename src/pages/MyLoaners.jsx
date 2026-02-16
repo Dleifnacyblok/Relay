@@ -119,15 +119,19 @@ export default function MyLoaners() {
                 <span className="font-semibold text-amber-700">{dueSoonCount} Due Soon</span>
               </div>
             )}
-            {totalFines > 0 && (
+            {totalLoanerFines > 0 && (
               <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-red-50 border border-red-200 rounded-full text-sm">
-                <span className="text-slate-500">Total Fines:</span>
-                <span className="font-bold text-red-700">{formatCurrency(totalFines)}</span>
-                {myParts.length > 0 && (
-                  <span className="text-xs text-slate-500">
-                    ({myParts.length} missing parts)
-                  </span>
-                )}
+                <span className="text-slate-500">Loaner Fines:</span>
+                <span className="font-bold text-red-700">{formatCurrency(totalLoanerFines)}</span>
+              </div>
+            )}
+            {totalPartFines > 0 && (
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-orange-50 border border-orange-200 rounded-full text-sm">
+                <span className="text-slate-500">Missing Parts Fines:</span>
+                <span className="font-bold text-orange-700">{formatCurrency(totalPartFines)}</span>
+                <span className="text-xs text-slate-500">
+                  ({myParts.length} parts)
+                </span>
               </div>
             )}
           </div>
