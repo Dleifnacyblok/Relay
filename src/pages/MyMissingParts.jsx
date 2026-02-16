@@ -156,12 +156,12 @@ export default function MyMissingParts() {
                         <span className="text-gray-500">Quantity:</span>
                         <p className="font-medium text-gray-900">{part.missingQuantity || 1}</p>
                       </div>
-                      {part.fineAmount > 0 && (
-                        <div>
-                          <span className="text-gray-500">Charge:</span>
-                          <p className="font-semibold text-red-600">{formatCurrency(part.fineAmount)}</p>
-                        </div>
-                      )}
+                      <div>
+                        <span className="text-gray-500">Charge:</span>
+                        <p className="font-semibold text-red-600">
+                          {part.fineAmount > 0 ? formatCurrency(part.fineAmount) : '$0'}
+                        </p>
+                      </div>
                     </div>
                   </div>
                 ))}
