@@ -30,11 +30,11 @@ export default function Layout({ children }) {
 
   const navigation = [
     { name: "Dashboard", page: "Dashboard", icon: LayoutDashboard },
+    { name: "Search", page: "Search", icon: Search },
     { name: "My Accounts", page: "MyAccount", icon: User },
     { name: "My Loaners", page: "MyLoaners", icon: User },
     { name: "My Missing Parts", page: "MyMissingParts", icon: AlertCircle },
     { name: "Track Log", page: "SendBackLog", icon: Upload },
-    { name: "Search", page: "Search", icon: Search },
     ...(isAdmin ? [{ name: "Import", page: "ImportData", icon: Upload }] : []),
   ];
 
