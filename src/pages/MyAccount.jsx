@@ -139,6 +139,9 @@ export default function MyAccount() {
                       {accountParts.length > 0 && (
                         <div>
                           <span className="font-medium">{accountParts.length}</span> missing part{accountParts.length !== 1 ? 's' : ''}
+                          {accountPartsFines > 0 && (
+                            <span className="text-red-600 font-medium ml-1">• {formatCurrency(accountPartsFines)} charge</span>
+                          )}
                         </div>
                       )}
                     </div>
