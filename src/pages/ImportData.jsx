@@ -368,7 +368,7 @@ export default function ImportData() {
         });
       }
 
-      setImportResult({ success: true, created, updated, total: created + updated });
+      setImportResult({ success: true, created, updated, skipped, total: created + updated + skipped });
       queryClient.invalidateQueries({ queryKey: ["loaners"] });
       queryClient.invalidateQueries({ queryKey: ["appSetting"] });
       setFile(null);
