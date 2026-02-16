@@ -69,9 +69,6 @@ export default function Dashboard() {
           <p className="text-xs font-light" style={{color: '#6B7280', letterSpacing: '0.15em', textTransform: 'uppercase', marginTop: '2px'}}>
             Loaner Operations
           </p>
-          <p className="text-xs font-light" style={{color: '#888888', opacity: 0.85, marginTop: '6px'}}>
-            Last imported • {appSetting?.last_imported_at ? new Date(appSetting.last_imported_at).toLocaleString() : 'Never'}
-          </p>
         </div>
 
         {/* Stats Cards */}
