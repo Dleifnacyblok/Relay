@@ -63,7 +63,7 @@ export default function SendBackLog() {
               <Clock className="w-5 h-5 text-green-600" />
             </div>
             <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
-              Send Back Log
+              Track Log
             </h1>
           </div>
           <p className="text-slate-500 ml-12">
@@ -94,7 +94,7 @@ export default function SendBackLog() {
               <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-slate-100 flex items-center justify-center">
                 <Package className="w-6 h-6 text-slate-400" />
               </div>
-              <p className="text-slate-600 font-medium">No send back records</p>
+              <p className="text-slate-600 font-medium">No tracking records</p>
               <p className="text-sm text-slate-500 mt-1">
                 Items you send back will appear here with tracking information
               </p>
