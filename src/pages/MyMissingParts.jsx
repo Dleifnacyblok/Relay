@@ -152,9 +152,13 @@ export default function MyMissingParts() {
                         <span className="text-gray-500">Date:</span>
                         <p className="font-medium text-gray-900">{formatDate(part.missingDate)}</p>
                       </div>
+                      <div>
+                        <span className="text-gray-500">Quantity:</span>
+                        <p className="font-medium text-gray-900">{part.missingQuantity || 1}</p>
+                      </div>
                       {part.fineAmount > 0 && (
                         <div>
-                          <span className="text-gray-500">Fine:</span>
+                          <span className="text-gray-500">Charge:</span>
                           <p className="font-semibold text-red-600">{formatCurrency(part.fineAmount)}</p>
                         </div>
                       )}
@@ -173,8 +177,9 @@ export default function MyMissingParts() {
                       <TableHead className="font-semibold text-gray-600">Loaner</TableHead>
                       <TableHead className="font-semibold text-gray-600">Etch ID</TableHead>
                       <TableHead className="font-semibold text-gray-600">Date Missing</TableHead>
+                      <TableHead className="font-semibold text-gray-600">Quantity</TableHead>
                       <TableHead className="font-semibold text-gray-600">Status</TableHead>
-                      <TableHead className="font-semibold text-gray-600 text-right">Fine</TableHead>
+                      <TableHead className="font-semibold text-gray-600 text-right">Charge</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -188,6 +193,7 @@ export default function MyMissingParts() {
                         <TableCell className="text-gray-900">{part.loanerSetName || "—"}</TableCell>
                         <TableCell className="text-gray-600">{part.etchId || "—"}</TableCell>
                         <TableCell className="text-gray-900">{formatDate(part.missingDate)}</TableCell>
+                        <TableCell className="text-gray-900">{part.missingQuantity || 1}</TableCell>
                         <TableCell>
                           <Badge className={statusColors[part.status] || statusColors.missing}>
                             {part.status}
