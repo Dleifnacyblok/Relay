@@ -230,6 +230,7 @@ export default function ImportData() {
         const setId = (r["set id"] || "").toString().trim();
         const setName = (r["set name"] || "").toString().trim();
         const fieldSalesRep = (r["current field sales name"] || "").toString().trim();
+        const accountName = (r["account name"] || "").toString().trim();
         const assocRaw = (r["associate sales rep name"] || "").toString().trim();
         let repName = assocRaw || "None";
 
@@ -242,7 +243,6 @@ export default function ImportData() {
             repName = "Graham Brown";
           }
         }
-        const accountName = (r["account name"] || "").toString().trim();
         const etchId = (r["etch id"] || "").toString().trim();
         const loanedDate = parseDate(r["loaned date"]);
         const expectedReturnDate = parseDate(r["expected return date"]);
