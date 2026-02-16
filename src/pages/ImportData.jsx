@@ -448,7 +448,7 @@ export default function ImportData() {
       const errors = [];
 
       // First, fetch all loaners to lookup field sales reps
-      const allLoaners = await base44.asServiceRole.entities.Loaners.list();
+      const allLoaners = await base44.entities.Loaners.list();
 
       normalizedRows.forEach((r, idx) => {
         const rowNum = idx + 2;
