@@ -845,7 +845,9 @@ export default function ImportData() {
             <Alert className="mt-4 border-green-200 bg-green-50">
               <CheckCircle className="h-4 w-4 text-green-600" />
               <AlertDescription className="text-green-800">
-                Successfully imported {partsImportResult.total} missing parts
+                Successfully processed {partsImportResult.total} missing parts
+                {partsImportResult.created > 0 && ` (${partsImportResult.created} created)`}
+                {partsImportResult.updated > 0 && ` (${partsImportResult.updated} updated)`}
               </AlertDescription>
             </Alert>
           )}
