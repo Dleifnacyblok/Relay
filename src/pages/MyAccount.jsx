@@ -100,10 +100,6 @@ export default function MyAccount() {
 
         {/* Accounts List */}
         <Card className="p-6 bg-white border-slate-200 mb-8">
-          <div className="flex items-center justify-end mb-4">
-            <span className="text-sm text-slate-500">{uniqueAccounts.length} accounts</span>
-          </div>
-          
           {uniqueAccounts.length === 0 ? (
             <p className="text-sm text-slate-500 text-center py-8">No accounts assigned</p>
           ) : (
