@@ -488,6 +488,14 @@ export default function ImportData() {
           }
         }
 
+        // Default rep for My Midmichigan account
+        if (!repName && loanerSetName) {
+          const lowerSetName = loanerSetName.toLowerCase();
+          if (lowerSetName.includes("my midmichigan") || lowerSetName.includes("midmichigan")) {
+            repName = "Jason Carter";
+          }
+        }
+
         const missing = [];
         if (!partName) missing.push("Part Description");
         if (!missingDate) missing.push("Deduction Date");
