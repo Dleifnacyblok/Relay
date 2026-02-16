@@ -470,6 +470,7 @@ export default function ImportData() {
         if (!repName) missing.push("Assoc.Rep");
         if (!partName) missing.push("Part Description");
         if (!missingDate) missing.push("Deduction Date");
+        if (!missingQuantity || missingQuantity < 1) missing.push("Missing Qty");
 
         if (missing.length) {
           errors.push({ row: rowNum, error: `Missing: ${missing.join(", ")}` });
@@ -805,12 +806,15 @@ export default function ImportData() {
                 <span>Deduction Date</span>
                 <span className="text-red-600">* Required</span>
               </div>
+              <div className="flex items-center justify-between">
+                <span>Missing Qty</span>
+                <span className="text-red-600">* Required</span>
+              </div>
               <div>Request # - Used for unique identifier</div>
               <div>Part/Set # - Used for unique identifier</div>
               <div>Set Name - Optional</div>
               <div>Etch ID - Optional</div>
               <div>Total Charge - Used for fine amount</div>
-              <div>Missing Qty - Optional</div>
             </div>
           </div>
 
