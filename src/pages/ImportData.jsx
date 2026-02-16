@@ -241,6 +241,8 @@ export default function ImportData() {
             repName = "Kristine Binge";
           } else if (lowerAccount.includes("childrens hospital of mi")) {
             repName = "Graham Brown";
+          } else if (lowerAccount.includes("my midmichigan") || lowerAccount.includes("midmichigan")) {
+            repName = "Jason Carter";
           }
         }
         const etchId = (r["etch id"] || "").toString().trim();
