@@ -93,10 +93,67 @@ export default function MyAccount() {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
-            My Account
+            My Accounts
           </h1>
           <p className="text-slate-500 mt-1">{user?.full_name}</p>
         </div>
+
+        {/* Accounts List */}
+        <Card className="p-6 bg-white border-slate-200 mb-8">
+          <div className="flex items-center gap-3 mb-4">
+            <MapPin className="w-5 h-5 text-slate-600" />
+            <h2 className="text-lg font-semibold text-slate-900">My Accounts</h2>
+            <span className="ml-auto text-sm text-slate-500">{uniqueAccounts.length} accounts</span>
+          </div>
+          
+          {uniqueAccounts.length === 0 ? (
+            <p className="text-sm text-slate-500 text-center py-8">No accounts assigned</p>
+          ) : (
+            <div className="grid gap-3">
+              {uniqueAccounts.map((account, idx) => {
+                const accountLoaners = loaners.filter(l => l.accountName === account);
+                const accountParts = missingParts.filter(p => {
+                  const loanerForPart = loaners.find(l => l.accountName === account && (l.setName === p.loanerSetName || l.etchId === p.etchId));
+                  return loanerForPart;
+                });
+                const accountOverdue = accountLoaners.filter(l => l.isOverdue).length;
+                const accountLoanerFines = accountLoaners.reduce((sum, l) => sum + (l.fineAmount || 0), 0);
+                const accountPartsFines = accountParts.reduce((sum, p) => sum + (p.fineAmount || 0), 0);
+                const accountTotalFines = accountLoanerFines + accountPartsFines;
+                
+                return (
+                  <div 
+                    key={idx}
+                    className="p-4 rounded-lg bg-slate-50 hover:bg-slate-100 transition-colors"
+                  >
+                    <div className="flex items-start justify-between mb-2">
+                      <p className="font-medium text-slate-900">{account}</p>
+                      {accountTotalFines > 0 && (
+                        <div className="text-right">
+                          <p className="text-lg font-bold text-red-600">{formatCurrency(accountTotalFines)}</p>
+                          <p className="text-xs text-slate-500">fines</p>
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex flex-wrap gap-4 text-sm text-slate-600">
+                      <div>
+                        <span className="font-medium">{accountLoaners.length}</span> loaner{accountLoaners.length !== 1 ? 's' : ''}
+                        {accountOverdue > 0 && (
+                          <span className="text-red-600 font-medium ml-1">• {accountOverdue} overdue</span>
+                        )}
+                      </div>
+                      {accountParts.length > 0 && (
+                        <div>
+                          <span className="font-medium">{accountParts.length}</span> missing part{accountParts.length !== 1 ? 's' : ''}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </Card>
 
         {/* Stats Grid */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
@@ -127,7 +184,7 @@ export default function MyAccount() {
         </div>
 
         {/* Financial Summary */}
-        <div className="grid gap-4 md:grid-cols-3 mb-8">
+        <div className="grid gap-4 md:grid-cols-3">
           <Card className="p-6 bg-white border-slate-200">
             <div className="flex items-center gap-3 mb-2">
               <DollarSign className="w-5 h-5 text-slate-600" />
@@ -150,52 +207,6 @@ export default function MyAccount() {
             <p className="text-3xl font-bold text-red-900">{formatCurrency(totalFines)}</p>
           </Card>
         </div>
-
-        {/* Accounts List */}
-        <Card className="p-6 bg-white border-slate-200">
-          <div className="flex items-center gap-3 mb-4">
-            <MapPin className="w-5 h-5 text-slate-600" />
-            <h2 className="text-lg font-semibold text-slate-900">My Accounts</h2>
-            <span className="ml-auto text-sm text-slate-500">{uniqueAccounts.length} accounts</span>
-          </div>
-          
-          {uniqueAccounts.length === 0 ? (
-            <p className="text-sm text-slate-500 text-center py-8">No accounts assigned</p>
-          ) : (
-            <div className="grid gap-2">
-              {uniqueAccounts.map((account, idx) => {
-                const accountLoaners = loaners.filter(l => l.accountName === account);
-                const accountOverdue = accountLoaners.filter(l => l.isOverdue).length;
-                const accountFines = accountLoaners.reduce((sum, l) => sum + (l.fineAmount || 0), 0);
-                
-                return (
-                  <div 
-                    key={idx}
-                    className="flex items-center justify-between p-4 rounded-lg bg-slate-50 hover:bg-slate-100 transition-colors"
-                  >
-                    <div>
-                      <p className="font-medium text-slate-900">{account}</p>
-                      <p className="text-sm text-slate-500">
-                        {accountLoaners.length} loaner{accountLoaners.length !== 1 ? 's' : ''}
-                        {accountOverdue > 0 && (
-                          <span className="text-red-600 font-medium ml-2">
-                            • {accountOverdue} overdue
-                          </span>
-                        )}
-                      </p>
-                    </div>
-                    {accountFines > 0 && (
-                      <div className="text-right">
-                        <p className="text-lg font-bold text-red-600">{formatCurrency(accountFines)}</p>
-                        <p className="text-xs text-slate-500">fines</p>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </Card>
       </div>
     </div>
   );
