@@ -54,6 +54,7 @@ import LoanerDetail from './pages/LoanerDetail';
 import MyLoaners from './pages/MyLoaners';
 import MyMissingParts from './pages/MyMissingParts';
 import Search from './pages/Search';
+import MyAccount from './pages/MyAccount';
 import __Layout from './Layout.jsx';
 
 
@@ -65,6 +66,7 @@ export const PAGES = {
     "MyLoaners": MyLoaners,
     "MyMissingParts": MyMissingParts,
     "Search": Search,
+    "MyAccount": MyAccount,
 }
 
 export const pagesConfig = {

@@ -30,6 +30,7 @@ export default function Layout({ children }) {
 
   const navigation = [
     { name: "Dashboard", page: "Dashboard", icon: LayoutDashboard },
+    { name: "My Account", page: "MyAccount", icon: User },
     { name: "My Loaners", page: "MyLoaners", icon: User },
     { name: "My Missing Parts", page: "MyMissingParts", icon: AlertCircle },
     { name: "Search", page: "Search", icon: Search },
