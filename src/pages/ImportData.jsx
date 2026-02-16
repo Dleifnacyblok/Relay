@@ -758,6 +758,7 @@ export default function ImportData() {
                 Successfully processed {importResult.total} records
                 {importResult.created > 0 && ` (${importResult.created} created)`}
                 {importResult.updated > 0 && ` (${importResult.updated} updated)`}
+                {importResult.skipped > 0 && ` (${importResult.skipped} skipped due to errors)`}
               </AlertDescription>
             </Alert>
           )}
