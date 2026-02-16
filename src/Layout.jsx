@@ -29,9 +29,9 @@ export default function Layout({ children }) {
   const isAdmin = user?.role === "admin";
 
   const navigation = [
-    { name: "Dashboard", page: "Dashboard", icon: LayoutDashboard },
+    { name: "ESC", page: "Dashboard", icon: LayoutDashboard },
     { name: "Search", page: "Search", icon: Search },
-    { name: "My Accounts", page: "MyAccount", icon: User },
+    { name: "Dashboard", page: "MyAccount", icon: User },
     { name: "My Loaners", page: "MyLoaners", icon: User },
     { name: "My Missing Parts", page: "MyMissingParts", icon: AlertCircle },
     { name: "Track Log", page: "SendBackLog", icon: Upload },
