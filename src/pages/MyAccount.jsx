@@ -100,10 +100,8 @@ export default function MyAccount() {
 
         {/* Accounts List */}
         <Card className="p-6 bg-white border-slate-200 mb-8">
-          <div className="flex items-center gap-3 mb-4">
-            <MapPin className="w-5 h-5 text-slate-600" />
-            <h2 className="text-lg font-semibold text-slate-900">My Accounts</h2>
-            <span className="ml-auto text-sm text-slate-500">{uniqueAccounts.length} accounts</span>
+          <div className="flex items-center justify-end mb-4">
+            <span className="text-sm text-slate-500">{uniqueAccounts.length} accounts</span>
           </div>
           
           {uniqueAccounts.length === 0 ? (
