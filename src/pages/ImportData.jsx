@@ -447,9 +447,12 @@ export default function ImportData() {
       const payload = [];
       const errors = [];
 
+      // First, fetch all loaners to lookup field sales reps
+      const allLoaners = await base44.asServiceRole.entities.Loaners.list();
+
       normalizedRows.forEach((r, idx) => {
         const rowNum = idx + 2;
-        const repName = (r["assoc.rep"] || r["assoc. rep"] || r["associate rep"] || r["assoc rep"] || r["rep name"] || "").toString().trim();
+        let repName = (r["assoc.rep"] || r["assoc. rep"] || r["associate rep"] || r["assoc rep"] || r["rep name"] || "").toString().trim();
         const partName = (r["part description"] || r["part name"] || r["part"] || "").toString().trim();
         const partNumber = (r["part/set #"] || r["part number"] || r["part #"] || "").toString().trim();
         const loanerSetName = (r["set name"] || r["loaner"] || r["loaner set"] || "").toString().trim();
@@ -466,8 +469,18 @@ export default function ImportData() {
         const deductionDate = missingDate ? missingDate.toISOString().slice(0, 10) : null;
         const missingQuantity = parseInt(r["missing qty"] || r["quantity"] || 1) || 1;
 
+        // If no associate rep, try to find field sales rep from matching loaner
+        if (!repName && (loanerSetName || etchId)) {
+          const matchingLoaner = allLoaners.find(l => 
+            (loanerSetName && l.setName === loanerSetName) || 
+            (etchId && l.etchId === etchId)
+          );
+          if (matchingLoaner) {
+            repName = matchingLoaner.fieldSalesRep || matchingLoaner.repName || "";
+          }
+        }
+
         const missing = [];
-        if (!repName) missing.push("Assoc.Rep");
         if (!partName) missing.push("Part Description");
         if (!missingDate) missing.push("Deduction Date");
         if (!missingQuantity || missingQuantity < 1) missing.push("Missing Qty");
@@ -794,10 +807,7 @@ export default function ImportData() {
           <div className="bg-slate-50 rounded-lg p-4 mb-6">
             <p className="text-sm font-medium text-slate-700 mb-2">Expected Columns:</p>
             <div className="space-y-2 text-xs text-slate-600">
-              <div className="flex items-center justify-between">
-                <span>Assoc.Rep</span>
-                <span className="text-red-600">* Required</span>
-              </div>
+              <div>Assoc.Rep - Will use Field Sales Rep if missing</div>
               <div className="flex items-center justify-between">
                 <span>Part Description</span>
                 <span className="text-red-600">* Required</span>
@@ -812,8 +822,8 @@ export default function ImportData() {
               </div>
               <div>Request # - Used for unique identifier</div>
               <div>Part/Set # - Used for unique identifier</div>
-              <div>Set Name - Optional</div>
-              <div>Etch ID - Optional</div>
+              <div>Set Name - Used to find loaner's field rep</div>
+              <div>Etch ID - Used to find loaner's field rep</div>
               <div>Total Charge - Used for fine amount</div>
             </div>
           </div>
