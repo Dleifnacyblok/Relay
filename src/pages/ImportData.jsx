@@ -311,8 +311,8 @@ export default function ImportData() {
       let updated = 0;
       const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
-      // Process in smaller batches with delays
-      const BATCH_SIZE = 10;
+      // Process in smaller batches with longer delays to avoid rate limits
+      const BATCH_SIZE = 3;
       for (let i = 0; i < payload.length; i += BATCH_SIZE) {
         const batch = payload.slice(i, i + BATCH_SIZE);
         
@@ -325,25 +325,44 @@ export default function ImportData() {
             existingId = existingBySetAccount.get(fallbackKey);
           }
           
-          if (existingId) {
-            await base44.entities.Loaners.update(existingId, rec);
-            updated++;
-          } else {
-            const newRecord = await base44.entities.Loaners.create(rec);
-            created++;
-            // Update maps with new record to prevent duplicates within same import
-            existingMap.set(rec.importKey, newRecord.id);
-            const fallbackKey = `${rec.setId}__${rec.accountName}`.toLowerCase();
-            existingBySetAccount.set(fallbackKey, newRecord.id);
+          try {
+            if (existingId) {
+              await base44.entities.Loaners.update(existingId, rec);
+              updated++;
+            } else {
+              const newRecord = await base44.entities.Loaners.create(rec);
+              created++;
+              // Update maps with new record to prevent duplicates within same import
+              existingMap.set(rec.importKey, newRecord.id);
+              const fallbackKey = `${rec.setId}__${rec.accountName}`.toLowerCase();
+              existingBySetAccount.set(fallbackKey, newRecord.id);
+            }
+          } catch (err) {
+            // Retry once after delay if rate limited
+            if (err.message?.includes('rate limit') || err.status === 429) {
+              await sleep(3000);
+              if (existingId) {
+                await base44.entities.Loaners.update(existingId, rec);
+                updated++;
+              } else {
+                const newRecord = await base44.entities.Loaners.create(rec);
+                created++;
+                existingMap.set(rec.importKey, newRecord.id);
+                const fallbackKey = `${rec.setId}__${rec.accountName}`.toLowerCase();
+                existingBySetAccount.set(fallbackKey, newRecord.id);
+              }
+            } else {
+              throw err;
+            }
           }
           
-          // Small delay between each record
-          await sleep(100);
+          // Longer delay between each record
+          await sleep(400);
         }
         
-        // Longer delay between batches
+        // Much longer delay between batches
         if (i + BATCH_SIZE < payload.length) {
-          await sleep(1000);
+          await sleep(2000);
         }
         
         setUploadProgress({ current: Math.min(i + BATCH_SIZE, payload.length), total: payload.length });
