@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
-import { AlertCircle, Package, Send } from "lucide-react";
+import { AlertCircle, Package, Send, Edit2, Trash2 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -17,10 +17,35 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 export default function MyMissingParts() {
   const [selectedIds, setSelectedIds] = useState([]);
   const [showSendBack, setShowSendBack] = useState(false);
+  const [editingPart, setEditingPart] = useState(null);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [partToDelete, setPartToDelete] = useState(null);
+  const queryClient = useQueryClient();
 
   const { data: user, isLoading: userLoading } = useQuery({
     queryKey: ["currentUser"],
@@ -72,6 +97,53 @@ export default function MyMissingParts() {
     missing: "bg-red-100 text-red-800 border-red-200",
     found: "bg-green-100 text-green-800 border-green-200",
     paid: "bg-blue-100 text-blue-800 border-blue-200"
+  };
+
+  const updatePartMutation = useMutation({
+    mutationFn: ({ id, data }) => base44.entities.MissingPart.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries(["missingParts"]);
+      setShowEditDialog(false);
+      setEditingPart(null);
+    },
+  });
+
+  const deletePartMutation = useMutation({
+    mutationFn: (id) => base44.entities.MissingPart.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries(["missingParts"]);
+      setShowDeleteDialog(false);
+      setPartToDelete(null);
+    },
+  });
+
+  const handleEdit = (part) => {
+    setEditingPart({ ...part });
+    setShowEditDialog(true);
+  };
+
+  const handleDelete = (part) => {
+    setPartToDelete(part);
+    setShowDeleteDialog(true);
+  };
+
+  const handleSaveEdit = () => {
+    if (!editingPart) return;
+    updatePartMutation.mutate({
+      id: editingPart.id,
+      data: {
+        partName: editingPart.partName,
+        partNumber: editingPart.partNumber,
+        missingQuantity: editingPart.missingQuantity,
+        fineAmount: editingPart.fineAmount,
+        status: editingPart.status,
+      },
+    });
+  };
+
+  const confirmDelete = () => {
+    if (!partToDelete) return;
+    deletePartMutation.mutate(partToDelete.id);
   };
 
   return (
@@ -235,6 +307,7 @@ export default function MyMissingParts() {
                       <TableHead className="font-semibold text-gray-600">Quantity</TableHead>
                       <TableHead className="font-semibold text-gray-600">Status</TableHead>
                       <TableHead className="font-semibold text-gray-600 text-right">Charge</TableHead>
+                      <TableHead className="font-semibold text-gray-600 text-right">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -269,6 +342,25 @@ export default function MyMissingParts() {
                             <span className="text-gray-400">—</span>
                           )}
                         </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex items-center justify-end gap-2">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleEdit(part)}
+                            >
+                              <Edit2 className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDelete(part)}
+                              className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -287,6 +379,92 @@ export default function MyMissingParts() {
         userName={userName}
         onSuccess={() => setSelectedIds([])}
       />
+
+      {/* Edit Dialog */}
+      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Missing Part</DialogTitle>
+            <DialogDescription>Update the details of this missing part</DialogDescription>
+          </DialogHeader>
+          {editingPart && (
+            <div className="space-y-4 py-4">
+              <div>
+                <Label>Part Name</Label>
+                <Input
+                  value={editingPart.partName}
+                  onChange={(e) => setEditingPart({ ...editingPart, partName: e.target.value })}
+                />
+              </div>
+              <div>
+                <Label>Part Number</Label>
+                <Input
+                  value={editingPart.partNumber || ""}
+                  onChange={(e) => setEditingPart({ ...editingPart, partNumber: e.target.value })}
+                />
+              </div>
+              <div>
+                <Label>Quantity</Label>
+                <Input
+                  type="number"
+                  value={editingPart.missingQuantity || 1}
+                  onChange={(e) => setEditingPart({ ...editingPart, missingQuantity: parseInt(e.target.value) || 1 })}
+                />
+              </div>
+              <div>
+                <Label>Fine Amount ($)</Label>
+                <Input
+                  type="number"
+                  value={editingPart.fineAmount || 0}
+                  onChange={(e) => setEditingPart({ ...editingPart, fineAmount: parseFloat(e.target.value) || 0 })}
+                />
+              </div>
+              <div>
+                <Label>Status</Label>
+                <select
+                  value={editingPart.status}
+                  onChange={(e) => setEditingPart({ ...editingPart, status: e.target.value })}
+                  className="w-full px-3 py-2 border border-slate-200 rounded-lg"
+                >
+                  <option value="missing">Missing</option>
+                  <option value="found">Found</option>
+                  <option value="paid">Paid</option>
+                </select>
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowEditDialog(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleSaveEdit} disabled={updatePartMutation.isPending}>
+              {updatePartMutation.isPending ? "Saving..." : "Save Changes"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Missing Part?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete "{partToDelete?.partName}"? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDelete}
+              className="bg-red-600 hover:bg-red-700"
+              disabled={deletePartMutation.isPending}
+            >
+              {deletePartMutation.isPending ? "Deleting..." : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
