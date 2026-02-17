@@ -13,12 +13,13 @@ Deno.serve(async (req) => {
     const allParts = await base44.asServiceRole.entities.MissingPart.list();
     const zeroFeeParts = allParts.filter(part => !part.fineAmount || part.fineAmount === 0);
 
-    // Delete them
-    const deletePromises = zeroFeeParts.map(part => 
-      base44.asServiceRole.entities.MissingPart.delete(part.id)
-    );
+    // Delete them one by one with delays to avoid rate limits
+    const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
     
-    await Promise.all(deletePromises);
+    for (const part of zeroFeeParts) {
+      await base44.asServiceRole.entities.MissingPart.delete(part.id);
+      await sleep(500); // Half second delay between deletions
+    }
 
     return Response.json({
       success: true,
