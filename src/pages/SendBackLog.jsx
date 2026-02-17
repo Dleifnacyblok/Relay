@@ -1,12 +1,23 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
-import { Package, Clock } from "lucide-react";
+import { Package, Clock, Image as ImageIcon } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format, parseISO } from "date-fns";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 export default function SendBackLog() {
+  const [selectedPhotos, setSelectedPhotos] = useState([]);
+  const [showPhotosDialog, setShowPhotosDialog] = useState(false);
+
   const { data: user, isLoading: userLoading } = useQuery({
     queryKey: ["currentUser"],
     queryFn: () => base44.auth.me(),
@@ -52,6 +63,11 @@ export default function SendBackLog() {
   const sortedLogs = [...logs].sort((a, b) => 
     new Date(b.sentDate) - new Date(a.sentDate)
   );
+
+  const handleViewPhotos = (photoUrls) => {
+    setSelectedPhotos(photoUrls);
+    setShowPhotosDialog(true);
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
@@ -158,10 +174,45 @@ export default function SendBackLog() {
                     <p className="text-sm text-slate-600">{log.notes}</p>
                   </div>
                 )}
+
+                {/* Photos */}
+                {log.photoUrls && log.photoUrls.length > 0 && (
+                  <div className="mt-4">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleViewPhotos(log.photoUrls)}
+                      className="gap-2"
+                    >
+                      <ImageIcon className="w-4 h-4" />
+                      View Photos ({log.photoUrls.length})
+                    </Button>
+                  </div>
+                )}
               </Card>
             ))
           )}
         </div>
+
+        {/* Photos Dialog */}
+        <Dialog open={showPhotosDialog} onOpenChange={setShowPhotosDialog}>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Shipment Photos</DialogTitle>
+            </DialogHeader>
+            <div className="grid gap-4 mt-4">
+              {selectedPhotos.map((url, idx) => (
+                <div key={idx} className="bg-slate-50 rounded-lg overflow-hidden">
+                  <img 
+                    src={url} 
+                    alt={`Shipment photo ${idx + 1}`}
+                    className="w-full h-auto"
+                  />
+                </div>
+              ))}
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
