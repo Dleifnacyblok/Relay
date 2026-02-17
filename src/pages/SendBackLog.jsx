@@ -55,9 +55,13 @@ export default function SendBackLog() {
     return loaner?.setName || "Unknown Loaner";
   };
 
-  const getPartName = (partId) => {
+  const getPartInfo = (partId) => {
     const part = allParts.find(p => p.id === partId);
-    return part?.partName || "Unknown Part";
+    if (!part) return { name: "Unknown Part", quantity: 1 };
+    return {
+      name: part.partName,
+      quantity: part.missingQuantity || 1
+    };
   };
 
   const sortedLogs = [...logs].sort((a, b) => 
@@ -157,11 +161,14 @@ export default function SendBackLog() {
                         Missing Parts ({log.missingPartIds.length})
                       </p>
                       <div className="bg-slate-50 rounded-lg p-3 space-y-1">
-                        {log.missingPartIds.map((partId, idx) => (
-                          <div key={idx} className="text-sm text-slate-600">
-                            • {getPartName(partId)}
-                          </div>
-                        ))}
+                        {log.missingPartIds.map((partId, idx) => {
+                          const partInfo = getPartInfo(partId);
+                          return (
+                            <div key={idx} className="text-sm text-slate-600">
+                              • {partInfo.name} <span className="text-slate-500">(Qty: {partInfo.quantity})</span>
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
                   )}
