@@ -50,9 +50,13 @@ export default function SendBackLog() {
     }
   };
 
-  const getLoanerName = (loanerId) => {
+  const getLoanerInfo = (loanerId) => {
     const loaner = allLoaners.find(l => l.id === loanerId);
-    return loaner?.setName || "Unknown Loaner";
+    if (!loaner) return { name: "Unknown Loaner", etchId: null };
+    return {
+      name: loaner.setName,
+      etchId: loaner.etchId
+    };
   };
 
   const getPartInfo = (partId) => {
@@ -146,11 +150,14 @@ export default function SendBackLog() {
                         Loaners ({log.loanerIds.length})
                       </p>
                       <div className="bg-slate-50 rounded-lg p-3 space-y-1">
-                        {log.loanerIds.map((loanerId, idx) => (
-                          <div key={idx} className="text-sm text-slate-600">
-                            • {getLoanerName(loanerId)}
-                          </div>
-                        ))}
+                        {log.loanerIds.map((loanerId, idx) => {
+                          const loanerInfo = getLoanerInfo(loanerId);
+                          return (
+                            <div key={idx} className="text-sm text-slate-600">
+                              • {loanerInfo.name} {loanerInfo.etchId && <span className="text-slate-500">(Etch: {loanerInfo.etchId})</span>}
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
                   )}
