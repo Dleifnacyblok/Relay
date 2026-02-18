@@ -245,6 +245,8 @@ export default function ImportData() {
             repName = "John DeLeon / Jason Carter";
           } else if (lowerAccount.includes("henry ford macomb")) {
             repName = "Joshua Raptis";
+          } else if (lowerAccount.includes("mclaren bay region")) {
+            repName = "John DeLeon / Michael Pugh";
           } else if (lowerAccount.includes("va - ann arbor") || lowerAccount.includes("va ann arbor")) {
             repName = "Zachary Kuta";
           } else if (lowerAccount.includes("university of michigan")) {
