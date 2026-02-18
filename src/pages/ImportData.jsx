@@ -247,6 +247,8 @@ export default function ImportData() {
             repName = "Joshua Raptis";
           } else if (lowerAccount.includes("va - ann arbor") || lowerAccount.includes("va ann arbor")) {
             repName = "Zachary Kuta";
+          } else if (lowerAccount.includes("university of michigan")) {
+            repName = "Zachary Kuta";
           }
         }
         const etchId = (r["etch id"] || "").toString().trim();
