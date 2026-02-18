@@ -241,8 +241,8 @@ export default function ImportData() {
             repName = "Kristine Binge";
           } else if (lowerAccount.includes("childrens hospital of mi")) {
             repName = "Graham Brown";
-          } else if (lowerAccount.includes("my midmichigan") || lowerAccount.includes("midmichigan")) {
-            repName = "Jason Carter";
+          } else if (lowerAccount.includes("mymichigan medical center") || lowerAccount.includes("my midmichigan") || lowerAccount.includes("midmichigan")) {
+            repName = "John DeLeon / Jason Carter";
           } else if (lowerAccount.includes("henry ford macomb")) {
             repName = "Joshua Raptis";
           } else if (lowerAccount.includes("va - ann arbor") || lowerAccount.includes("va ann arbor")) {
