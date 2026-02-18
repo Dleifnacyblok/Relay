@@ -245,6 +245,8 @@ export default function ImportData() {
             repName = "Jason Carter";
           } else if (lowerAccount.includes("henry ford macomb")) {
             repName = "Joshua Raptis";
+          } else if (lowerAccount.includes("va - ann arbor") || lowerAccount.includes("va ann arbor")) {
+            repName = "Zachary Kuta";
           }
         }
         const etchId = (r["etch id"] || "").toString().trim();
