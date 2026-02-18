@@ -243,6 +243,8 @@ export default function ImportData() {
               repName = "Graham Brown";
             } else if (lowerAccount.includes("trinity health ann arbor")) {
               repName = "Graham Brown";
+            } else if (lowerAccount.includes("chelsea community hospital")) {
+              repName = "Graham Brown";
           } else if (lowerAccount.includes("mymichigan medical center") || lowerAccount.includes("my midmichigan") || lowerAccount.includes("midmichigan")) {
             repName = "John DeLeon / Jason Carter";
           } else if (lowerAccount.includes("henry ford macomb")) {
