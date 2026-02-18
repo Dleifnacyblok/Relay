@@ -243,6 +243,8 @@ export default function ImportData() {
             repName = "Graham Brown";
           } else if (lowerAccount.includes("my midmichigan") || lowerAccount.includes("midmichigan")) {
             repName = "Jason Carter";
+          } else if (lowerAccount.includes("henry ford macomb")) {
+            repName = "Joshua Raptis";
           }
         }
         const etchId = (r["etch id"] || "").toString().trim();
