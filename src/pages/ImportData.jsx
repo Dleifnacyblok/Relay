@@ -240,7 +240,9 @@ export default function ImportData() {
           if (lowerAccount.includes("corewell wm beaumont")) {
             repName = "Kristine Binge";
           } else if (lowerAccount.includes("childrens hospital of mi")) {
-            repName = "Graham Brown";
+              repName = "Graham Brown";
+            } else if (lowerAccount.includes("trinity health ann arbor")) {
+              repName = "Graham Brown";
           } else if (lowerAccount.includes("mymichigan medical center") || lowerAccount.includes("my midmichigan") || lowerAccount.includes("midmichigan")) {
             repName = "John DeLeon / Jason Carter";
           } else if (lowerAccount.includes("henry ford macomb")) {
