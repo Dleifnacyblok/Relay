@@ -13,6 +13,7 @@ import { computeLoanerData, sortLoaners, formatCurrency } from "@/components/loa
 export default function MyLoaners() {
   const [selectedIds, setSelectedIds] = useState([]);
   const [showSendBack, setShowSendBack] = useState(false);
+  const [showTransfer, setShowTransfer] = useState(false);
 
   const { data: user, isLoading: userLoading } = useQuery({
     queryKey: ["currentUser"],
