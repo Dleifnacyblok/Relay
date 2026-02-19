@@ -10,30 +10,66 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ArrowRightLeft, Loader2 } from "lucide-react";
+import { ArrowRightLeft, Loader2, Camera, X } from "lucide-react";
+import { format } from "date-fns";
 
-export default function TransferDialog({ open, onOpenChange, selectedLoaners, onSuccess }) {
+export default function TransferDialog({ open, onOpenChange, selectedLoaners, userName, onSuccess }) {
   const [transferTo, setTransferTo] = useState("");
   const [requestNumber, setRequestNumber] = useState("");
   const [isOverdue, setIsOverdue] = useState(null);
+  const [photos, setPhotos] = useState([]);
+  const [uploadingPhotos, setUploadingPhotos] = useState(false);
   const queryClient = useQueryClient();
+
+  const handlePhotoChange = async (e) => {
+    const files = Array.from(e.target.files);
+    if (!files.length) return;
+    setUploadingPhotos(true);
+    const urls = [];
+    for (const file of files) {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      urls.push(file_url);
+    }
+    setPhotos(prev => [...prev, ...urls]);
+    setUploadingPhotos(false);
+  };
+
+  const removePhoto = (idx) => setPhotos(prev => prev.filter((_, i) => i !== idx));
 
   const transferMutation = useMutation({
     mutationFn: async () => {
+      const today = format(new Date(), "yyyy-MM-dd");
+
+      // Update each loaner's status
       for (const loaner of selectedLoaners) {
         await base44.entities.Loaners.update(loaner.id, {
           returnStatus: "transferred",
           notes: `Transferred to: ${transferTo} | Request #: ${requestNumber} | Overdue: ${isOverdue ? "Yes" : "No"}${loaner.notes ? ` | ${loaner.notes}` : ""}`,
         });
       }
+
+      // Create a SendBackLog entry
+      await base44.entities.SendBackLog.create({
+        repName: userName,
+        sentDate: today,
+        loanerIds: selectedLoaners.map(l => l.id),
+        logType: "transfer",
+        transferTo,
+        requestNumber,
+        isOverdue,
+        photoUrls: photos,
+        notes: `Transfer to: ${transferTo} | Request #: ${requestNumber} | Overdue: ${isOverdue ? "Yes" : "No"}`,
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["loaners"] });
+      queryClient.invalidateQueries({ queryKey: ["sendBackLogs"] });
       onOpenChange(false);
       onSuccess?.();
       setTransferTo("");
       setRequestNumber("");
       setIsOverdue(null);
+      setPhotos([]);
     },
   });
 
@@ -41,7 +77,7 @@ export default function TransferDialog({ open, onOpenChange, selectedLoaners, on
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <ArrowRightLeft className="w-5 h-5 text-blue-600" />
@@ -103,6 +139,43 @@ export default function TransferDialog({ open, onOpenChange, selectedLoaners, on
               </button>
             </div>
           </div>
+
+          {/* Photos */}
+          <div className="space-y-2">
+            <Label>4. Add Photos (optional)</Label>
+            <label className="flex items-center gap-2 cursor-pointer border-2 border-dashed border-slate-200 rounded-lg p-3 hover:border-slate-300 transition-colors">
+              {uploadingPhotos ? (
+                <Loader2 className="w-4 h-4 animate-spin text-slate-400" />
+              ) : (
+                <Camera className="w-4 h-4 text-slate-400" />
+              )}
+              <span className="text-sm text-slate-500">{uploadingPhotos ? "Uploading..." : "Take or upload photos"}</span>
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                capture="environment"
+                className="hidden"
+                onChange={handlePhotoChange}
+                disabled={uploadingPhotos}
+              />
+            </label>
+            {photos.length > 0 && (
+              <div className="grid grid-cols-3 gap-2">
+                {photos.map((url, idx) => (
+                  <div key={idx} className="relative">
+                    <img src={url} alt="" className="w-full h-20 object-cover rounded-lg" />
+                    <button
+                      onClick={() => removePhoto(idx)}
+                      className="absolute top-1 right-1 bg-black/60 rounded-full p-0.5"
+                    >
+                      <X className="w-3 h-3 text-white" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="flex gap-3 mt-6">
@@ -111,7 +184,7 @@ export default function TransferDialog({ open, onOpenChange, selectedLoaners, on
           </Button>
           <Button
             className="flex-1 bg-blue-600 hover:bg-blue-700"
-            disabled={!canSubmit || transferMutation.isPending}
+            disabled={!canSubmit || transferMutation.isPending || uploadingPhotos}
             onClick={() => transferMutation.mutate()}
           >
             {transferMutation.isPending ? (
