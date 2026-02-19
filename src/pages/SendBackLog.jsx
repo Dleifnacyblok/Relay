@@ -78,51 +78,65 @@ export default function SendBackLog() {
     setShowPhotosDialog(true);
   };
 
-  const handleShare = (log) => {
-    // Get account name from first loaner
+  const handleShare = async (log) => {
     let accountName = "";
     if (log.loanerIds && log.loanerIds.length > 0) {
       const firstLoaner = allLoaners.find(l => l.id === log.loanerIds[0]);
       if (firstLoaner) accountName = firstLoaner.accountName;
     }
 
-    const subject = `Shipment Details: ${log.trackingNumber}`;
-    let body = `Rep Name: ${log.repName}\n`;
+    const lines = [];
 
     if (log.loanerIds && log.loanerIds.length > 0) {
-      // Loaner share: Rep Name - Account - Date - Tracking - Loaners
-      body += `Account: ${accountName || "N/A"}\n`;
-      body += `Date: ${formatDate(log.sentDate)}\n`;
-      body += `Tracking Number: ${log.trackingNumber}\n\n`;
-      body += `Loaners:\n`;
+      lines.push(`Rep Name: ${log.repName}`);
+      lines.push(`Account: ${accountName || "N/A"}`);
+      lines.push(`Date: ${formatDate(log.sentDate)}`);
+      lines.push(`Tracking Number: ${log.trackingNumber}`);
+      lines.push("");
+      lines.push("Loaners:");
       log.loanerIds.forEach(loanerId => {
         const info = getLoanerInfo(loanerId);
-        body += `- ${info.name} (Etch ID: ${info.etchId || "N/A"})\n`;
+        lines.push(`- ${info.name} (Etch ID: ${info.etchId || "N/A"})`);
       });
-    }
-
-    if (log.missingPartIds && log.missingPartIds.length > 0) {
-      // Missing parts share: Rep Name - Date - Tracking - Parts with qty and loaner source
-      body += `Date: ${formatDate(log.sentDate)}\n`;
-      body += `Tracking Number: ${log.trackingNumber}\n\n`;
-      body += `Missing Parts:\n`;
+    } else if (log.missingPartIds && log.missingPartIds.length > 0) {
+      lines.push(`Rep Name: ${log.repName}`);
+      lines.push(`Date: ${formatDate(log.sentDate)}`);
+      lines.push(`Tracking Number: ${log.trackingNumber}`);
+      lines.push("");
+      lines.push("Missing Parts:");
       log.missingPartIds.forEach(partId => {
         const part = allParts.find(p => p.id === partId);
         if (part) {
-          body += `- Part: ${part.partName}\n`;
-          body += `  Part Number: ${part.partNumber || "N/A"}\n`;
-          body += `  Qty: ${part.missingQuantity || 1}\n`;
-          body += `  From Loaner Set: ${part.loanerSetName || "N/A"}\n`;
+          lines.push(`- Part: ${part.partName}`);
+          lines.push(`  Part Number: ${part.partNumber || "N/A"}`);
+          lines.push(`  Qty: ${part.missingQuantity || 1}`);
+          lines.push(`  From Loaner Set: ${part.loanerSetName || "N/A"}`);
         }
       });
     }
 
     if (log.notes) {
-      body += `\nNotes: ${log.notes}`;
+      lines.push("");
+      lines.push(`Notes: ${log.notes}`);
     }
 
-    const fullText = `Subject: ${subject}\n\n${body}`;
-    navigator.clipboard.writeText(fullText);
+    const text = lines.join("\n");
+
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch {
+      // Fallback for mobile browsers
+      const el = document.createElement("textarea");
+      el.value = text;
+      el.style.position = "fixed";
+      el.style.opacity = "0";
+      document.body.appendChild(el);
+      el.focus();
+      el.select();
+      document.execCommand("copy");
+      document.body.removeChild(el);
+    }
+
     setCopiedLogId(log.id);
     setTimeout(() => setCopiedLogId(null), 3000);
   };
