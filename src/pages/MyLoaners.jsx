@@ -204,6 +204,13 @@ export default function MyLoaners() {
         userName={userName}
         onSuccess={() => setSelectedIds([])}
       />
+
+      <TransferDialog
+        open={showTransfer}
+        onOpenChange={setShowTransfer}
+        selectedLoaners={selectedLoaners}
+        onSuccess={() => setSelectedIds([])}
+      />
     </div>
   );
 }
