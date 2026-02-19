@@ -145,14 +145,25 @@ export default function MyLoaners() {
                 }
               </span>
             </div>
-            <Button
-              disabled={selectedIds.length === 0}
-              onClick={() => setShowSendBack(true)}
-              className="gap-2"
-            >
-              <Send className="w-4 h-4" />
-              Send Back
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                disabled={selectedIds.length === 0}
+                onClick={() => setShowTransfer(true)}
+                className="gap-2"
+              >
+                <ArrowRightLeft className="w-4 h-4" />
+                Transfer
+              </Button>
+              <Button
+                disabled={selectedIds.length === 0}
+                onClick={() => setShowSendBack(true)}
+                className="gap-2"
+              >
+                <Send className="w-4 h-4" />
+                Send Back
+              </Button>
+            </div>
           </div>
         )}
 
