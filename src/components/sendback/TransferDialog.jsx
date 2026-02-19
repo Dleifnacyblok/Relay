@@ -20,6 +20,7 @@ export default function TransferDialog({ open, onOpenChange, selectedLoaners, us
   const [isOverdue, setIsOverdue] = useState(null);
   const [photos, setPhotos] = useState([]);
   const [uploadingPhotos, setUploadingPhotos] = useState(false);
+  const [notes, setNotes] = useState("");
   const queryClient = useQueryClient();
 
   const handlePhotoChange = async (e) => {
