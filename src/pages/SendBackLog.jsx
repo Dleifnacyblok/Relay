@@ -121,7 +121,10 @@ export default function SendBackLog() {
       body += `\nNotes: ${log.notes}`;
     }
 
-    window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    const fullText = `Subject: ${subject}\n\n${body}`;
+    navigator.clipboard.writeText(fullText);
+    setCopiedLogId(log.id);
+    setTimeout(() => setCopiedLogId(null), 3000);
   };
 
   return (
