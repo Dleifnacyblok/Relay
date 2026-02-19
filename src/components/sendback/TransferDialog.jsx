@@ -41,27 +41,53 @@ export default function TransferDialog({ open, onOpenChange, selectedLoaners, us
   const transferMutation = useMutation({
     mutationFn: async () => {
       const today = format(new Date(), "yyyy-MM-dd");
+      const loanerIds = selectedLoaners.map(l => l.id);
+      const notesStr = `Transfer to: ${transferTo} | Request #: ${requestNumber} | Overdue: ${isOverdue ? "Yes" : "No"}${notes ? ` | Notes: ${notes}` : ""}`;
 
       // Update each loaner's status
       for (const loaner of selectedLoaners) {
         await base44.entities.Loaners.update(loaner.id, {
           returnStatus: "transferred",
-          notes: `Transferred to: ${transferTo} | Request #: ${requestNumber} | Overdue: ${isOverdue ? "Yes" : "No"}${loaner.notes ? ` | ${loaner.notes}` : ""}`,
+          notes: notesStr,
         });
       }
 
-      // Create a SendBackLog entry
+      // Create a SendBackLog entry for the sender
       await base44.entities.SendBackLog.create({
         repName: userName,
         sentDate: today,
-        loanerIds: selectedLoaners.map(l => l.id),
+        loanerIds,
         logType: "transfer",
-        transferTo,
+        transferTo: transferTo.trim(),
         requestNumber,
         isOverdue,
         photoUrls: photos,
-        notes: `Transfer to: ${transferTo} | Request #: ${requestNumber} | Overdue: ${isOverdue ? "Yes" : "No"}`,
+        notes: notesStr,
       });
+
+      // Try to find a matching Relay user and create a log for them too
+      try {
+        const allUsers = await base44.entities.User.list();
+        const recipientUser = allUsers.find(u =>
+          u.full_name?.toLowerCase().trim() === transferTo.toLowerCase().trim()
+        );
+        if (recipientUser) {
+          await base44.entities.SendBackLog.create({
+            repName: recipientUser.full_name,
+            sentDate: today,
+            loanerIds,
+            logType: "transfer",
+            transferTo: recipientUser.full_name,
+            requestNumber,
+            isOverdue,
+            photoUrls: photos,
+            notes: `Transferred to you from: ${userName} | Request #: ${requestNumber} | Overdue: ${isOverdue ? "Yes" : "No"}${notes ? ` | Notes: ${notes}` : ""}`,
+            trackingNumber: "TRANSFER_IN",
+          });
+        }
+      } catch (_) {
+        // Non-critical, continue if user lookup fails
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["loaners"] });
@@ -72,6 +98,7 @@ export default function TransferDialog({ open, onOpenChange, selectedLoaners, us
       setRequestNumber("");
       setIsOverdue(null);
       setPhotos([]);
+      setNotes("");
     },
   });
 
