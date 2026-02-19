@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
-import { Package, Clock, Image as ImageIcon, Share2 } from "lucide-react";
+import { Package, Clock, Image as ImageIcon, Share2, Check } from "lucide-react";
+import { useState as useShareState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format, parseISO } from "date-fns";
 import { Card } from "@/components/ui/card";
