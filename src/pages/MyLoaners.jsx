@@ -49,7 +49,7 @@ export default function MyLoaners() {
   const myLoaners = sortLoaners(
     computedLoaners.filter(l => 
       l.repName?.toLowerCase() === userName.toLowerCase() &&
-      l.returnStatus !== "sent_back" && l.returnStatus !== "received"
+      l.returnStatus !== "sent_back" && l.returnStatus !== "received" && l.returnStatus !== "transferred"
     )
   );
 
