@@ -235,9 +235,9 @@ export default function SendBackLog() {
                   </div>
                 )}
 
-                {/* Photos */}
-                {log.photoUrls && log.photoUrls.length > 0 && (
-                  <div className="mt-4">
+                {/* Actions */}
+                <div className="mt-4 flex gap-2">
+                  {log.photoUrls && log.photoUrls.length > 0 && (
                     <Button
                       variant="outline"
                       size="sm"
@@ -247,8 +247,17 @@ export default function SendBackLog() {
                       <ImageIcon className="w-4 h-4" />
                       View Photos ({log.photoUrls.length})
                     </Button>
-                  </div>
-                )}
+                  )}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleShare(log)}
+                    className="gap-2"
+                  >
+                    <Share2 className="w-4 h-4" />
+                    Share
+                  </Button>
+                </div>
               </Card>
             ))
           )}
