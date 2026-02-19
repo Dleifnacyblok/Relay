@@ -256,10 +256,19 @@ export default function SendBackLog() {
                     variant="outline"
                     size="sm"
                     onClick={() => handleShare(log)}
-                    className="gap-2"
+                    className={`gap-2 transition-colors ${copiedLogId === log.id ? "bg-green-50 border-green-300 text-green-700" : ""}`}
                   >
-                    <Share2 className="w-4 h-4" />
-                    Share
+                    {copiedLogId === log.id ? (
+                      <>
+                        <Check className="w-4 h-4" />
+                        Copied to Clipboard!
+                      </>
+                    ) : (
+                      <>
+                        <Share2 className="w-4 h-4" />
+                        Share
+                      </>
+                    )}
                   </Button>
                 </div>
               </Card>
