@@ -207,20 +207,36 @@ export default function SendBackLog() {
             sortedLogs.map((log) => (
               <Card key={log.id} className="p-6">
                 <div className="flex items-start justify-between mb-4">
-                  <div>
-                    <div className="flex items-center gap-2 mb-1">
-                      <h3 className="text-lg font-semibold text-slate-900">
-                        Tracking: {log.trackingNumber}
-                      </h3>
+                      <div>
+                        <div className="flex items-center gap-2 mb-1">
+                          {log.logType === "transfer" ? (
+                            <h3 className="text-lg font-semibold text-slate-900 flex items-center gap-2">
+                              <ArrowRightLeft className="w-4 h-4 text-blue-600" />
+                              Transfer → {log.transferTo}
+                            </h3>
+                          ) : (
+                            <h3 className="text-lg font-semibold text-slate-900">
+                              Tracking: {log.trackingNumber}
+                            </h3>
+                          )}
+                        </div>
+                        <p className="text-sm text-slate-500">
+                          {log.logType === "transfer" ? "Transferred" : "Sent"} on {formatDate(log.sentDate)}
+                          {log.logType === "transfer" && log.requestNumber && (
+                            <span className="ml-2 text-slate-400">· Req# {log.requestNumber}</span>
+                          )}
+                        </p>
+                      </div>
+                      {log.logType === "transfer" ? (
+                        <Badge className="bg-blue-100 text-blue-800 border-blue-200">
+                          Transferred
+                        </Badge>
+                      ) : (
+                        <Badge className="bg-green-100 text-green-800 border-green-200">
+                          Sent Back
+                        </Badge>
+                      )}
                     </div>
-                    <p className="text-sm text-slate-500">
-                      Sent on {formatDate(log.sentDate)}
-                    </p>
-                  </div>
-                  <Badge className="bg-green-100 text-green-800 border-green-200">
-                    Sent Back
-                  </Badge>
-                </div>
 
                 {/* Items */}
                 <div className="space-y-3">
