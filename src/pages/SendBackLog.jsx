@@ -87,7 +87,23 @@ export default function SendBackLog() {
 
     const lines = [];
 
-    if (log.loanerIds && log.loanerIds.length > 0) {
+    if (log.logType === "transfer") {
+      lines.push(`Hi team,`);
+      lines.push(``);
+      lines.push(`Please transfer the following loaners to ${log.transferTo}.`);
+      lines.push(``);
+      lines.push(`Request Number: ${log.requestNumber}`);
+      lines.push(``);
+      lines.push(`Loaners being transferred:`);
+      (log.loanerIds || []).forEach(loanerId => {
+        const info = getLoanerInfo(loanerId);
+        lines.push(`- ${info.name} (Etch ID: ${info.etchId || "N/A"})`);
+      });
+      if (log.isOverdue) {
+        lines.push(``);
+        lines.push(`Note: These loaners are overdue.`);
+      }
+    } else if (log.loanerIds && log.loanerIds.length > 0) {
       lines.push(`Rep Name: ${log.repName}`);
       lines.push(`Account: ${accountName || "N/A"}`);
       lines.push(`Date: ${formatDate(log.sentDate)}`);
@@ -115,7 +131,7 @@ export default function SendBackLog() {
       });
     }
 
-    if (log.notes) {
+    if (log.logType !== "transfer" && log.notes) {
       lines.push("");
       lines.push(`Notes: ${log.notes}`);
     }
