@@ -123,10 +123,7 @@ export default function SendBackLog() {
       log.missingPartIds.forEach(partId => {
         const part = allParts.find(p => p.id === partId);
         if (part) {
-          lines.push(`- Part: ${part.partName}`);
-          lines.push(`  Part Number: ${part.partNumber || "N/A"}`);
-          lines.push(`  Qty: ${part.missingQuantity || 1}`);
-          lines.push(`  From Loaner Set: ${part.loanerSetName || "N/A"}`);
+          lines.push(`- ${part.partName} (Part #: ${part.partNumber || "N/A"}, Qty: ${part.missingQuantity || 1})`);
         }
       });
     }
