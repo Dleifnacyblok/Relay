@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
-import { Package, User, Send } from "lucide-react";
+import { Package, User, Send, ArrowRightLeft } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import LoanerTable from "@/components/loaners/LoanerTable";
 import SendBackDialog from "@/components/sendback/SendBackDialog";
+import TransferDialog from "@/components/sendback/TransferDialog";
 import { computeLoanerData, sortLoaners, formatCurrency } from "@/components/loaners/loanerUtils";
 
 export default function MyLoaners() {
