@@ -17,6 +17,7 @@ import {
 export default function SendBackLog() {
   const [selectedPhotos, setSelectedPhotos] = useState([]);
   const [showPhotosDialog, setShowPhotosDialog] = useState(false);
+  const [copiedLogId, setCopiedLogId] = useState(null);
 
   const { data: user, isLoading: userLoading } = useQuery({
     queryKey: ["currentUser"],
