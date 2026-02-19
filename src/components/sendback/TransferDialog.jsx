@@ -169,9 +169,20 @@ export default function TransferDialog({ open, onOpenChange, selectedLoaners, us
             </div>
           </div>
 
+          {/* Notes */}
+          <div className="space-y-1.5">
+            <Label>4. Notes (optional)</Label>
+            <Textarea
+              placeholder="Any additional notes..."
+              value={notes}
+              onChange={e => setNotes(e.target.value)}
+              rows={3}
+            />
+          </div>
+
           {/* Photos */}
           <div className="space-y-2">
-            <Label>4. Add Photos (optional)</Label>
+            <Label>5. Add Photos (optional)</Label>
             <label className="flex items-center gap-2 cursor-pointer border-2 border-dashed border-slate-200 rounded-lg p-3 hover:border-slate-300 transition-colors">
               {uploadingPhotos ? (
                 <Loader2 className="w-4 h-4 animate-spin text-slate-400" />
