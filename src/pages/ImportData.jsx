@@ -255,6 +255,8 @@ export default function ImportData() {
             repName = "Zachary Kuta";
           } else if (lowerAccount.includes("university of michigan")) {
             repName = "Zachary Kuta";
+          } else if (lowerAccount.includes("trinity health oakland")) {
+            repName = "Shane Morris";
           }
         }
         const etchId = (r["etch id"] || "").toString().trim();
