@@ -209,6 +209,7 @@ export default function MyLoaners() {
         open={showTransfer}
         onOpenChange={setShowTransfer}
         selectedLoaners={selectedLoaners}
+        userName={userName}
         onSuccess={() => setSelectedIds([])}
       />
     </div>
