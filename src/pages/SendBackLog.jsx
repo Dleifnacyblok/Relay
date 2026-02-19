@@ -77,6 +77,52 @@ export default function SendBackLog() {
     setShowPhotosDialog(true);
   };
 
+  const handleShare = (log) => {
+    // Get account name from first loaner
+    let accountName = "";
+    if (log.loanerIds && log.loanerIds.length > 0) {
+      const firstLoaner = allLoaners.find(l => l.id === log.loanerIds[0]);
+      if (firstLoaner) accountName = firstLoaner.accountName;
+    }
+
+    const subject = `Shipment Details: ${log.trackingNumber}`;
+    let body = `Rep Name: ${log.repName}\n`;
+
+    if (log.loanerIds && log.loanerIds.length > 0) {
+      // Loaner share: Rep Name - Account - Date - Tracking - Loaners
+      body += `Account: ${accountName || "N/A"}\n`;
+      body += `Date: ${formatDate(log.sentDate)}\n`;
+      body += `Tracking Number: ${log.trackingNumber}\n\n`;
+      body += `Loaners:\n`;
+      log.loanerIds.forEach(loanerId => {
+        const info = getLoanerInfo(loanerId);
+        body += `- ${info.name} (Etch ID: ${info.etchId || "N/A"})\n`;
+      });
+    }
+
+    if (log.missingPartIds && log.missingPartIds.length > 0) {
+      // Missing parts share: Rep Name - Date - Tracking - Parts with qty and loaner source
+      body += `Date: ${formatDate(log.sentDate)}\n`;
+      body += `Tracking Number: ${log.trackingNumber}\n\n`;
+      body += `Missing Parts:\n`;
+      log.missingPartIds.forEach(partId => {
+        const part = allParts.find(p => p.id === partId);
+        if (part) {
+          body += `- Part: ${part.partName}\n`;
+          body += `  Part Number: ${part.partNumber || "N/A"}\n`;
+          body += `  Qty: ${part.missingQuantity || 1}\n`;
+          body += `  From Loaner Set: ${part.loanerSetName || "N/A"}\n`;
+        }
+      });
+    }
+
+    if (log.notes) {
+      body += `\nNotes: ${log.notes}`;
+    }
+
+    window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
