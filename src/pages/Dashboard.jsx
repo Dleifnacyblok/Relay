@@ -117,6 +117,40 @@ export default function Dashboard() {
           <p className="text-xs font-light" style={{ color: "#9CA3AF", letterSpacing: "0.15em", textTransform: "uppercase", marginTop: "2px" }}>
             Loaner Operations
           </p>
+          {/* Search Bar */}
+          <div className="relative mt-4">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search loaners, reps, accounts..."
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              className="w-full pl-9 pr-9 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-300 shadow-sm"
+            />
+            {searchQuery && (
+              <button onClick={() => setSearchQuery("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                <X className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+          {/* Search Results */}
+          {searchResults.length > 0 && (
+            <div className="mt-2 bg-white border border-gray-100 rounded-xl shadow-md overflow-hidden text-left">
+              {searchResults.map(l => (
+                <Link key={l.id} to={createPageUrl("MyLoaners")} className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 border-b border-gray-50 last:border-0">
+                  <div className={`w-2 h-2 rounded-full shrink-0 ${l.risk_status === "Overdue" ? "bg-red-500" : l.risk_status === "Due Soon" ? "bg-amber-400" : "bg-green-400"}`} />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-gray-800 truncate">{l.setName}</p>
+                    <p className="text-xs text-gray-400 truncate">{l.repName} · {l.accountName}</p>
+                  </div>
+                  <span className={`text-xs font-medium shrink-0 ${l.risk_status === "Overdue" ? "text-red-500" : l.risk_status === "Due Soon" ? "text-amber-500" : "text-gray-400"}`}>{l.risk_status}</span>
+                </Link>
+              ))}
+            </div>
+          )}
+          {searchQuery.length > 1 && searchResults.length === 0 && (
+            <p className="mt-2 text-xs text-gray-400 text-center">No loaners found</p>
+          )}
         </div>
 
         {/* Quick Stats Bar */}
