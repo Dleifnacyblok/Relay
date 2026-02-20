@@ -145,7 +145,6 @@ export default function AddItemDialog({ open, onOpenChange, user }) {
     setSuggestionAccepted(false);
     setEditingName(false);
     setScanning(false);
-    setHasExpiration(null);
     setExpirationDate(null);
   };
 
