@@ -92,6 +92,14 @@ export default function Marketplace() {
           />
         </div>
 
+        {/* Look For Section */}
+        <LookForSection
+          lookForItems={lookForItems}
+          marketplaceItems={items}
+          missingParts={missingParts}
+          user={user}
+        />
+
         {/* Stats */}
         {!isLoading && items.length > 0 && (
           <div className="flex flex-wrap gap-3 mb-6">
