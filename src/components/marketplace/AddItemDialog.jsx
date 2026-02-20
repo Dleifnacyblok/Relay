@@ -261,12 +261,38 @@ export default function AddItemDialog({ open, onOpenChange, user }) {
           {/* Quantity */}
           <div className="space-y-1.5">
             <Label>Quantity <span className="text-red-500">*</span></Label>
-            <Input
-              type="number"
-              min={1}
-              value={quantity}
-              onChange={e => setQuantity(e.target.value)}
-            />
+            <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto p-1">
+              {[...Array(25).keys()].map(i => {
+                const val = i + 1;
+                return (
+                  <button
+                    key={val}
+                    type="button"
+                    onClick={() => setQuantity(val)}
+                    className={`w-10 h-10 rounded-lg border text-sm font-medium transition-colors shrink-0 ${quantity === val ? "bg-indigo-600 border-indigo-600 text-white" : "border-slate-200 text-slate-700 hover:border-indigo-300"}`}
+                  >
+                    {val}
+                  </button>
+                );
+              })}
+              <button
+                type="button"
+                onClick={() => setQuantity(26)}
+                className={`px-3 h-10 rounded-lg border text-sm font-medium transition-colors shrink-0 ${quantity > 25 ? "bg-indigo-600 border-indigo-600 text-white" : "border-slate-200 text-slate-700 hover:border-indigo-300"}`}
+              >
+                25+
+              </button>
+            </div>
+            {quantity > 25 && (
+              <Input
+                type="number"
+                min={26}
+                placeholder="Enter quantity"
+                value={quantity}
+                onChange={e => setQuantity(Number(e.target.value))}
+                className="mt-2"
+              />
+            )}
           </div>
 
           {/* Rep Name */}
