@@ -26,6 +26,7 @@ export default function AddItemDialog({ open, onOpenChange, user }) {
   const [photoUrl, setPhotoUrl] = useState(null);
   const [scanning, setScanning] = useState(false);
   const [scanError, setScanError] = useState(null);
+  const [lookingUpPartName, setLookingUpPartName] = useState(false);
   const [hasExpiration, setHasExpiration] = useState(null); // null | true | false
   const [expirationDate, setExpirationDate] = useState(null);
 
