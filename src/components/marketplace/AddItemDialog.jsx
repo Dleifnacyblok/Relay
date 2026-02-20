@@ -11,7 +11,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Camera, Loader2, X, Sparkles, Check, Pencil } from "lucide-react";
+import { Camera, Loader2, X, Sparkles, Check, Pencil, CalendarIcon } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { format } from "date-fns";
 
 export default function AddItemDialog({ open, onOpenChange, user }) {
   const [partNumber, setPartNumber] = useState("");
