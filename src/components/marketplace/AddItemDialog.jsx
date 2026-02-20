@@ -83,6 +83,29 @@ export default function AddItemDialog({ open, onOpenChange, user }) {
     }
   };
 
+  const lookUpPartNameByNumber = async (number) => {
+    if (!number.trim() || partName.trim()) return;
+    setLookingUpPartName(true);
+    setAiSuggestion(null);
+    setSuggestionAccepted(false);
+    try {
+      const res = await base44.functions.invoke("identifyPartNumber", { partNumber: number.trim() });
+      const data = res.data;
+      if (data?.partName) {
+        setAiSuggestion({
+          partName: data.partName,
+          confidence: data.confidence ?? 0,
+          reasoning: data.reasoning || "",
+        });
+        setPartName(data.partName);
+      }
+    } catch {
+      // silently fail
+    } finally {
+      setLookingUpPartName(false);
+    }
+  };
+
   const acceptSuggestion = () => {
     setPartName(aiSuggestion.partName);
     setSuggestionAccepted(true);
