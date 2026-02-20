@@ -133,10 +133,10 @@ export default function Layout({ children, currentPageName }) {
         })}
 
         {/* Center Logo */}
-        <Link to={createPageUrl("Dashboard")} className="flex flex-col items-center -mt-5">
+        <Link to={createPageUrl("Dashboard")} className="flex flex-col items-center -mt-7">
           <div style={{
-            width: '58px', height: '58px', borderRadius: '16px',
-            boxShadow: '0 4px 12px rgba(0,0,0,0.15)', backgroundColor: 'white',
+            width: '70px', height: '70px', borderRadius: '20px',
+            boxShadow: '0 4px 16px rgba(0,0,0,0.18)', backgroundColor: 'white',
             display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden',
             border: '2px solid rgba(0,0,0,0.06)'
           }}>
