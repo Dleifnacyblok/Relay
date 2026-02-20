@@ -26,6 +26,8 @@ export default function AddItemDialog({ open, onOpenChange, user }) {
   const [photoUrl, setPhotoUrl] = useState(null);
   const [scanning, setScanning] = useState(false);
   const [scanError, setScanError] = useState(null);
+  const [hasExpiration, setHasExpiration] = useState(null); // null | true | false
+  const [expirationDate, setExpirationDate] = useState(null);
 
   // AI suggestion state
   const [aiSuggestion, setAiSuggestion] = useState(null); // { partName, confidence, reasoning }
