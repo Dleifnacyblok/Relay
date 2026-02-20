@@ -13,6 +13,7 @@ import LookForSection from "@/components/marketplace/LookForSection";
 export default function Marketplace() {
   const [search, setSearch] = useState("");
   const [showAddDialog, setShowAddDialog] = useState(false);
+  const [showLookForDialog, setShowLookForDialog] = useState(false);
 
   const { data: user } = useQuery({
     queryKey: ["currentUser"],
