@@ -63,6 +63,8 @@ export default function Dashboard() {
     queryFn: () => base44.entities.MarketplaceItem.filter({ status: "available" }),
   });
 
+  const [searchQuery, setSearchQuery] = useState("");
+
   const userName = user?.full_name || "";
   const computedLoaners = loaners.map(computeLoanerData);
   const overdueCount = computedLoaners.filter(l => l.risk_status === "Overdue").length;
@@ -70,6 +72,31 @@ export default function Dashboard() {
   const totalFineExposure = computedLoaners.reduce((sum, l) => sum + (l.fineAmount || 0), 0);
   const myLoanerCount = computedLoaners.filter(l => l.repName?.toLowerCase() === userName.toLowerCase()).length;
   const myMissingCount = missingParts.filter(p => p.repName?.toLowerCase() === userName.toLowerCase() && p.status === "missing").length;
+
+  // Territory breakdown for ESC Dashboard card
+  const territoryCounts = computedLoaners.reduce((acc, l) => {
+    const rep = l.fieldSalesRep || l.repName || "Unknown";
+    if (!acc[rep]) acc[rep] = { loaners: 0, overdue: 0 };
+    acc[rep].loaners++;
+    if (l.risk_status === "Overdue") acc[rep].overdue++;
+    return acc;
+  }, {});
+  const territories = Object.entries(territoryCounts).sort((a, b) => b[1].overdue - a[1].overdue);
+
+  const missingByRep = missingParts.filter(p => p.status === "missing").reduce((acc, p) => {
+    const rep = p.repName || "Unknown";
+    acc[rep] = (acc[rep] || 0) + 1;
+    return acc;
+  }, {});
+
+  // Search filter for loaners
+  const q = searchQuery.toLowerCase();
+  const searchResults = q.length > 1 ? computedLoaners.filter(l =>
+    l.setName?.toLowerCase().includes(q) ||
+    l.repName?.toLowerCase().includes(q) ||
+    l.etchId?.toLowerCase().includes(q) ||
+    l.accountName?.toLowerCase().includes(q)
+  ).slice(0, 8) : [];
 
   return (
     <div className="min-h-screen bg-gray-50">
