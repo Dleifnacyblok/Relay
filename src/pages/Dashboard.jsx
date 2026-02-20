@@ -105,21 +105,39 @@ export default function Dashboard() {
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-lg mx-auto px-4 py-8">
         {/* Header */}
-        <div className="mb-6 text-center">
-          <h1
-            className="font-semibold"
-            style={{
-              color: "#000000",
-              fontSize: "40px",
-              letterSpacing: "-0.04em",
-              fontFamily: "system-ui, -apple-system, sans-serif",
-            }}
-          >
-            Relay
-          </h1>
-          <p className="text-xs font-light" style={{ color: "#9CA3AF", letterSpacing: "0.15em", textTransform: "uppercase", marginTop: "2px" }}>
-            Loaner Operations
-          </p>
+        <div className="mb-6">
+          {/* Top row: calendar left, logo center, notifications right */}
+          <div className="flex items-center justify-between mb-3">
+            {/* Calendar */}
+            <Link to={createPageUrl("SendBackLog")} className="w-10 h-10 rounded-xl bg-white border border-gray-200 shadow-sm flex items-center justify-center hover:border-blue-300 transition-colors">
+              <CalendarDays className="w-5 h-5 text-gray-500" />
+            </Link>
+
+            {/* Logo + Title centered */}
+            <div className="flex flex-col items-center">
+              <div style={{
+                width: '52px', height: '52px', borderRadius: '14px',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.10)', backgroundColor: 'white',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden',
+                border: '1.5px solid rgba(0,0,0,0.06)'
+              }}>
+                <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/698fe9d012ce3a450807fc7e/9d5cf87f9_IMG_3258.jpg"
+                  alt="Relay Logo" className="object-contain w-full h-full" />
+              </div>
+              <h1 className="font-semibold mt-1" style={{ color: "#000000", fontSize: "22px", letterSpacing: "-0.04em", fontFamily: "system-ui, -apple-system, sans-serif" }}>
+                Relay
+              </h1>
+              <p className="text-[10px] font-light" style={{ color: "#9CA3AF", letterSpacing: "0.15em", textTransform: "uppercase" }}>
+                Loaner Operations
+              </p>
+            </div>
+
+            {/* Notifications */}
+            <div className="w-10 h-10 rounded-xl bg-white border border-gray-200 shadow-sm flex items-center justify-center">
+              <NotificationCenter userName={user?.full_name} />
+            </div>
+          </div>
+        </div>
           {/* Search Bar */}
           <div className="relative mt-4">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
