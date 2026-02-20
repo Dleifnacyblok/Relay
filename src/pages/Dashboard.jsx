@@ -215,24 +215,7 @@ export default function Dashboard() {
                     <p className="text-[10px] text-gray-500">Total</p>
                   </div>
                 </div>
-                {/* Territory breakdown */}
-                {territories.length > 0 && (
-                  <div className="space-y-1">
-                    <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide mb-1">By Territory</p>
-                    {territories.slice(0, 5).map(([rep, stats], idx) => (
-                      <div key={rep} className="flex items-center gap-2 py-1 border-b border-gray-50 last:border-0">
-                        <p className="text-xs text-gray-700 flex-1 truncate">Rep {idx + 1}</p>
-                        <span className="text-[10px] text-gray-500">{stats.loaners} loaners</span>
-                        {stats.overdue > 0 && (
-                          <span className="text-[10px] font-semibold text-red-500 bg-red-50 rounded px-1">{stats.overdue} overdue</span>
-                        )}
-                        {(missingByRep[rep] || 0) > 0 && (
-                          <span className="text-[10px] font-semibold text-orange-500 bg-orange-50 rounded px-1">{missingByRep[rep]} missing</span>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                )}
+
               </Link>
             </div>
           </div>
