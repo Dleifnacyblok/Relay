@@ -62,13 +62,23 @@ export default function Marketplace() {
               Loose inventory available across the territory
             </p>
           </div>
-          <Button
-            className="bg-indigo-600 hover:bg-indigo-700 gap-2 shrink-0"
-            onClick={() => setShowAddDialog(true)}
-          >
-            <Plus className="w-4 h-4" />
-            <span className="hidden sm:inline">List Item</span>
-          </Button>
+          <div className="flex gap-2 shrink-0">
+            <Button
+              variant="outline"
+              className="gap-2"
+              onClick={() => setShowLookForDialog(true)}
+            >
+              <Telescope className="w-4 h-4" />
+              <span className="hidden sm:inline">Look For</span>
+            </Button>
+            <Button
+              className="bg-indigo-600 hover:bg-indigo-700 gap-2"
+              onClick={() => setShowAddDialog(true)}
+            >
+              <Plus className="w-4 h-4" />
+              <span className="hidden sm:inline">List Item</span>
+            </Button>
+          </div>
         </div>
 
         {/* Search */}
