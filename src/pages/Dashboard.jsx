@@ -14,10 +14,13 @@ import {
   FileText,
   ChevronRight,
   X,
+  Bell,
+  CalendarDays,
 } from "lucide-react";
 import { computeLoanerData, formatCurrency } from "@/components/loaners/loanerUtils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useState } from "react";
+import NotificationCenter from "@/components/notifications/NotificationCenter";
 
 const NavCard = ({ icon: Icon, title, description, page, badge, badgeColor }) => (
   <Link
