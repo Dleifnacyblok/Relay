@@ -120,7 +120,7 @@ export default function AddItemDialog({ open, onOpenChange, user }) {
       quantity: Number(quantity),
       repName: repName.trim() || user?.full_name || "",
       location: location.trim(),
-      notes: notes.trim() + (expirationDate ? `\nExpires: ${format(expirationDate, "MMM d, yyyy")}` : ""),
+      notes: [notes.trim(), expirationDate ? `Expires: ${format(expirationDate, "MMM d, yyyy")}` : ""].filter(Boolean).join("\n"),
       photoUrl,
       status: "available",
       bids: [],
