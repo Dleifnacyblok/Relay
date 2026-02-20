@@ -125,7 +125,7 @@ export default function AddItemDialog({ open, onOpenChange, user }) {
     setExpirationDate(null);
   };
 
-  const canSubmit = partNumber.trim() && quantity >= 1;
+  const canSubmit = partNumber.trim() && partName.trim() && quantity >= 1 && hasExpiration !== null && (hasExpiration === false || (hasExpiration === true && expirationDate));
 
   return (
     <Dialog open={open} onOpenChange={(v) => { onOpenChange(v); if (!v) resetForm(); }}>
