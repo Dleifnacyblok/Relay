@@ -6,11 +6,42 @@ Deno.serve(async (req) => {
     const user = await base44.auth.me();
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const { imageUrl } = await req.json();
-    if (!imageUrl) return Response.json({ error: 'imageUrl required' }, { status: 400 });
+    const body = await req.json();
+    const { imageUrl, partNumber } = body;
 
-    const result = await base44.asServiceRole.integrations.Core.InvokeLLM({
-      prompt: `You are an expert in orthopedic and medical device parts used in surgical settings (e.g. Stryker, Zimmer Biomet, DePuy Synthes, Smith & Nephew, Arthrex).
+    let result;
+
+    if (partNumber && !imageUrl) {
+      // Text-only lookup by part number
+      result = await base44.asServiceRole.integrations.Core.InvokeLLM({
+        prompt: `You are an expert in orthopedic and medical device parts used in surgical settings (e.g. Stryker, Zimmer Biomet, DePuy Synthes, Smith & Nephew, Arthrex).
+
+Given the part number: "${partNumber}"
+
+Identify the most likely part name/description for this part number.
+Rate your confidence from 0 to 100.
+
+Return a JSON object with exactly these fields:
+{
+  "partNumber": "${partNumber}",
+  "partName": "your best guess at the part name/description, or null if truly unknown",
+  "confidence": 85,
+  "reasoning": "brief explanation"
+}`,
+        response_json_schema: {
+          type: "object",
+          properties: {
+            partNumber: { type: "string" },
+            partName: { type: "string" },
+            confidence: { type: "number" },
+            reasoning: { type: "string" }
+          }
+        }
+      });
+    } else if (imageUrl) {
+      // Image-based lookup
+      result = await base44.asServiceRole.integrations.Core.InvokeLLM({
+        prompt: `You are an expert in orthopedic and medical device parts used in surgical settings (e.g. Stryker, Zimmer Biomet, DePuy Synthes, Smith & Nephew, Arthrex).
 
 Look at this image carefully and:
 1. Extract the part number — typically labeled as "REF", "Cat #", "Catalog Number", "Part #", or similar alphanumeric codes.
@@ -24,17 +55,20 @@ Return a JSON object with exactly these fields:
   "confidence": 85,
   "reasoning": "brief explanation of why you identified it this way"
 }`,
-      file_urls: [imageUrl],
-      response_json_schema: {
-        type: "object",
-        properties: {
-          partNumber: { type: "string" },
-          partName: { type: "string" },
-          confidence: { type: "number" },
-          reasoning: { type: "string" }
+        file_urls: [imageUrl],
+        response_json_schema: {
+          type: "object",
+          properties: {
+            partNumber: { type: "string" },
+            partName: { type: "string" },
+            confidence: { type: "number" },
+            reasoning: { type: "string" }
+          }
         }
-      }
-    });
+      });
+    } else {
+      return Response.json({ error: 'imageUrl or partNumber required' }, { status: 400 });
+    }
 
     return Response.json({
       partNumber: result.partNumber || null,
