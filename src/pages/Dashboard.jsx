@@ -13,9 +13,11 @@ import {
   Package,
   FileText,
   ChevronRight,
+  X,
 } from "lucide-react";
 import { computeLoanerData, formatCurrency } from "@/components/loaners/loanerUtils";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useState } from "react";
 
 const NavCard = ({ icon: Icon, title, description, page, badge, badgeColor }) => (
   <Link
