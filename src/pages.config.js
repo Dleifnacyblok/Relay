@@ -51,12 +51,12 @@ import AllLoanersUnfiltered from './pages/AllLoanersUnfiltered';
 import Dashboard from './pages/Dashboard';
 import ImportData from './pages/ImportData';
 import LoanerDetail from './pages/LoanerDetail';
+import Marketplace from './pages/Marketplace';
 import MyAccount from './pages/MyAccount';
 import MyLoaners from './pages/MyLoaners';
 import MyMissingParts from './pages/MyMissingParts';
 import Search from './pages/Search';
 import SendBackLog from './pages/SendBackLog';
-import Marketplace from './pages/Marketplace';
 import __Layout from './Layout.jsx';
 
 
@@ -65,12 +65,12 @@ export const PAGES = {
     "Dashboard": Dashboard,
     "ImportData": ImportData,
     "LoanerDetail": LoanerDetail,
+    "Marketplace": Marketplace,
     "MyAccount": MyAccount,
     "MyLoaners": MyLoaners,
     "MyMissingParts": MyMissingParts,
     "Search": Search,
     "SendBackLog": SendBackLog,
-    "Marketplace": Marketplace,
 }
 
 export const pagesConfig = {

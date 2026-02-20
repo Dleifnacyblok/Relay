@@ -4,9 +4,11 @@ import { base44 } from "@/api/base44Client";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Search, Plus, ShoppingBag } from "lucide-react";
+import { Search, Plus, ShoppingBag, Telescope } from "lucide-react";
 import AddItemDialog from "@/components/marketplace/AddItemDialog";
 import MarketplaceItemCard from "@/components/marketplace/MarketplaceItemCard";
+import LookForDialog from "@/components/marketplace/LookForDialog";
+import LookForSection from "@/components/marketplace/LookForSection";
 
 export default function Marketplace() {
   const [search, setSearch] = useState("");
