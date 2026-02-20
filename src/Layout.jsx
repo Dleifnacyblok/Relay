@@ -111,91 +111,105 @@ export default function Layout({ children, currentPageName }) {
     </aside>
   );
 
-  // Mobile: Dashboard gets no header/bottom nav (it IS the home screen)
-  if (isDashboard) {
-    return (
-      <div className="min-h-screen bg-white">
-        {desktopSidebar}
-        <main className="lg:pl-64">{children}</main>
-      </div>
-    );
-  }
+  // Split navigation into left 2 and right 2, logo goes in the center
+  const leftNav = navigation.slice(0, 2);
+  const rightNav = navigation.slice(2, 4);
 
-  // Non-dashboard pages: compact top bar + bottom nav on mobile
+  const mobileBottomNav = (
+    <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-100" style={{paddingBottom: 'env(safe-area-inset-bottom)'}}>
+      <div className="flex items-end justify-around px-1 pt-2 pb-2">
+        {/* Left 2 nav items */}
+        {leftNav.map((item) => {
+          const Icon = item.icon;
+          const active = isActive(item.page);
+          return (
+            <Link key={item.page} to={createPageUrl(item.page)}
+              className={cn("flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl transition-colors min-w-0",
+                active ? "text-blue-600" : "text-gray-400")}>
+              <Icon className="w-5 h-5 shrink-0" />
+              <span className="text-[10px] font-medium leading-tight text-center truncate max-w-[52px]">{item.name}</span>
+            </Link>
+          );
+        })}
+
+        {/* Center Logo */}
+        <Link to={createPageUrl("Dashboard")} className="flex flex-col items-center -mt-5">
+          <div style={{
+            width: '58px', height: '58px', borderRadius: '16px',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.15)', backgroundColor: 'white',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden',
+            border: '2px solid rgba(0,0,0,0.06)'
+          }}>
+            <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/698fe9d012ce3a450807fc7e/9d5cf87f9_IMG_3258.jpg"
+              alt="Home" className="object-contain w-full h-full" />
+          </div>
+          <span className="text-[9px] font-medium text-gray-400 mt-0.5">Home</span>
+        </Link>
+
+        {/* Right 2 nav items */}
+        {rightNav.map((item) => {
+          const Icon = item.icon;
+          const active = isActive(item.page);
+          return (
+            <Link key={item.page} to={createPageUrl(item.page)}
+              className={cn("flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl transition-colors min-w-0",
+                active ? "text-blue-600" : "text-gray-400")}>
+              <Icon className="w-5 h-5 shrink-0" />
+              <span className="text-[10px] font-medium leading-tight text-center truncate max-w-[52px]">{item.name}</span>
+            </Link>
+          );
+        })}
+
+        {/* More menu trigger */}
+        <div className="relative">
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className={cn("flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl transition-colors min-w-0",
+              mobileMenuOpen ? "text-blue-600" : "text-gray-400")}>
+            {mobileMenuOpen ? <X className="w-5 h-5 shrink-0" /> : <Menu className="w-5 h-5 shrink-0" />}
+            <span className="text-[10px] font-medium leading-tight">More</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Slide-up more menu */}
+      {mobileMenuOpen && (
+        <div className="absolute bottom-full left-0 right-0 bg-white shadow-lg border-t border-gray-100 z-50">
+          <nav className="p-3 space-y-1">
+            <NotificationCenter userName={user?.full_name} />
+            {moreNavigation.map((item) => {
+              const Icon = item.icon;
+              return (
+                <Link key={item.name} to={createPageUrl(item.page)}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50">
+                  <Icon className="w-4 h-4 text-gray-500" />
+                  {item.name}
+                </Link>
+              );
+            })}
+          </nav>
+          <div className="p-3 border-t border-gray-100">
+            <Button variant="ghost" className="w-full justify-start text-gray-600" onClick={handleLogout}>
+              <LogOut className="w-4 h-4 mr-3" /> Sign Out
+            </Button>
+          </div>
+        </div>
+      )}
+    </nav>
+  );
+
+  // All pages get bottom nav on mobile (including Dashboard)
   return (
     <div className="min-h-screen bg-white">
       {desktopSidebar}
 
-      {/* Mobile Top Bar */}
-      <div className="lg:hidden sticky top-0 z-40 bg-white border-b border-gray-100">
-        <div className="flex items-center justify-between px-4 py-3">
-          {/* Logo as home button */}
-          <Link to={createPageUrl("Dashboard")}>
-            <div style={{
-              width: '40px', height: '40px', borderRadius: '10px',
-              boxShadow: '0 1px 4px rgba(0,0,0,0.10)', backgroundColor: 'white',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden'
-            }}>
-              <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/698fe9d012ce3a450807fc7e/9d5cf87f9_IMG_3258.jpg"
-                alt="Home" className="object-contain w-full h-full" />
-            </div>
-          </Link>
-
-          <div className="flex items-center gap-2">
-            <NotificationCenter userName={user?.full_name} />
-            <Button variant="ghost" size="icon" className="text-gray-600" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
-              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-            </Button>
-          </div>
-        </div>
-
-        {/* Slide-down more menu */}
-        {mobileMenuOpen && (
-          <div className="absolute top-full left-0 right-0 bg-white shadow-lg border-b border-gray-100 z-50">
-            <nav className="p-3 space-y-1">
-              {moreNavigation.map((item) => {
-                const Icon = item.icon;
-                return (
-                  <Link key={item.name} to={createPageUrl(item.page)}
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50">
-                    <Icon className="w-4 h-4 text-gray-500" />
-                    {item.name}
-                  </Link>
-                );
-              })}
-            </nav>
-            <div className="p-3 border-t border-gray-100">
-              <Button variant="ghost" className="w-full justify-start text-gray-600" onClick={handleLogout}>
-                <LogOut className="w-4 h-4 mr-3" /> Sign Out
-              </Button>
-            </div>
-          </div>
-        )}
-      </div>
-
       {/* Main Content — padded for bottom nav */}
-      <main className="lg:pl-64 pb-20 lg:pb-0">
+      <main className="lg:pl-64 pb-24 lg:pb-0">
         {children}
       </main>
 
-      {/* Mobile Bottom Nav */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-100">
-        <div className="flex items-center justify-around px-2 py-2">
-          {navigation.map((item) => {
-            const Icon = item.icon;
-            const active = isActive(item.page);
-            return (
-              <Link key={item.page} to={createPageUrl(item.page)}
-                className={cn("flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-xl transition-colors min-w-0",
-                  active ? "text-blue-600" : "text-gray-400")}>
-                <Icon className="w-5 h-5 shrink-0" />
-                <span className="text-[10px] font-medium leading-tight text-center truncate max-w-[52px]">{item.name}</span>
-              </Link>
-            );
-          })}
-        </div>
-      </nav>
+      {mobileBottomNav}
     </div>
   );
 }
