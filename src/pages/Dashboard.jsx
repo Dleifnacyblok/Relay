@@ -4,8 +4,6 @@ import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import {
   AlertTriangle,
-  Clock,
-  DollarSign,
   Search,
   ShoppingBag,
   User,
@@ -14,7 +12,6 @@ import {
   FileText,
   ChevronRight,
   X,
-  Bell,
   CalendarDays,
 } from "lucide-react";
 import { computeLoanerData, formatCurrency } from "@/components/loaners/loanerUtils";
@@ -76,23 +73,6 @@ export default function Dashboard() {
   const myLoanerCount = computedLoaners.filter(l => l.repName?.toLowerCase() === userName.toLowerCase()).length;
   const myMissingCount = missingParts.filter(p => p.repName?.toLowerCase() === userName.toLowerCase() && p.status === "missing").length;
 
-  // Territory breakdown for ESC Dashboard card
-  const territoryCounts = computedLoaners.reduce((acc, l) => {
-    const rep = l.fieldSalesRep || l.repName || "Unknown";
-    if (!acc[rep]) acc[rep] = { loaners: 0, overdue: 0 };
-    acc[rep].loaners++;
-    if (l.risk_status === "Overdue") acc[rep].overdue++;
-    return acc;
-  }, {});
-  const territories = Object.entries(territoryCounts).sort((a, b) => b[1].overdue - a[1].overdue);
-
-  const missingByRep = missingParts.filter(p => p.status === "missing").reduce((acc, p) => {
-    const rep = p.repName || "Unknown";
-    acc[rep] = (acc[rep] || 0) + 1;
-    return acc;
-  }, {});
-
-  // Search filter for loaners
   const q = searchQuery.toLowerCase();
   const searchResults = q.length > 1 ? computedLoaners.filter(l =>
     l.setName?.toLowerCase().includes(q) ||
@@ -104,59 +84,56 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-lg mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="mb-6">
-          {/* Top row: calendar left, logo center, notifications right */}
-          <div className="flex items-center justify-between mb-3">
-            {/* Calendar */}
-            <Link to={createPageUrl("SendBackLog")} className="w-10 h-10 rounded-xl bg-white border border-gray-200 shadow-sm flex items-center justify-center hover:border-blue-300 transition-colors">
-              <CalendarDays className="w-5 h-5 text-gray-500" />
-            </Link>
 
-            {/* Logo + Title centered */}
-            <div className="flex flex-col items-center">
-              <div style={{
-                width: '52px', height: '52px', borderRadius: '14px',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.10)', backgroundColor: 'white',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden',
-                border: '1.5px solid rgba(0,0,0,0.06)'
-              }}>
-                <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/698fe9d012ce3a450807fc7e/9d5cf87f9_IMG_3258.jpg"
-                  alt="Relay Logo" className="object-contain w-full h-full" />
-              </div>
-              <h1 className="font-semibold mt-1" style={{ color: "#000000", fontSize: "22px", letterSpacing: "-0.04em", fontFamily: "system-ui, -apple-system, sans-serif" }}>
-                Relay
-              </h1>
-              <p className="text-[10px] font-light" style={{ color: "#9CA3AF", letterSpacing: "0.15em", textTransform: "uppercase" }}>
-                Loaner Operations
-              </p>
-            </div>
+        {/* Header: calendar | logo+title | notifications */}
+        <div className="flex items-center justify-between mb-4">
+          <Link to={createPageUrl("SendBackLog")} className="w-10 h-10 rounded-xl bg-white border border-gray-200 shadow-sm flex items-center justify-center hover:border-blue-300 transition-colors">
+            <CalendarDays className="w-5 h-5 text-gray-500" />
+          </Link>
 
-            {/* Notifications */}
-            <div className="w-10 h-10 rounded-xl bg-white border border-gray-200 shadow-sm flex items-center justify-center">
-              <NotificationCenter userName={user?.full_name} />
+          <div className="flex flex-col items-center">
+            <div style={{
+              width: '52px', height: '52px', borderRadius: '14px',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.10)', backgroundColor: 'white',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden',
+              border: '1.5px solid rgba(0,0,0,0.06)'
+            }}>
+              <img
+                src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/698fe9d012ce3a450807fc7e/9d5cf87f9_IMG_3258.jpg"
+                alt="Relay Logo"
+                className="object-contain w-full h-full"
+              />
             </div>
+            <h1 className="font-semibold mt-1" style={{ color: "#000000", fontSize: "22px", letterSpacing: "-0.04em", fontFamily: "system-ui, -apple-system, sans-serif" }}>
+              Relay
+            </h1>
+            <p className="text-[10px] font-light" style={{ color: "#9CA3AF", letterSpacing: "0.15em", textTransform: "uppercase" }}>
+              Loaner Operations
+            </p>
           </div>
+
+          <div className="w-10 h-10 rounded-xl bg-white border border-gray-200 shadow-sm flex items-center justify-center">
+            <NotificationCenter userName={user?.full_name} />
+          </div>
+        </div>
+
         {/* Search Bar */}
         <div className="relative mb-6">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Search loaners, reps, accounts..."
-              value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-9 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-300 shadow-sm"
-            />
-            {searchQuery && (
-              <button onClick={() => setSearchQuery("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
-                <X className="w-4 h-4" />
-              </button>
-            )}
-          </div>
-          {/* Search Results */}
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Search loaners, reps, accounts..."
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+            className="w-full pl-9 pr-9 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-300 shadow-sm"
+          />
+          {searchQuery && (
+            <button onClick={() => setSearchQuery("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+              <X className="w-4 h-4" />
+            </button>
+          )}
           {searchResults.length > 0 && (
-            <div className="mt-2 bg-white border border-gray-100 rounded-xl shadow-md overflow-hidden text-left">
+            <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-100 rounded-xl shadow-md overflow-hidden z-10">
               {searchResults.map(l => (
                 <Link key={l.id} to={createPageUrl("MyLoaners")} className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 border-b border-gray-50 last:border-0">
                   <div className={`w-2 h-2 rounded-full shrink-0 ${l.risk_status === "Overdue" ? "bg-red-500" : l.risk_status === "Due Soon" ? "bg-amber-400" : "bg-green-400"}`} />
@@ -199,8 +176,7 @@ export default function Dashboard() {
                   </div>
                   <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-indigo-400 transition-colors shrink-0" />
                 </div>
-                {/* Summary row */}
-                <div className="flex gap-2 mb-3">
+                <div className="flex gap-2">
                   <div className="flex-1 bg-red-50 rounded-lg px-2 py-1.5 text-center">
                     <p className="text-sm font-bold text-red-600">{overdueCount}</p>
                     <p className="text-[10px] text-gray-500">Overdue</p>
@@ -214,12 +190,11 @@ export default function Dashboard() {
                     <p className="text-[10px] text-gray-500">Total</p>
                   </div>
                 </div>
-
               </Link>
             </div>
           </div>
 
-          {/* My Stuff */}
+          {/* My Account */}
           <div>
             <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 px-1">My Account</p>
             <div className="space-y-2">
@@ -310,7 +285,6 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* Footer note */}
         <p className="text-center text-xs text-gray-300 mt-4">
           {userName ? `Signed in as ${userName}` : ""}
         </p>
