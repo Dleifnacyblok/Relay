@@ -25,6 +25,16 @@ export default function Marketplace() {
     queryFn: () => base44.entities.MarketplaceItem.list("-created_date"),
   });
 
+  const { data: lookForItems = [] } = useQuery({
+    queryKey: ["lookForItems"],
+    queryFn: () => base44.entities.LookForItem.list("-created_date"),
+  });
+
+  const { data: missingParts = [] } = useQuery({
+    queryKey: ["missingParts"],
+    queryFn: () => base44.entities.MissingPart.list(),
+  });
+
   const filtered = items.filter(item => {
     if (!search.trim()) return true;
     const q = search.toLowerCase();
