@@ -206,10 +206,16 @@ export default function AddItemDialog({ open, onOpenChange, user }) {
           <div className="space-y-1.5">
             <Label>Part Number <span className="text-red-500">*</span></Label>
             <Input
-              placeholder="e.g. REF-12345"
-              value={partNumber}
-              onChange={e => setPartNumber(e.target.value)}
-            />
+                  placeholder="e.g. REF-12345"
+                  value={partNumber}
+                  onChange={e => setPartNumber(e.target.value)}
+                  onBlur={e => lookUpPartNameByNumber(e.target.value)}
+                />
+                {lookingUpPartName && (
+                  <p className="text-xs text-indigo-500 flex items-center gap-1">
+                    <Loader2 className="w-3 h-3 animate-spin" /> Looking up part name...
+                  </p>
+                )}
           </div>
 
           {/* Part Name with AI Suggestion */}
