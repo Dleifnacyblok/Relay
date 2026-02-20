@@ -32,6 +32,10 @@ export default function Layout({ children, currentPageName }) {
   const isAdmin = user?.role === "admin";
   const isDashboard = currentPageName === "Dashboard";
 
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [location.pathname]);
+
   const navigation = [
     { name: "Search", page: "Search", icon: Search },
     { name: "Marketplace", page: "Marketplace", icon: ShoppingBag },
