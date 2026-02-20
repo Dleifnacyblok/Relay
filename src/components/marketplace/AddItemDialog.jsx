@@ -190,7 +190,7 @@ export default function AddItemDialog({ open, onOpenChange, user }) {
 
           {/* Part Name with AI Suggestion */}
           <div className="space-y-1.5">
-            <Label>Part Name / Description</Label>
+            <Label>Part Name / Description <span className="text-red-500">*</span></Label>
 
             {/* AI Suggestion Card */}
             {aiSuggestion && !suggestionAccepted && !editingName && (
