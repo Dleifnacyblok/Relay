@@ -31,12 +31,12 @@ export default function Layout({ children }) {
 
   const navigation = [
     { name: "Search", page: "Search", icon: Search },
+    { name: "ESC", page: "Dashboard", icon: LayoutDashboard },
+    { name: "Marketplace", page: "Marketplace", icon: ShoppingBag },
     { name: "My Account", page: "MyAccount", icon: User },
     { name: "My Loaners", page: "MyLoaners", icon: User },
     { name: "My Missing Parts", page: "MyMissingParts", icon: AlertCircle },
-    { name: "ESC", page: "Dashboard", icon: LayoutDashboard },
     { name: "Track Log", page: "SendBackLog", icon: Upload },
-    { name: "Marketplace", page: "Marketplace", icon: ShoppingBag },
     ...(isAdmin ? [{ name: "Import", page: "ImportData", icon: Upload }] : []),
   ];
 
