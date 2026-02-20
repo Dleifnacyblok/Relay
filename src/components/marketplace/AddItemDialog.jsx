@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Camera, Loader2, X, ScanLine, Type } from "lucide-react";
+import { Camera, Loader2, X, Sparkles, Check, Pencil } from "lucide-react";
 
 export default function AddItemDialog({ open, onOpenChange, user }) {
   const [partNumber, setPartNumber] = useState("");
@@ -21,39 +21,66 @@ export default function AddItemDialog({ open, onOpenChange, user }) {
   const [location, setLocation] = useState("");
   const [notes, setNotes] = useState("");
   const [photoUrl, setPhotoUrl] = useState(null);
-  const [uploadingPhoto, setUploadingPhoto] = useState(false);
-  const [scanningPart, setScanningPart] = useState(false);
+  const [scanning, setScanning] = useState(false);
   const [scanError, setScanError] = useState(null);
-  const [inputMode, setInputMode] = useState("scan"); // "scan" | "manual"
+
+  // AI suggestion state
+  const [aiSuggestion, setAiSuggestion] = useState(null); // { partName, confidence, reasoning }
+  const [suggestionAccepted, setSuggestionAccepted] = useState(false);
+  const [editingName, setEditingName] = useState(false);
 
   const queryClient = useQueryClient();
+
+  const confidenceColor = (score) => {
+    if (score >= 80) return { bar: "bg-green-500", text: "text-green-700", label: "High confidence" };
+    if (score >= 50) return { bar: "bg-yellow-400", text: "text-yellow-700", label: "Medium confidence" };
+    return { bar: "bg-red-400", text: "text-red-700", label: "Low confidence" };
+  };
 
   const handlePhotoCapture = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    setUploadingPhoto(true);
+
+    setScanning(true);
     setScanError(null);
+    setAiSuggestion(null);
+    setSuggestionAccepted(false);
+
     const { file_url } = await base44.integrations.Core.UploadFile({ file });
     setPhotoUrl(file_url);
 
-    // Auto-scan the part number from the image
-    setScanningPart(true);
     try {
       const res = await base44.functions.invoke("identifyPartNumber", { imageUrl: file_url });
-      const detected = res.data?.partNumber;
-      if (detected) {
-        setPartNumber(detected);
-      } else {
-        setScanError("Couldn't detect a part number — please enter it manually.");
-        setInputMode("manual");
+      const data = res.data;
+
+      if (data?.partNumber) {
+        setPartNumber(data.partNumber);
+      }
+
+      if (data?.partName) {
+        setAiSuggestion({
+          partName: data.partName,
+          confidence: data.confidence ?? 0,
+          reasoning: data.reasoning || "",
+        });
+        // Pre-fill but don't mark accepted yet — let user decide
+        setPartName(data.partName);
+      }
+
+      if (!data?.partNumber && !data?.partName) {
+        setScanError("Couldn't detect part info — please enter manually.");
       }
     } catch {
-      setScanError("Scan failed — please enter part number manually.");
-      setInputMode("manual");
+      setScanError("Scan failed — please enter details manually.");
     } finally {
-      setScanningPart(false);
-      setUploadingPhoto(false);
+      setScanning(false);
     }
+  };
+
+  const acceptSuggestion = () => {
+    setPartName(aiSuggestion.partName);
+    setSuggestionAccepted(true);
+    setEditingName(false);
   };
 
   const createMutation = useMutation({
@@ -85,7 +112,10 @@ export default function AddItemDialog({ open, onOpenChange, user }) {
     setNotes("");
     setPhotoUrl(null);
     setScanError(null);
-    setInputMode("scan");
+    setAiSuggestion(null);
+    setSuggestionAccepted(false);
+    setEditingName(false);
+    setScanning(false);
   };
 
   const canSubmit = partNumber.trim() && quantity >= 1;
@@ -98,52 +128,47 @@ export default function AddItemDialog({ open, onOpenChange, user }) {
         </DialogHeader>
 
         <div className="space-y-5">
-          {/* Photo / Scan */}
+          {/* Photo Capture */}
           <div className="space-y-2">
-            <Label>Part Photo (used to scan part number)</Label>
-            <label className="flex items-center gap-2 cursor-pointer border-2 border-dashed border-slate-200 rounded-lg p-4 hover:border-indigo-300 transition-colors">
-              {uploadingPhoto || scanningPart ? (
-                <Loader2 className="w-4 h-4 animate-spin text-slate-400" />
+            <Label>Part Photo</Label>
+            <label className={`flex items-center gap-3 cursor-pointer border-2 border-dashed rounded-lg p-4 transition-colors ${scanning ? "border-indigo-300 bg-indigo-50" : "border-slate-200 hover:border-indigo-300"}`}>
+              {scanning ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin text-indigo-500 shrink-0" />
+                  <div>
+                    <p className="text-sm font-medium text-indigo-700">Analyzing part...</p>
+                    <p className="text-xs text-indigo-500">AI is reading part number & identifying the component</p>
+                  </div>
+                </>
               ) : (
-                <Camera className="w-4 h-4 text-slate-400" />
+                <>
+                  <Camera className="w-5 h-5 text-slate-400 shrink-0" />
+                  <div>
+                    <p className="text-sm text-slate-600 font-medium">Take or upload a photo</p>
+                    <p className="text-xs text-slate-400">AI will detect the part number and suggest a name</p>
+                  </div>
+                </>
               )}
-              <span className="text-sm text-slate-500">
-                {scanningPart ? "Reading part number..." : uploadingPhoto ? "Uploading..." : "Take or upload a photo"}
-              </span>
               <input
                 type="file"
                 accept="image/*"
                 capture="environment"
                 className="hidden"
                 onChange={handlePhotoCapture}
-                disabled={uploadingPhoto || scanningPart}
+                disabled={scanning}
               />
             </label>
+
             {photoUrl && (
               <div className="relative inline-block">
-                <img src={photoUrl} alt="Part" className="h-24 rounded-lg object-cover border" />
-                <button onClick={() => setPhotoUrl(null)} className="absolute top-1 right-1 bg-black/60 rounded-full p-0.5">
+                <img src={photoUrl} alt="Part" className="h-28 rounded-lg object-cover border border-slate-200" />
+                <button onClick={() => { setPhotoUrl(null); setAiSuggestion(null); setSuggestionAccepted(false); }}
+                  className="absolute top-1 right-1 bg-black/60 rounded-full p-0.5">
                   <X className="w-3 h-3 text-white" />
                 </button>
               </div>
             )}
             {scanError && <p className="text-xs text-amber-600">{scanError}</p>}
-          </div>
-
-          {/* Input Mode Toggle */}
-          <div className="flex gap-2">
-            <button
-              onClick={() => setInputMode("scan")}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${inputMode === "scan" ? "bg-indigo-50 border-indigo-300 text-indigo-700" : "bg-white border-slate-200 text-slate-600"}`}
-            >
-              <ScanLine className="w-3 h-3" /> Scanned
-            </button>
-            <button
-              onClick={() => setInputMode("manual")}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${inputMode === "manual" ? "bg-indigo-50 border-indigo-300 text-indigo-700" : "bg-white border-slate-200 text-slate-600"}`}
-            >
-              <Type className="w-3 h-3" /> Manual Entry
-            </button>
           </div>
 
           {/* Part Number */}
@@ -156,14 +181,74 @@ export default function AddItemDialog({ open, onOpenChange, user }) {
             />
           </div>
 
-          {/* Part Name */}
+          {/* Part Name with AI Suggestion */}
           <div className="space-y-1.5">
             <Label>Part Name / Description</Label>
-            <Input
-              placeholder="e.g. Tibial Tray, Size 3"
-              value={partName}
-              onChange={e => setPartName(e.target.value)}
-            />
+
+            {/* AI Suggestion Card */}
+            {aiSuggestion && !suggestionAccepted && !editingName && (
+              <div className="rounded-lg border border-indigo-200 bg-indigo-50 p-3 space-y-2">
+                <div className="flex items-start gap-2">
+                  <Sparkles className="w-4 h-4 text-indigo-500 mt-0.5 shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-semibold text-indigo-700 mb-0.5">AI Suggestion</p>
+                    <p className="text-sm font-medium text-slate-800 truncate">{aiSuggestion.partName}</p>
+
+                    {/* Confidence bar */}
+                    <div className="mt-1.5 space-y-0.5">
+                      <div className="flex items-center justify-between">
+                        <span className={`text-xs font-medium ${confidenceColor(aiSuggestion.confidence).text}`}>
+                          {confidenceColor(aiSuggestion.confidence).label}
+                        </span>
+                        <span className={`text-xs font-bold ${confidenceColor(aiSuggestion.confidence).text}`}>
+                          {aiSuggestion.confidence}%
+                        </span>
+                      </div>
+                      <div className="w-full bg-slate-200 rounded-full h-1.5">
+                        <div
+                          className={`h-1.5 rounded-full transition-all ${confidenceColor(aiSuggestion.confidence).bar}`}
+                          style={{ width: `${aiSuggestion.confidence}%` }}
+                        />
+                      </div>
+                    </div>
+
+                    {aiSuggestion.reasoning && (
+                      <p className="text-xs text-slate-500 mt-1.5 italic">{aiSuggestion.reasoning}</p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex gap-2 pt-1">
+                  <Button size="sm" className="flex-1 h-7 bg-indigo-600 hover:bg-indigo-700 text-xs gap-1" onClick={acceptSuggestion}>
+                    <Check className="w-3 h-3" /> Accept
+                  </Button>
+                  <Button size="sm" variant="outline" className="flex-1 h-7 text-xs gap-1" onClick={() => { setEditingName(true); }}>
+                    <Pencil className="w-3 h-3" /> Edit
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {/* Accepted state */}
+            {suggestionAccepted && !editingName && (
+              <div className="flex items-center gap-2 px-3 py-2 bg-green-50 border border-green-200 rounded-lg">
+                <Check className="w-4 h-4 text-green-600 shrink-0" />
+                <span className="text-sm text-green-800 flex-1 truncate">{partName}</span>
+                <button onClick={() => { setSuggestionAccepted(false); setEditingName(true); }} className="text-xs text-slate-500 hover:text-slate-700 underline shrink-0">
+                  Change
+                </button>
+              </div>
+            )}
+
+            {/* Manual input — shown when no suggestion, or editing */}
+            {(!aiSuggestion || editingName) && (
+              <Input
+                placeholder="e.g. Tibial Tray, Size 3"
+                value={partName}
+                onChange={e => setPartName(e.target.value)}
+                autoFocus={editingName}
+              />
+            )}
           </div>
 
           {/* Quantity */}
