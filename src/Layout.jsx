@@ -36,6 +36,7 @@ export default function Layout({ children }) {
     { name: "My Missing Parts", page: "MyMissingParts", icon: AlertCircle },
     { name: "ESC", page: "Dashboard", icon: LayoutDashboard },
     { name: "Track Log", page: "SendBackLog", icon: Upload },
+    { name: "Marketplace", page: "Marketplace", icon: ShoppingBag },
     ...(isAdmin ? [{ name: "Import", page: "ImportData", icon: Upload }] : []),
   ];
 
