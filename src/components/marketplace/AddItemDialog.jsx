@@ -288,41 +288,29 @@ export default function AddItemDialog({ open, onOpenChange, user }) {
           </div>
 
           {/* Quantity */}
-          <div className="space-y-1.5">
-            <Label>Quantity <span className="text-red-500">*</span></Label>
-            <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto p-1">
-              {[...Array(25).keys()].map(i => {
-                const val = i + 1;
-                return (
-                  <button
-                    key={val}
-                    type="button"
-                    onClick={() => setQuantity(val)}
-                    className={`w-10 h-10 rounded-lg border text-sm font-medium transition-colors shrink-0 ${quantity === val ? "bg-indigo-600 border-indigo-600 text-white" : "border-slate-200 text-slate-700 hover:border-indigo-300"}`}
-                  >
-                    {val}
-                  </button>
-                );
-              })}
-              <button
-                type="button"
-                onClick={() => setQuantity(26)}
-                className={`px-3 h-10 rounded-lg border text-sm font-medium transition-colors shrink-0 ${quantity > 25 ? "bg-indigo-600 border-indigo-600 text-white" : "border-slate-200 text-slate-700 hover:border-indigo-300"}`}
-              >
-                25+
-              </button>
+            <div className="space-y-1.5">
+              <Label>Quantity <span className="text-red-500">*</span></Label>
+              <Select value={String(quantity)} onValueChange={v => setQuantity(Number(v))}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select quantity" />
+                </SelectTrigger>
+                <SelectContent>
+                  {[...Array(25).keys()].map(i => (
+                    <SelectItem key={i + 1} value={String(i + 1)}>{i + 1}</SelectItem>
+                  ))}
+                  <SelectItem value="26">25+</SelectItem>
+                </SelectContent>
+              </Select>
+              {quantity === 26 && (
+                <Input
+                  type="number"
+                  min={26}
+                  placeholder="Enter quantity"
+                  onChange={e => setQuantity(Number(e.target.value))}
+                  className="mt-2"
+                />
+              )}
             </div>
-            {quantity > 25 && (
-              <Input
-                type="number"
-                min={26}
-                placeholder="Enter quantity"
-                value={quantity}
-                onChange={e => setQuantity(Number(e.target.value))}
-                className="mt-2"
-              />
-            )}
-          </div>
 
           {/* Rep Name */}
           <div className="space-y-1.5">
