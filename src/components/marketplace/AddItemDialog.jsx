@@ -90,17 +90,17 @@ export default function AddItemDialog({ open, onOpenChange, user }) {
 
   const createMutation = useMutation({
     mutationFn: () =>
-      base44.entities.MarketplaceItem.create({
-        partNumber: partNumber.trim(),
-        partName: partName.trim(),
-        quantity: Number(quantity),
-        repName: repName.trim() || user?.full_name || "",
-        location: location.trim(),
-        notes: notes.trim(),
-        photoUrl,
-        status: "available",
-        bids: [],
-      }),
+    base44.entities.MarketplaceItem.create({
+      partNumber: partNumber.trim(),
+      partName: partName.trim(),
+      quantity: Number(quantity),
+      repName: repName.trim() || user?.full_name || "",
+      location: location.trim(),
+      notes: notes.trim() + (expirationDate ? `\nExpires: ${format(expirationDate, "MMM d, yyyy")}` : ""),
+      photoUrl,
+      status: "available",
+      bids: [],
+    }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["marketplaceItems"] });
       onOpenChange(false);
