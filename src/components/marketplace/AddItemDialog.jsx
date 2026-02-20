@@ -343,51 +343,38 @@ export default function AddItemDialog({ open, onOpenChange, user }) {
             />
           </div>
 
-          {/* Expiration Date */}
-          <div className="space-y-2">
-            <Label>Does this item have an expiration date? <span className="text-red-500">*</span></Label>
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={() => { setHasExpiration(true); }}
-                className={`flex-1 py-2 rounded-lg border text-sm font-medium transition-colors ${hasExpiration === true ? "bg-indigo-50 border-indigo-400 text-indigo-700" : "border-slate-200 text-slate-600 hover:border-slate-300"}`}
-              >
-                Yes
-              </button>
-              <button
-                type="button"
-                onClick={() => { setHasExpiration(false); setExpirationDate(null); }}
-                className={`flex-1 py-2 rounded-lg border text-sm font-medium transition-colors ${hasExpiration === false ? "bg-indigo-50 border-indigo-400 text-indigo-700" : "border-slate-200 text-slate-600 hover:border-slate-300"}`}
-              >
-                No
-              </button>
+          {/* Expiration Date (optional) */}
+            <div className="space-y-1.5">
+              <Label>Expiration Date <span className="text-slate-400 font-normal">(optional)</span></Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <button
+                    type="button"
+                    className={`w-full flex items-center gap-2 px-3 py-2 border rounded-md text-sm text-left transition-colors ${expirationDate ? "text-slate-900 border-slate-300" : "text-slate-400 border-slate-200"} hover:border-indigo-300`}
+                  >
+                    <CalendarIcon className="w-4 h-4 shrink-0 text-slate-400" />
+                    {expirationDate ? format(expirationDate, "MMM d, yyyy") : "Select expiration date"}
+                    {expirationDate && (
+                      <button
+                        type="button"
+                        className="ml-auto text-slate-400 hover:text-slate-600"
+                        onClick={e => { e.stopPropagation(); setExpirationDate(null); }}
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    )}
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={expirationDate}
+                    onSelect={setExpirationDate}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
             </div>
-
-            {hasExpiration === true && (
-              <div className="space-y-1.5">
-                <Label>Expiration Date <span className="text-red-500">*</span></Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <button
-                      type="button"
-                      className={`w-full flex items-center gap-2 px-3 py-2 border rounded-md text-sm text-left transition-colors ${expirationDate ? "text-slate-900 border-slate-300" : "text-slate-400 border-slate-200"} hover:border-indigo-300`}
-                    >
-                      <CalendarIcon className="w-4 h-4 shrink-0 text-slate-400" />
-                      {expirationDate ? format(expirationDate, "MMM d, yyyy") : "Select expiration date"}
-                    </button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={expirationDate}
-                      onSelect={setExpirationDate}
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
-              </div>
-            )}
-          </div>
         </div>
 
         <div className="flex gap-3 mt-6">
