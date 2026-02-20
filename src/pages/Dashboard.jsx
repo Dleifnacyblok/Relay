@@ -172,7 +172,6 @@ export default function Dashboard() {
           {searchQuery.length > 1 && searchResults.length === 0 && (
             <p className="mt-2 text-xs text-gray-400 text-center">No loaners found</p>
           )}
-        </div>
 
         {/* Navigation Sections */}
         <div className="space-y-6">
