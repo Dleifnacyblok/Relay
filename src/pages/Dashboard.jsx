@@ -267,8 +267,30 @@ export default function Dashboard() {
           )}
         </div>
 
+        {/* Quick Stats Bar */}
+        {isLoading ? (
+          <div className="flex gap-2 mt-6">
+            {[1,2,3].map(i => <Skeleton key={i} className="flex-1 h-16 rounded-xl" />)}
+          </div>
+        ) : (
+          <div className="flex gap-2 mt-6">
+            <div className={`flex-1 rounded-xl p-3 text-center ${overdueCount > 0 ? "bg-red-50" : "bg-gray-100"}`}>
+              <p className={`text-xl font-bold ${overdueCount > 0 ? "text-red-600" : "text-gray-700"}`}>{overdueCount}</p>
+              <p className="text-xs text-gray-500 leading-tight mt-0.5">Overdue</p>
+            </div>
+            <div className={`flex-1 rounded-xl p-3 text-center ${dueSoonCount > 0 ? "bg-amber-50" : "bg-gray-100"}`}>
+              <p className={`text-xl font-bold ${dueSoonCount > 0 ? "text-amber-600" : "text-gray-700"}`}>{dueSoonCount}</p>
+              <p className="text-xs text-gray-500 leading-tight mt-0.5">Due Soon</p>
+            </div>
+            <div className={`flex-1 rounded-xl p-3 text-center ${totalFineExposure > 0 ? "bg-red-50" : "bg-gray-100"}`}>
+              <p className={`text-base font-bold ${totalFineExposure > 0 ? "text-red-600" : "text-gray-700"}`}>{formatCurrency(totalFineExposure)}</p>
+              <p className="text-xs text-gray-500 leading-tight mt-0.5">Fines</p>
+            </div>
+          </div>
+        )}
+
         {/* Footer note */}
-        <p className="text-center text-xs text-gray-300 mt-8">
+        <p className="text-center text-xs text-gray-300 mt-4">
           {userName ? `Signed in as ${userName}` : ""}
         </p>
       </div>
