@@ -137,9 +137,9 @@ export default function Dashboard() {
               <NotificationCenter userName={user?.full_name} />
             </div>
           </div>
-        </div>
-          {/* Search Bar */}
-          <div className="relative mt-4">
+        {/* Search Bar */}
+        <div className="relative mb-6">
+          <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input
               type="text"
