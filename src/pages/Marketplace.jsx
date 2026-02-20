@@ -158,6 +158,11 @@ export default function Marketplace() {
         onOpenChange={setShowAddDialog}
         user={user}
       />
+      <LookForDialog
+        open={showLookForDialog}
+        onOpenChange={setShowLookForDialog}
+        user={user}
+      />
     </div>
   );
 }
