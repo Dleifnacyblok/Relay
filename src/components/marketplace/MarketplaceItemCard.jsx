@@ -97,8 +97,32 @@ export default function MarketplaceItemCard({ item, user, isOwner }) {
         </div>
 
         {/* Photo */}
-        {item.photoUrl && !editing && (
+        {!editing && item.photoUrl && (
           <img src={item.photoUrl} alt="Part" className="w-full h-32 object-cover rounded-lg border border-slate-100" />
+        )}
+        {editing && (
+          <div className="space-y-2">
+            {editData.photoUrl ? (
+              <div className="relative">
+                <img src={editData.photoUrl} alt="Part" className="w-full h-32 object-cover rounded-lg border border-slate-100" />
+                <label className="absolute bottom-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded-lg flex items-center gap-1 cursor-pointer hover:bg-black/80">
+                  {uploadingPhoto ? <Loader2 className="w-3 h-3 animate-spin" /> : <Camera className="w-3 h-3" />}
+                  {uploadingPhoto ? "Uploading..." : "Change"}
+                  <input type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} disabled={uploadingPhoto} />
+                </label>
+              </div>
+            ) : (
+              <label className="flex flex-col items-center justify-center gap-1 border-2 border-dashed border-slate-200 rounded-lg h-24 cursor-pointer hover:border-indigo-300 hover:bg-indigo-50 transition-colors">
+                {uploadingPhoto ? (
+                  <Loader2 className="w-5 h-5 text-slate-400 animate-spin" />
+                ) : (
+                  <Plus className="w-5 h-5 text-slate-400" />
+                )}
+                <span className="text-xs text-slate-400">{uploadingPhoto ? "Uploading..." : "Add Photo"}</span>
+                <input type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} disabled={uploadingPhoto} />
+              </label>
+            )}
+          </div>
         )}
 
         {/* Details */}
