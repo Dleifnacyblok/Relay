@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { HandshakeIcon, MapPin, User, Package, Pencil, Check, X, Trash2, Loader2 } from "lucide-react";
+import { HandshakeIcon, MapPin, User, Package, Pencil, Check, X, Trash2, Loader2, Camera, Plus } from "lucide-react";
 import BidDialog from "./BidDialog";
 
 const statusColors = {
