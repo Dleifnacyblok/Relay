@@ -369,21 +369,73 @@ export default function SendBackLog() {
         </div>
 
         {/* Photos Dialog */}
-        <Dialog open={showPhotosDialog} onOpenChange={setShowPhotosDialog}>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <Dialog open={showPhotosDialog} onOpenChange={(open) => {
+          setShowPhotosDialog(open);
+          if (!open) setEditingLogId(null);
+        }}>
+          <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Shipment Photos</DialogTitle>
+              <DialogTitle>{editingLogId ? "Edit Photos" : "Shipment Photos"}</DialogTitle>
             </DialogHeader>
-            <div className="grid gap-4 mt-4">
-              {selectedPhotos.map((url, idx) => (
-                <div key={idx} className="bg-slate-50 rounded-lg overflow-hidden">
-                  <img 
-                    src={url} 
-                    alt={`Shipment photo ${idx + 1}`}
-                    className="w-full h-auto"
+            <div className="space-y-4 mt-2">
+              {selectedPhotos.length === 0 && (
+                <p className="text-sm text-slate-500 text-center py-4">No photos yet</p>
+              )}
+              <div className="grid grid-cols-2 gap-3">
+                {selectedPhotos.map((url, idx) => (
+                  <div key={idx} className="relative group rounded-lg overflow-hidden border border-slate-200">
+                    <img
+                      src={url}
+                      alt={`Photo ${idx + 1}`}
+                      className="w-full h-40 object-cover"
+                    />
+                    {editingLogId && (
+                      <button
+                        type="button"
+                        onClick={() => handleRemovePhoto(idx)}
+                        className="absolute top-2 right-2 w-7 h-7 bg-red-500 text-white rounded-full flex items-center justify-center shadow-md opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              {editingLogId && (
+                <div className="space-y-3">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    capture="environment"
+                    multiple
+                    onChange={handleAddPhotos}
+                    className="hidden"
+                    id="edit-photo-upload"
+                    disabled={uploading}
                   />
+                  <label htmlFor="edit-photo-upload">
+                    <Button type="button" variant="outline" className="w-full gap-2" disabled={uploading} asChild>
+                      <span>
+                        {uploading ? (
+                          <><Loader2 className="w-4 h-4 animate-spin" />Uploading...</>
+                        ) : (
+                          <><Plus className="w-4 h-4" />Add Photos</>
+                        )}
+                      </span>
+                    </Button>
+                  </label>
+                  <Button
+                    className="w-full"
+                    onClick={handleSavePhotos}
+                    disabled={updatePhotosMutation.isPending}
+                  >
+                    {updatePhotosMutation.isPending ? (
+                      <><Loader2 className="w-4 h-4 animate-spin mr-2" />Saving...</>
+                    ) : "Save Photos"}
+                  </Button>
                 </div>
-              ))}
+              )}
             </div>
           </DialogContent>
         </Dialog>
