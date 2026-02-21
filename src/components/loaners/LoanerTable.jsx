@@ -33,9 +33,9 @@ export default function LoanerTable({ loaners, compact = false, selectable = fal
   }
 
   return (
-    <div className="overflow-x-auto">
+    <div>
       {/* Mobile Card View */}
-      <div className="md:hidden space-y-3">
+      <div className="md:hidden space-y-3 p-3">
         {loaners.map((loaner) => (
           <div
             key={loaner.id}
