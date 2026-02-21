@@ -289,6 +289,23 @@ export default function Search() {
           </div>
         </div>
       </div>
+
+      <SendBackDialog
+        open={showSendBack}
+        onOpenChange={setShowSendBack}
+        selectedLoaners={selectedLoaners}
+        selectedParts={[]}
+        userName={userName}
+        onSuccess={() => setSelectedIds([])}
+      />
+
+      <TransferDialog
+        open={showTransfer}
+        onOpenChange={setShowTransfer}
+        selectedLoaners={selectedLoaners}
+        userName={userName}
+        onSuccess={() => setSelectedIds([])}
+      />
     </div>
   );
 }
