@@ -53,7 +53,6 @@ export default function MyLoaners() {
   );
 
   const selectedLoaners = myLoaners.filter(l => selectedIds.includes(l.id));
-  // Debug: log selected loaners when transferring
 
   const handleSelectAll = () => {
     if (selectedIds.length === myLoaners.length) {
