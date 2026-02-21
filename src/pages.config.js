@@ -58,6 +58,7 @@ import MyMissingParts from './pages/MyMissingParts';
 import Search from './pages/Search';
 import SendBackLog from './pages/SendBackLog';
 import NotificationPreferences from './pages/NotificationPreferences';
+import Analytics from './pages/Analytics';
 import __Layout from './Layout.jsx';
 
 
@@ -73,6 +74,7 @@ export const PAGES = {
     "Search": Search,
     "SendBackLog": SendBackLog,
     "NotificationPreferences": NotificationPreferences,
+    "Analytics": Analytics,
 }
 
 export const pagesConfig = {
