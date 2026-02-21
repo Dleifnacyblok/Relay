@@ -196,7 +196,7 @@ export default function MarketplaceItemCard({ item, user, isOwner }) {
               <Button
                 size="sm"
                 className="flex-1 bg-green-600 hover:bg-green-700 h-8"
-                disabled={updateMutation.isPending}
+                disabled={updateMutation.isPending || uploadingPhoto}
                 onClick={() => updateMutation.mutate(editData)}
               >
                 {updateMutation.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <><Check className="w-3.5 h-3.5" /> Save</>}
