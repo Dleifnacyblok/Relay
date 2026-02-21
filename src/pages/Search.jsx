@@ -98,6 +98,20 @@ export default function Search() {
     setRepFilter("all");
   };
 
+  const handleSelectOne = (id) => {
+    setSelectedIds(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
+  };
+
+  const handleSelectAll = () => {
+    if (selectedIds.length === filteredLoaners.length) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(filteredLoaners.map(l => l.id));
+    }
+  };
+
+  const selectedLoaners = filteredLoaners.filter(l => selectedIds.includes(l.id));
+
   const FilterControls = () => (
     <div className="space-y-4">
       <div>
