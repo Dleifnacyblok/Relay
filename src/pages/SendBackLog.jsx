@@ -407,7 +407,6 @@ export default function SendBackLog() {
                   <input
                     type="file"
                     accept="image/*"
-                    capture="environment"
                     multiple
                     onChange={handleAddPhotos}
                     className="hidden"

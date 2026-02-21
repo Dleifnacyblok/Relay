@@ -222,7 +222,6 @@ export default function TransferDialog({ open, onOpenChange, selectedLoaners, us
                 type="file"
                 accept="image/*"
                 multiple
-                capture="environment"
                 className="hidden"
                 onChange={handlePhotoChange}
                 disabled={uploadingPhotos}
