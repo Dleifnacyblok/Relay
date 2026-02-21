@@ -45,51 +45,51 @@ export default function LoanerTable({ loaners, compact = false, selectable = fal
               border: selectedIds.includes(loaner.id) ? '1.5px solid #3B82F6' : '1px solid #E5E7EB',
               boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.04)',
             }}
-            onClick={() => selectable ? onSelectOne?.(loaner.id) : null}
+            onClick={() => selectable && onSelectOne?.(loaner.id)}
           >
-              <div className="flex items-start justify-between mb-3">
-                <div className="flex items-start gap-3 flex-1 min-w-0">
-                  {selectable && (
-                    <Checkbox
-                      checked={selectedIds.includes(loaner.id)}
-                      onCheckedChange={() => onSelectOne?.(loaner.id)}
-                      onClick={(e) => e.stopPropagation()}
-                      className="mt-1 shrink-0"
-                    />
-                  )}
-                  <div className="min-w-0">
-                    <h3 className="font-bold truncate" style={{color: '#000000'}}>{loaner.setName}</h3>
-                    <p className="text-xs mt-0.5">
-                      <span style={{color: '#777777'}}>Etch ID: </span>
-                      <span style={{color: '#222222', letterSpacing: '0.02em'}}>{loaner.etchId || "(missing)"}</span>
-                    </p>
-                  </div>
-                </div>
-                <RiskBadge riskStatus={loaner.risk_status} />
-              </div>
-              <div className="grid grid-cols-2 gap-2 text-sm">
-                <div>
-                  <span className="text-gray-500">Account:</span>
-                  <p className="font-medium text-gray-900 truncate">{loaner.accountName || "—"}</p>
-                </div>
-                <div>
-                  <span className="text-gray-500">Due:</span>
-                  <p className="font-medium text-gray-900">{formatDate(loaner.expectedReturnDate)}</p>
-                </div>
-                <div>
-                  <span className="text-gray-500">Rep:</span>
-                  <p className="font-medium text-gray-900 truncate">{loaner.repName || "—"}</p>
-                </div>
-                {loaner.fineAmount > 0 && (
-                  <div>
-                    <span className="text-gray-500">Fine:</span>
-                    <p className={`font-semibold ${loaner.feesWaived ? "text-green-600 line-through" : "text-red-600"}`}>
-                      {formatCurrency(loaner.fineAmount)}
-                      {loaner.feesWaived && <span className="text-xs ml-1 no-underline">(Waived)</span>}
-                    </p>
-                  </div>
+            <div className="flex items-start justify-between mb-3">
+              <div className="flex items-start gap-3 flex-1 min-w-0">
+                {selectable && (
+                  <Checkbox
+                    checked={selectedIds.includes(loaner.id)}
+                    onCheckedChange={() => onSelectOne?.(loaner.id)}
+                    onClick={(e) => e.stopPropagation()}
+                    className="mt-1 shrink-0"
+                  />
                 )}
+                <div className="min-w-0">
+                  <h3 className="font-bold truncate" style={{color: '#000000'}}>{loaner.setName}</h3>
+                  <p className="text-xs mt-0.5">
+                    <span style={{color: '#777777'}}>Etch ID: </span>
+                    <span style={{color: '#222222', letterSpacing: '0.02em'}}>{loaner.etchId || "(missing)"}</span>
+                  </p>
+                </div>
               </div>
+              <RiskBadge riskStatus={loaner.risk_status} />
+            </div>
+            <div className="grid grid-cols-2 gap-2 text-sm">
+              <div>
+                <span className="text-gray-500">Account:</span>
+                <p className="font-medium text-gray-900 truncate">{loaner.accountName || "—"}</p>
+              </div>
+              <div>
+                <span className="text-gray-500">Due:</span>
+                <p className="font-medium text-gray-900">{formatDate(loaner.expectedReturnDate)}</p>
+              </div>
+              <div>
+                <span className="text-gray-500">Rep:</span>
+                <p className="font-medium text-gray-900 truncate">{loaner.repName || "—"}</p>
+              </div>
+              {loaner.fineAmount > 0 && (
+                <div>
+                  <span className="text-gray-500">Fine:</span>
+                  <p className={`font-semibold ${loaner.feesWaived ? "text-green-600 line-through" : "text-red-600"}`}>
+                    {formatCurrency(loaner.fineAmount)}
+                    {loaner.feesWaived && <span className="text-xs ml-1 no-underline">(Waived)</span>}
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
         ))}
       </div>
