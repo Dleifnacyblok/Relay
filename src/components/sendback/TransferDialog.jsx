@@ -42,7 +42,10 @@ export default function TransferDialog({ open, onOpenChange, selectedLoaners, us
     mutationFn: async () => {
       const today = format(new Date(), "yyyy-MM-dd");
       const loanerIds = selectedLoaners.map(l => l.id);
-      const notesStr = `Transfer to: ${transferTo} | Request #: ${requestNumber} | Overdue: ${isOverdue ? "Yes" : "No"}${notes ? ` | Notes: ${notes}` : ""}`;
+      const notesStr = `Transfer to: ${transferTo} | Transferred by: ${userName} | Request #: ${requestNumber} | Overdue: ${isOverdue ? "Yes" : "No"}${notes ? ` | Notes: ${notes}` : ""}`;
+
+      // Collect original repNames (for 3rd-party transfers)
+      const originalRepNames = [...new Set(selectedLoaners.map(l => l.repName).filter(Boolean))];
 
       // Update each loaner's status
       for (const loaner of selectedLoaners) {
@@ -52,7 +55,7 @@ export default function TransferDialog({ open, onOpenChange, selectedLoaners, us
         });
       }
 
-      // Create a SendBackLog entry for the sender
+      // Create a SendBackLog entry for the person doing the transfer (initiator)
       await base44.entities.SendBackLog.create({
         repName: userName,
         sentDate: today,
@@ -65,9 +68,11 @@ export default function TransferDialog({ open, onOpenChange, selectedLoaners, us
         notes: notesStr,
       });
 
-      // Try to find a matching Relay user and create a log for them too
+      // Try to find matching Relay users and create logs for recipient + original holders
       try {
         const allUsers = await base44.entities.User.list();
+
+        // Log for recipient
         const recipientUser = allUsers.find(u =>
           u.full_name?.toLowerCase().trim() === transferTo.toLowerCase().trim()
         );
@@ -85,8 +90,31 @@ export default function TransferDialog({ open, onOpenChange, selectedLoaners, us
             trackingNumber: "TRANSFER_IN",
           });
         }
+
+        // Log for original rep(s) if the initiator is transferring someone else's loaner
+        for (const origRepName of originalRepNames) {
+          if (origRepName.toLowerCase().trim() === userName.toLowerCase().trim()) continue;
+          if (origRepName.toLowerCase().trim() === transferTo.toLowerCase().trim()) continue;
+          const origUser = allUsers.find(u =>
+            u.full_name?.toLowerCase().trim() === origRepName.toLowerCase().trim()
+          );
+          if (origUser) {
+            await base44.entities.SendBackLog.create({
+              repName: origUser.full_name,
+              sentDate: today,
+              loanerIds: loanerIds.filter(id => selectedLoaners.find(l => l.id === id && l.repName?.toLowerCase().trim() === origRepName.toLowerCase().trim())),
+              logType: "transfer",
+              transferTo: transferTo.trim(),
+              requestNumber,
+              isOverdue,
+              photoUrls: photos,
+              notes: `Your loaner was transferred by ${userName} to ${transferTo} | Request #: ${requestNumber} | Overdue: ${isOverdue ? "Yes" : "No"}${notes ? ` | Notes: ${notes}` : ""}`,
+              trackingNumber: "TRANSFER_NOTIFY",
+            });
+          }
+        }
       } catch (_) {
-        // Non-critical, continue if user lookup fails
+        // Non-critical
       }
     },
     onSuccess: () => {
