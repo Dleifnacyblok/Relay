@@ -97,7 +97,7 @@ export default function MyLoaners() {
             </h1>
           </div>
           <p className="text-slate-500 ml-12">
-            {userName ? `Showing loaners where you are primary or associate rep` : "Loading..."}
+            {userName ? `All active loaners — select any to send back or transfer` : "Loading..."}
           </p>
         </div>
 
