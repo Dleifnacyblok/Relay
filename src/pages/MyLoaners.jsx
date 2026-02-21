@@ -97,7 +97,7 @@ export default function MyLoaners() {
             </h1>
           </div>
           <p className="text-slate-500 ml-12">
-            {userName ? `All active loaners — select any to send back or transfer` : "Loading..."}
+            {userName ? `Loaners assigned to you — select any to send back or transfer` : "Loading..."}
           </p>
         </div>
 
