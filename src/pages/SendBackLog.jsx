@@ -332,18 +332,18 @@ export default function SendBackLog() {
                 )}
 
                 {/* Actions */}
-                <div className="mt-4 flex gap-2">
-                  {log.photoUrls && log.photoUrls.length > 0 && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleViewPhotos(log.photoUrls)}
-                      className="gap-2"
-                    >
-                      <ImageIcon className="w-4 h-4" />
-                      View Photos ({log.photoUrls.length})
-                    </Button>
-                  )}
+                <div className="mt-4 flex gap-2 flex-wrap">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleEditPhotos(log)}
+                    className="gap-2"
+                  >
+                    <ImageIcon className="w-4 h-4" />
+                    {log.photoUrls && log.photoUrls.length > 0
+                      ? `Photos (${log.photoUrls.length})`
+                      : "Add Photos"}
+                  </Button>
                   <Button
                     variant="outline"
                     size="sm"
