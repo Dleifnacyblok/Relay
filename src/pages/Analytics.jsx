@@ -9,6 +9,7 @@ import {
   PieChart, Pie, Cell, Legend,
 } from "recharts";
 import { TrendingUp, AlertTriangle, Package, DollarSign } from "lucide-react";
+import AIInsights from "@/components/analytics/AIInsights";
 
 const COLORS = ["#ef4444", "#f59e0b", "#3b82f6", "#10b981", "#8b5cf6", "#ec4899", "#06b6d4", "#f97316"];
 
