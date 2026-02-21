@@ -1,10 +1,11 @@
 import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
-import { Search as SearchIcon, Filter, X, SlidersHorizontal } from "lucide-react";
+import { Search as SearchIcon, Filter, X, SlidersHorizontal, Send, ArrowRightLeft } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -21,6 +22,8 @@ import {
 } from "@/components/ui/sheet";
 import LoanerTable from "@/components/loaners/LoanerTable";
 import { computeLoanerData, sortLoaners } from "@/components/loaners/loanerUtils";
+import SendBackDialog from "@/components/sendback/SendBackDialog";
+import TransferDialog from "@/components/sendback/TransferDialog";
 
 export default function Search() {
   const [searchQuery, setSearchQuery] = useState("");
