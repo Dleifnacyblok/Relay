@@ -30,6 +30,15 @@ export default function Search() {
   const [riskFilter, setRiskFilter] = useState("all");
   const [repFilter, setRepFilter] = useState("all");
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [selectedIds, setSelectedIds] = useState([]);
+  const [showSendBack, setShowSendBack] = useState(false);
+  const [showTransfer, setShowTransfer] = useState(false);
+
+  const { data: user } = useQuery({
+    queryKey: ["currentUser"],
+    queryFn: () => base44.auth.me(),
+  });
+  const userName = user?.full_name || "";
 
   const { data: appSetting } = useQuery({
     queryKey: ["appSetting"],
