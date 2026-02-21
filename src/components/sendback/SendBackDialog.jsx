@@ -188,8 +188,7 @@ export default function SendBackDialog({ open, onOpenChange, selectedLoaners, se
                   <input
                     type="file"
                     accept="image/*"
-                    capture="environment"
-                    multiple
+                            multiple
                     onChange={handlePhotoUpload}
                     className="hidden"
                     id="photo-upload"
