@@ -46,6 +46,7 @@ export default function Layout({ children, currentPageName }) {
 
   const moreNavigation = [
     { name: "My Account", page: "MyAccount", icon: User },
+    { name: "Notifications", page: "NotificationSettings", icon: Bell },
     ...(isAdmin ? [{ name: "Import", page: "ImportData", icon: Upload }] : []),
   ];
 
