@@ -48,12 +48,22 @@ export default function LoanerTable({ loaners, compact = false, selectable = fal
             onClick={() => selectable ? onSelectOne?.(loaner.id) : null}
           >
               <div className="flex items-start justify-between mb-3">
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-bold truncate" style={{color: '#000000'}}>{loaner.setName}</h3>
-                  <p className="text-xs mt-0.5">
-                    <span style={{color: '#777777'}}>Etch ID: </span>
-                    <span style={{color: '#222222', letterSpacing: '0.02em'}}>{loaner.etchId || "(missing)"}</span>
-                  </p>
+                <div className="flex items-start gap-3 flex-1 min-w-0">
+                  {selectable && (
+                    <Checkbox
+                      checked={selectedIds.includes(loaner.id)}
+                      onCheckedChange={(e) => { e.stopPropagation?.(); onSelectOne?.(loaner.id); }}
+                      onClick={(e) => e.stopPropagation()}
+                      className="mt-1 shrink-0"
+                    />
+                  )}
+                  <div className="min-w-0">
+                    <h3 className="font-bold truncate" style={{color: '#000000'}}>{loaner.setName}</h3>
+                    <p className="text-xs mt-0.5">
+                      <span style={{color: '#777777'}}>Etch ID: </span>
+                      <span style={{color: '#222222', letterSpacing: '0.02em'}}>{loaner.etchId || "(missing)"}</span>
+                    </p>
+                  </div>
                 </div>
                 <RiskBadge riskStatus={loaner.risk_status} />
               </div>
