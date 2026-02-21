@@ -47,7 +47,10 @@ export default function Layout({ children, currentPageName }) {
   const moreNavigation = [
     { name: "Track Log", page: "SendBackLog", icon: FileText },
     { name: "My Account", page: "MyAccount", icon: User },
-    ...(isAdmin ? [{ name: "Import", page: "ImportData", icon: Upload }] : []),
+    ...(isAdmin ? [
+      { name: "Analytics", page: "Analytics", icon: TrendingUp },
+      { name: "Import", page: "ImportData", icon: Upload },
+    ] : []),
   ];
 
   const isActive = (pageName) => {
