@@ -52,7 +52,7 @@ export default function LoanerTable({ loaners, compact = false, selectable = fal
                   {selectable && (
                     <Checkbox
                       checked={selectedIds.includes(loaner.id)}
-                      onCheckedChange={(e) => { e.stopPropagation?.(); onSelectOne?.(loaner.id); }}
+                      onCheckedChange={() => onSelectOne?.(loaner.id)}
                       onClick={(e) => e.stopPropagation()}
                       className="mt-1 shrink-0"
                     />
