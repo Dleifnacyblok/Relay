@@ -224,6 +224,42 @@ export default function Search() {
 
           {/* Results */}
           <div className="flex-1 min-w-0">
+            {/* Actions Bar */}
+            {!isLoading && filteredLoaners.length > 0 && (
+              <div className="bg-white rounded-lg border border-slate-200 p-3 mb-3 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Checkbox
+                    checked={selectedIds.length > 0 && selectedIds.length === filteredLoaners.length}
+                    onCheckedChange={handleSelectAll}
+                  />
+                  <span className="text-sm text-slate-600">
+                    {selectedIds.length > 0 ? `${selectedIds.length} selected` : "Select all"}
+                  </span>
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={selectedIds.length === 0}
+                    onClick={() => setShowTransfer(true)}
+                    className="gap-1.5"
+                  >
+                    <ArrowRightLeft className="w-4 h-4" />
+                    Transfer
+                  </Button>
+                  <Button
+                    size="sm"
+                    disabled={selectedIds.length === 0}
+                    onClick={() => setShowSendBack(true)}
+                    className="gap-1.5"
+                  >
+                    <Send className="w-4 h-4" />
+                    Send Back
+                  </Button>
+                </div>
+              </div>
+            )}
+
             <div className="rounded-xl overflow-hidden" style={{
               backgroundColor: '#FFFFFF',
               border: '1px solid #EEEEEE',
@@ -242,7 +278,12 @@ export default function Search() {
                   ))}
                 </div>
               ) : (
-                <LoanerTable loaners={filteredLoaners} />
+                <LoanerTable
+                  loaners={filteredLoaners}
+                  selectable
+                  selectedIds={selectedIds}
+                  onSelectOne={handleSelectOne}
+                />
               )}
             </div>
           </div>
