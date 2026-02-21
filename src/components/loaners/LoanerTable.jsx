@@ -89,7 +89,7 @@ export default function LoanerTable({ loaners, compact = false, selectable = fal
                   </div>
                 )}
               </div>
-            </Link>
+            </div>
           </div>
         ))}
       </div>
