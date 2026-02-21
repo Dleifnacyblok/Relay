@@ -43,8 +43,18 @@ export default function MarketplaceItemCard({ item, user, isOwner }) {
       quantity: item.quantity,
       location: item.location || "",
       notes: item.notes || "",
+      photoUrl: item.photoUrl || "",
     });
     setEditing(true);
+  };
+
+  const handlePhotoUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingPhoto(true);
+    const { file_url } = await base44.integrations.Core.UploadFile({ file });
+    setEditData(d => ({ ...d, photoUrl: file_url }));
+    setUploadingPhoto(false);
   };
 
   const hasBid = (item.bids || []).some(b => b.bidderEmail === user?.email);
