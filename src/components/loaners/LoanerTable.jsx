@@ -35,27 +35,18 @@ export default function LoanerTable({ loaners, compact = false, selectable = fal
   return (
     <div className="overflow-x-auto">
       {/* Mobile Card View */}
-      <div className="md:hidden space-y-4">
+      <div className="md:hidden space-y-3">
         {loaners.map((loaner) => (
-          <div key={loaner.id} className="flex items-start gap-3">
-            {selectable && (
-              <div className="pt-5">
-                <Checkbox
-                  checked={selectedIds.includes(loaner.id)}
-                  onCheckedChange={() => onSelectOne?.(loaner.id)}
-                />
-              </div>
-            )}
-            <div
-              className="rounded-xl py-5 px-4 hover:border-blue-300 transition-all flex-1 cursor-pointer"
-              style={{
-                backgroundColor: '#FFFFFF',
-                border: selectedIds.includes(loaner.id) ? '1.5px solid #3B82F6' : '1px solid #F8F8F8',
-                boxShadow: '0px 4px 16px rgba(0, 0, 0, 0.04)',
-                marginBottom: '28px'
-              }}
-              onClick={() => selectable ? onSelectOne?.(loaner.id) : null}
-            >
+          <div
+            key={loaner.id}
+            className="rounded-xl py-4 px-4 transition-all cursor-pointer"
+            style={{
+              backgroundColor: '#FFFFFF',
+              border: selectedIds.includes(loaner.id) ? '1.5px solid #3B82F6' : '1px solid #E5E7EB',
+              boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.04)',
+            }}
+            onClick={() => selectable ? onSelectOne?.(loaner.id) : null}
+          >
               <div className="flex items-start justify-between mb-3">
                 <div className="flex-1 min-w-0">
                   <h3 className="font-bold truncate" style={{color: '#000000'}}>{loaner.setName}</h3>
