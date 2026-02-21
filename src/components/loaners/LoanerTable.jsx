@@ -43,19 +43,18 @@ export default function LoanerTable({ loaners, compact = false, selectable = fal
                 <Checkbox
                   checked={selectedIds.includes(loaner.id)}
                   onCheckedChange={() => onSelectOne?.(loaner.id)}
-                  onClick={(e) => e.stopPropagation()}
                 />
               </div>
             )}
-            <Link
-              to={createPageUrl("LoanerDetail") + `?id=${loaner.id}`}
-              className="block rounded-xl py-5 px-4 hover:border-blue-300 transition-all flex-1"
+            <div
+              className="rounded-xl py-5 px-4 hover:border-blue-300 transition-all flex-1 cursor-pointer"
               style={{
                 backgroundColor: '#FFFFFF',
-                border: '1px solid #F8F8F8',
+                border: selectedIds.includes(loaner.id) ? '1.5px solid #3B82F6' : '1px solid #F8F8F8',
                 boxShadow: '0px 4px 16px rgba(0, 0, 0, 0.04)',
                 marginBottom: '28px'
               }}
+              onClick={() => selectable ? onSelectOne?.(loaner.id) : null}
             >
               <div className="flex items-start justify-between mb-3">
                 <div className="flex-1 min-w-0">
