@@ -57,6 +57,7 @@ import MyLoaners from './pages/MyLoaners';
 import MyMissingParts from './pages/MyMissingParts';
 import Search from './pages/Search';
 import SendBackLog from './pages/SendBackLog';
+import NotificationPreferences from './pages/NotificationPreferences';
 import __Layout from './Layout.jsx';
 
 
@@ -71,6 +72,7 @@ export const PAGES = {
     "MyMissingParts": MyMissingParts,
     "Search": Search,
     "SendBackLog": SendBackLog,
+    "NotificationPreferences": NotificationPreferences,
 }
 
 export const pagesConfig = {
