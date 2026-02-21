@@ -20,6 +20,7 @@ export default function MarketplaceItemCard({ item, user, isOwner }) {
   const [showBidDialog, setShowBidDialog] = useState(false);
   const [editing, setEditing] = useState(false);
   const [editData, setEditData] = useState({});
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const queryClient = useQueryClient();
 
   const updateMutation = useMutation({
