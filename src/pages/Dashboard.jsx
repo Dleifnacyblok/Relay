@@ -13,6 +13,7 @@ import {
   ChevronRight,
   X,
   CalendarDays,
+  TrendingUp,
 } from "lucide-react";
 import { computeLoanerData, formatCurrency } from "@/components/loaners/loanerUtils";
 import { Skeleton } from "@/components/ui/skeleton";
