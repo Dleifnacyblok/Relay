@@ -77,9 +77,54 @@ export default function SendBackLog() {
     new Date(b.sentDate) - new Date(a.sentDate)
   );
 
+  const updatePhotosMutation = useMutation({
+    mutationFn: ({ logId, photoUrls }) =>
+      base44.entities.SendBackLog.update(logId, { photoUrls }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["sendBackLogs"] });
+      toast.success("Photos updated");
+    },
+    onError: () => toast.error("Failed to update photos"),
+  });
+
   const handleViewPhotos = (photoUrls) => {
     setSelectedPhotos(photoUrls);
     setShowPhotosDialog(true);
+  };
+
+  const handleEditPhotos = (log) => {
+    setEditingLogId(log.id);
+    setSelectedPhotos(log.photoUrls || []);
+    setShowPhotosDialog(true);
+  };
+
+  const handleRemovePhoto = (index) => {
+    setSelectedPhotos(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleAddPhotos = async (e) => {
+    const files = Array.from(e.target.files);
+    if (!files.length) return;
+    setUploading(true);
+    try {
+      const uploaded = [];
+      for (const file of files) {
+        const { file_url } = await base44.integrations.Core.UploadFile({ file });
+        uploaded.push(file_url);
+      }
+      setSelectedPhotos(prev => [...prev, ...uploaded]);
+      toast.success(`${files.length} photo${files.length > 1 ? "s" : ""} added`);
+    } catch {
+      toast.error("Failed to upload photos");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleSavePhotos = () => {
+    updatePhotosMutation.mutate({ logId: editingLogId, photoUrls: selectedPhotos });
+    setShowPhotosDialog(false);
+    setEditingLogId(null);
   };
 
   const handleShare = async (log) => {
