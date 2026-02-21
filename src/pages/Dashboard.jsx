@@ -253,6 +253,13 @@ export default function Dashboard() {
               <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 px-1">Admin</p>
               <div className="space-y-2">
                 <NavCard
+                  icon={TrendingUp}
+                  title="Analytics"
+                  description="Trends, overdue rates & missing parts"
+                  page="Analytics"
+                  badgeColor={{ bg: "bg-indigo-50", icon: "text-indigo-500", badge: "" }}
+                />
+                <NavCard
                   icon={Upload}
                   title="Import Data"
                   description="Upload loaner spreadsheets"
