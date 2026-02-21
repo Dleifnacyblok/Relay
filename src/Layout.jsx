@@ -40,8 +40,7 @@ export default function Layout({ children, currentPageName }) {
     { name: "Search", page: "Search", icon: Search },
     { name: "Marketplace", page: "Marketplace", icon: ShoppingBag },
     { name: "My Loaners", page: "MyLoaners", icon: User },
-    { name: "Missing Parts", page: "MyMissingParts", icon: AlertCircle },
-    { name: "Track Log", page: "SendBackLog", icon: FileText },
+    { name: "Missing ...", page: "MyMissingParts", icon: AlertCircle },
   ];
 
   const moreNavigation = [
