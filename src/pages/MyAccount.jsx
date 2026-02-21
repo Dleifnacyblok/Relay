@@ -168,6 +168,22 @@ export default function MyAccount() {
           )}
         </Card>
 
+        {/* Notification Preferences Link */}
+        <Link to={createPageUrl("NotificationPreferences")}>
+          <Card className="p-4 bg-white border-slate-200 mb-8 flex items-center justify-between hover:bg-slate-50 transition-colors cursor-pointer">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-blue-50">
+                <Bell className="w-5 h-5 text-blue-500" />
+              </div>
+              <div>
+                <p className="font-medium text-slate-900 text-sm">Notification Preferences</p>
+                <p className="text-xs text-slate-500">Customize alerts and how you receive them</p>
+              </div>
+            </div>
+            <ChevronRight className="w-4 h-4 text-slate-400" />
+          </Card>
+        </Link>
+
         {/* Stats Grid */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
           <StatCard 
