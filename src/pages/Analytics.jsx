@@ -233,6 +233,20 @@ export default function Analytics() {
             )}
           </Card>
 
+          {/* AI Insights */}
+          <AIInsights analyticsData={{
+            totalLoaners,
+            overdueCount,
+            overdueRate,
+            dueSoonCount: computed.filter(l => l.risk_status === "Due Soon").length,
+            totalFines,
+            activeMissingParts,
+            overdueByRep,
+            durationData,
+            topMissingParts,
+            finesByRep,
+          }} />
+
         </div>
       </div>
     </div>
