@@ -798,6 +798,7 @@ export default function ImportData() {
                 {importResult.created > 0 && ` (${importResult.created} created)`}
                 {importResult.updated > 0 && ` (${importResult.updated} updated)`}
                 {importResult.skipped > 0 && ` (${importResult.skipped} skipped due to errors)`}
+                {importResult.deleted > 0 && ` (${importResult.deleted} removed — no longer in spreadsheet)`}
               </AlertDescription>
             </Alert>
           )}
