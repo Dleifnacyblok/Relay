@@ -218,6 +218,13 @@ export default function MyLoaners() {
         onSuccess={() => setSelectedIds([])}
       />
 
+      <ExportMyLoanersPDF
+        open={showExport}
+        onClose={() => setShowExport(false)}
+        loaners={myLoaners}
+        userName={userName}
+      />
+
       <TransferDialog
         open={showTransfer}
         onOpenChange={setShowTransfer}
