@@ -261,7 +261,7 @@ export default function ImportData() {
             repName = "John DeLeon & Matt Prus";
           } else if (lowerAccount.includes("beaumont hospital - dearborn")) {
             repName = "Joshua Raptis";
-          } else if (lowerAccount.includes("henry ford hospital - detroit") || lowerAccount.includes("beaumont henry ford hospital - detroit")) {
+          } else if (lowerAccount.includes("henry ford hospital - detroit") || lowerAccount.includes("beaumont henry ford hospital - detroit") || lowerAccount.includes("henry ford hospital - spine - jr")) {
             repName = "Joshua Raptis";
           }
         }
