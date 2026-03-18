@@ -371,6 +371,21 @@ export default function ImportData() {
         setUploadProgress({ current: i + 1, total: payload.length });
       }
 
+      // --- CLEANUP: Delete loaners no longer in the spreadsheet ---
+      const newImportKeySet = new Set(payload.map(p => p.importKey));
+      let deleted = 0;
+      for (const loaner of allExisting) {
+        if (loaner.importKey && !newImportKeySet.has(loaner.importKey)) {
+          try {
+            await base44.entities.Loaners.delete(loaner.id);
+            deleted++;
+            await sleep(300);
+          } catch (e) {
+            console.error("Failed to delete stale loaner:", loaner.id, e);
+          }
+        }
+      }
+
       // Update AppSetting with import timestamp
       const appSettings = await base44.entities.AppSetting.filter({ key: 'import_metadata' });
       if (appSettings.length > 0) {
