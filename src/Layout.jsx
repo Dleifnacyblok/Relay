@@ -32,7 +32,7 @@ export default function Layout({ children, currentPageName }) {
     queryFn: () => base44.auth.me(),
   });
 
-  const isAdmin = user?.role === "admin";
+  const isAdmin = user?.role === "admin" || user?.role === "manager";
   const isDashboard = currentPageName === "Dashboard";
 
   useEffect(() => {
