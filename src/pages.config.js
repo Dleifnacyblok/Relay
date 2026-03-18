@@ -59,6 +59,7 @@ import Search from './pages/Search';
 import SendBackLog from './pages/SendBackLog';
 import NotificationPreferences from './pages/NotificationPreferences';
 import Analytics from './pages/Analytics';
+import TerritoryInventory from './pages/TerritoryInventory';
 import __Layout from './Layout.jsx';
 
 
@@ -75,6 +76,7 @@ export const PAGES = {
     "SendBackLog": SendBackLog,
     "NotificationPreferences": NotificationPreferences,
     "Analytics": Analytics,
+    "TerritoryInventory": TerritoryInventory,
 }
 
 export const pagesConfig = {
