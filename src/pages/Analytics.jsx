@@ -209,10 +209,11 @@ export default function Analytics() {
               </div>
               <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">Analytics</h1>
             </div>
-            <Button onClick={handleExportPDF} disabled={isExporting} variant="outline" className="gap-2">
-              {isExporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+            <Button onClick={() => setShowExportDialog(true)} variant="outline" className="gap-2">
+              <Download className="w-4 h-4" />
               Export PDF
             </Button>
+            <ExportPDFDialog open={showExportDialog} onClose={() => setShowExportDialog(false)} loaners={computed} />
           </div>
           <p className="text-slate-500 ml-12">Loaner performance, overdue frequency & missing parts insights</p>
         </div>
