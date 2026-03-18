@@ -61,6 +61,7 @@ import NotificationPreferences from './pages/NotificationPreferences';
 import Analytics from './pages/Analytics';
 import TerritoryInventory from './pages/TerritoryInventory';
 import Calendar from './pages/Calendar';
+import RelayGuide from './pages/RelayGuide';
 import __Layout from './Layout.jsx';
 
 

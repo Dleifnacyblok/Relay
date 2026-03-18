@@ -51,6 +51,7 @@ export default function Layout({ children, currentPageName }) {
     { name: "Calendar", page: "Calendar", icon: CalendarDays },
     { name: "Track Log", page: "SendBackLog", icon: FileText },
     { name: "My Account", page: "MyAccount", icon: User },
+    { name: "App Guide", page: "RelayGuide", icon: Home },
     ...(isAdmin ? [
       { name: "Analytics", page: "Analytics", icon: TrendingUp },
       { name: "Import", page: "ImportData", icon: Upload },
