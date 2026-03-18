@@ -257,6 +257,8 @@ export default function ImportData() {
             repName = "Zachary Kuta";
           } else if (lowerAccount.includes("trinity health oakland")) {
             repName = "Shane Morris";
+          } else if (lowerAccount.includes("hurley")) {
+            repName = "John DeLeon & Matt Prus";
           }
         }
         const etchId = (r["etch id"] || "").toString().trim();
