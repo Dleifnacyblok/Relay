@@ -120,6 +120,24 @@ export default function Analytics() {
     .slice(0, 10)
     .map(s => ({ ...s, setName: s.setName.length > 22 ? s.setName.slice(0, 22) + "…" : s.setName }));
 
+  // --- Return Rate Over Time (by expected return month) ---
+  const returnRateMap = {};
+  computed.forEach(l => {
+    if (!l.expectedReturnDate) return;
+    const month = format(parseISO(l.expectedReturnDate), "MMM yy");
+    const _date = parseISO(l.expectedReturnDate);
+    if (!returnRateMap[month]) returnRateMap[month] = { month, total: 0, returned: 0, _date };
+    returnRateMap[month].total++;
+    if (l.returnStatus === "sent_back" || l.returnStatus === "received") returnRateMap[month].returned++;
+  });
+  const returnRateData = Object.values(returnRateMap)
+    .sort((a, b) => a._date - b._date)
+    .slice(-12)
+    .map(({ _date, ...rest }) => ({
+      ...rest,
+      rate: rest.total > 0 ? Math.round((rest.returned / rest.total) * 100) : 0,
+    }));
+
   // --- Monthly loan volume by loanedDate ---
   const monthMap = {};
   computed.forEach(l => {
