@@ -78,6 +78,7 @@ export const PAGES = {
     "NotificationPreferences": NotificationPreferences,
     "Analytics": Analytics,
     "TerritoryInventory": TerritoryInventory,
+    "Calendar": Calendar,
 }
 
 export const pagesConfig = {
