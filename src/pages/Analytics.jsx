@@ -41,25 +41,7 @@ const SectionHeader = ({ label }) => (
 
 export default function Analytics() {
   const [accountSort, setAccountSort] = useState("overdue");
-  const [isExporting, setIsExporting] = useState(false);
-
-  const handleExportPDF = async () => {
-    setIsExporting(true);
-    try {
-      const response = await base44.functions.invoke('exportLoanersPDF', {});
-      const blob = new Blob([response.data], { type: 'application/pdf' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `loaner-report-${new Date().toISOString().slice(0, 10)}.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    } finally {
-      setIsExporting(false);
-    }
-  };
+  const [showExportDialog, setShowExportDialog] = useState(false);
 
   const { data: loaners = [], isLoading: loadingLoaners } = useQuery({
     queryKey: ["loaners"],
