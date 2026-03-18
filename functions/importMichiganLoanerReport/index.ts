@@ -1,4 +1,4 @@
-import * as XLSX from "npm:xlsx@0.18.5";
+import * as XLSX from "xlsx";
 
 type RawRow = Record<string, any>;
 
