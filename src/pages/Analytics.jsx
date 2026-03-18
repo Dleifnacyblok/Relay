@@ -10,6 +10,7 @@ import {
 } from "recharts";
 import { TrendingUp, AlertTriangle, Package, DollarSign, Building2, Layers } from "lucide-react";
 import AIInsights from "@/components/analytics/AIInsights";
+import ConsignmentUtilization from "@/components/analytics/ConsignmentUtilization";
 import { useState } from "react";
 
 const COLORS = ["#ef4444", "#f59e0b", "#3b82f6", "#10b981", "#8b5cf6", "#ec4899", "#06b6d4", "#f97316"];
@@ -401,6 +402,11 @@ export default function Analytics() {
             )}
           </Card>
         </div>
+
+        {/* ── TERRITORY CONSIGNMENT UTILIZATION ── */}
+        <SectionHeader label="Territory Consignment Utilization" />
+        <p className="text-xs text-slate-400 -mt-2 mb-4">Active loaners cross-referenced against your consigned territory sets — identify displaced & overdue inventory</p>
+        <ConsignmentUtilization computed={computed} />
 
         {/* ── MISSING PARTS & FINES ── */}
         <SectionHeader label="Missing Parts & Fines" />
