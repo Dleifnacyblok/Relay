@@ -94,13 +94,21 @@ export default function MyLoaners() {
       <div className="w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8">
         {/* Header */}
         <div className="mb-6">
-          <div className="flex items-center gap-3 mb-1">
-            <div className="p-2 rounded-lg bg-indigo-100">
-              <User className="w-5 h-5 text-indigo-600" />
+          <div className="flex items-center justify-between mb-1">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-indigo-100">
+                <User className="w-5 h-5 text-indigo-600" />
+              </div>
+              <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
+                My Loaners
+              </h1>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
-              My Loaners
-            </h1>
+            {!isLoading && myLoaners.length > 0 && (
+              <Button variant="outline" size="sm" onClick={() => setShowExport(true)} className="gap-2">
+                <Download className="w-4 h-4" />
+                Export PDF
+              </Button>
+            )}
           </div>
           <p className="text-slate-500 ml-12">
             {userName ? `Loaners assigned to you — select any to send back or transfer` : "Loading..."}
