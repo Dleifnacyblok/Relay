@@ -9,6 +9,7 @@ import LoanerTable from "@/components/loaners/LoanerTable";
 import SendBackDialog from "@/components/sendback/SendBackDialog";
 import TransferDialog from "@/components/sendback/TransferDialog";
 import { computeLoanerData, sortLoaners, formatCurrency } from "@/components/loaners/loanerUtils";
+import ExportMyLoanersPDF from "@/components/loaners/ExportMyLoanersPDF";
 
 export default function MyLoaners() {
   const [selectedIds, setSelectedIds] = useState([]);
