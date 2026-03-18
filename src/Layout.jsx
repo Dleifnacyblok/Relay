@@ -17,6 +17,7 @@ import {
   TrendingUp,
   MapPin,
   CalendarDays,
+  BookOpen,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";

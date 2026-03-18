@@ -80,6 +80,7 @@ export const PAGES = {
     "Analytics": Analytics,
     "TerritoryInventory": TerritoryInventory,
     "Calendar": Calendar,
+    "RelayGuide": RelayGuide,
 }
 
 export const pagesConfig = {
