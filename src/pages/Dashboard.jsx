@@ -71,7 +71,13 @@ export default function Dashboard() {
   const overdueCount = computedLoaners.filter(l => l.risk_status === "Overdue").length;
   const dueSoonCount = computedLoaners.filter(l => l.risk_status === "Due Soon").length;
   const totalFineExposure = computedLoaners.reduce((sum, l) => sum + (l.fineAmount || 0), 0);
-  const myLoanerCount = computedLoaners.filter(l => l.repName?.toLowerCase() === userName.toLowerCase()).length;
+  const myLoanerCount = computedLoaners.filter(l =>
+    l.returnStatus !== "sent_back" &&
+    l.returnStatus !== "received" &&
+    (l.repName?.toLowerCase() === userName.toLowerCase() ||
+     l.associateSalesRep?.toLowerCase() === userName.toLowerCase() ||
+     l.fieldSalesRep?.toLowerCase() === userName.toLowerCase())
+  ).length;
   const myMissingCount = missingParts.filter(p => p.repName?.toLowerCase() === userName.toLowerCase() && p.status === "missing").length;
 
   const q = searchQuery.toLowerCase();
