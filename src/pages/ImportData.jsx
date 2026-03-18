@@ -263,6 +263,8 @@ export default function ImportData() {
             repName = "Joshua Raptis";
           } else if (lowerAccount.includes("henry ford hospital - detroit") || lowerAccount.includes("beaumont henry ford hospital - detroit") || lowerAccount.includes("henry ford hospital - spine - jr")) {
             repName = "Joshua Raptis";
+          } else if (lowerAccount.includes("henry ford allegiance - jackson")) {
+            repName = "Colin Givens";
           }
         }
         const etchId = (r["etch id"] || "").toString().trim();
