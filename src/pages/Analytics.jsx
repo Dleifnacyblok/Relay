@@ -223,6 +223,29 @@ export default function Analytics() {
         <SectionHeader label="Return Performance Over Time" />
         <div className="grid gap-5 md:grid-cols-2">
 
+          {/* Return Rate Over Time */}
+          <Card className="p-5 bg-white border-slate-200 md:col-span-2">
+            <h2 className="text-sm font-semibold text-slate-700 mb-1">Return Rate Over Time</h2>
+            <p className="text-xs text-slate-400 mb-4">% of loaners returned by their expected return month</p>
+            {returnRateData.length === 0 ? (
+              <p className="text-sm text-slate-400 text-center py-12">No return date data available</p>
+            ) : (
+              <ResponsiveContainer width="100%" height={240}>
+                <ComposedChart data={returnRateData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                  <XAxis dataKey="month" tick={{ fontSize: 11 }} />
+                  <YAxis yAxisId="left" tick={{ fontSize: 11 }} allowDecimals={false} />
+                  <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 11 }} unit="%" domain={[0, 100]} />
+                  <Tooltip formatter={(v, name) => name === "Return Rate" ? `${v}%` : v} />
+                  <Legend />
+                  <Bar yAxisId="left" dataKey="total" fill="#e2e8f0" radius={[4, 4, 0, 0]} name="Total Due" barSize={28} />
+                  <Bar yAxisId="left" dataKey="returned" fill="#10b981" radius={[4, 4, 0, 0]} name="Returned" barSize={28} />
+                  <Line yAxisId="right" type="monotone" dataKey="rate" stroke="#6366f1" strokeWidth={2} dot={{ r: 4 }} name="Return Rate" />
+                </ComposedChart>
+              </ResponsiveContainer>
+            )}
+          </Card>
+
           {/* Monthly Volume Trend */}
           <Card className="p-5 bg-white border-slate-200 md:col-span-2">
             <h2 className="text-sm font-semibold text-slate-700 mb-1">Monthly Loan Volume & Overdue/Due-Soon by Loan Date</h2>
