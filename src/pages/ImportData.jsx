@@ -259,6 +259,8 @@ export default function ImportData() {
             repName = "Shane Morris";
           } else if (lowerAccount.includes("hurley")) {
             repName = "John DeLeon & Matt Prus";
+          } else if (lowerAccount.includes("beaumont hospital - dearborn")) {
+            repName = "Joshua Raptis";
           }
         }
         const etchId = (r["etch id"] || "").toString().trim();
