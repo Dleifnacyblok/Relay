@@ -15,6 +15,7 @@ import {
   Home,
   FileText,
   TrendingUp,
+  MapPin,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
