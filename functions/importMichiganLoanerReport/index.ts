@@ -249,11 +249,39 @@ async function importLoanersFromSheet(rows: RawRow[]) {
     if ((i + 1) % 3 === 0) await sleep(400);
   }
 
+  // --- CLEANUP: Delete loaners no longer in the spreadsheet ---
+  // Fetch ALL existing loaners and delete any whose importKey is not in the new batch
+  const newImportKeySet = new Set(importKeys);
+  let deleted = 0;
+
+  // Paginate through all records
+  let page = 0;
+  const pageSize = 100;
+  while (true) {
+    const allLoaners = await Loaners.findMany({ limit: pageSize, skip: page * pageSize });
+    if (!Array.isArray(allLoaners) || allLoaners.length === 0) break;
+
+    for (const loaner of allLoaners) {
+      // Only delete records that have an importKey (i.e. were created by this import system)
+      // and are NOT in the new batch
+      if (loaner.importKey && !newImportKeySet.has(loaner.importKey)) {
+        await Loaners.delete({ id: loaner.id });
+        deleted++;
+        await sleep(100);
+      }
+    }
+
+    if (allLoaners.length < pageSize) break;
+    page++;
+    await sleep(200);
+  }
+
   return {
     receivedRows: rows.length,
     importedRows: payload.length,
     created,
     updated,
+    deleted,
     ignoredColumns: Array.from(IGNORE_HEADERS),
     repFallback: 'Blank Associate Sales Rep Name → "None"',
     fineRule: `$${FINE_PER_DAY}/day overdue`,
