@@ -60,6 +60,7 @@ import SendBackLog from './pages/SendBackLog';
 import NotificationPreferences from './pages/NotificationPreferences';
 import Analytics from './pages/Analytics';
 import TerritoryInventory from './pages/TerritoryInventory';
+import Calendar from './pages/Calendar';
 import __Layout from './Layout.jsx';
 
 
