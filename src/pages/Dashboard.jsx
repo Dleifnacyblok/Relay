@@ -19,6 +19,7 @@ import { computeLoanerData, formatCurrency } from "@/components/loaners/loanerUt
 import { Skeleton } from "@/components/ui/skeleton";
 import { useState } from "react";
 import NotificationCenter from "@/components/notifications/NotificationCenter";
+import ESCExportDialog from "@/components/dashboard/ESCExportDialog";
 
 const NavCard = ({ icon: Icon, title, description, page, badge, badgeColor }) => (
   <Link
