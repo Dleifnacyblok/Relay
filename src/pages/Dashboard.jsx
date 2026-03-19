@@ -79,7 +79,12 @@ export default function Dashboard() {
      l.associateSalesRep?.toLowerCase() === userName.toLowerCase() ||
      l.fieldSalesRep?.toLowerCase() === userName.toLowerCase())
   ).length;
-  const myMissingCount = missingParts.filter(p => p.repName?.toLowerCase() === userName.toLowerCase() && p.status === "missing").length;
+  const myMissingCount = missingParts.filter(p => 
+    p.repName?.toLowerCase() === userName.toLowerCase() && 
+    p.status === "missing" &&
+    p.returnStatus !== "sent_back" &&
+    p.returnStatus !== "received"
+  ).length;
 
   const q = searchQuery.toLowerCase();
   const searchResults = q.length > 1 ? computedLoaners.filter(l =>
