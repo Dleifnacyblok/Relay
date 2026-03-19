@@ -593,7 +593,6 @@ export default function ImportData() {
 
       let created = 0;
       let updated = 0;
-      const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
       for (let i = 0; i < payload.length; i++) {
         const rec = payload[i];
