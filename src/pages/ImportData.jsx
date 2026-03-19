@@ -32,6 +32,7 @@ export default function ImportData() {
   const [partsError, setPartsError] = useState(null);
   const [showClearPartsDialog, setShowClearPartsDialog] = useState(false);
   const [isClearingParts, setIsClearingParts] = useState(false);
+  const [partsProgress, setPartsProgress] = useState(null);
   
   const queryClient = useQueryClient();
 

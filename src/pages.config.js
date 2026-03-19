@@ -47,7 +47,10 @@
  *
  * The mainPage value must match a key in the PAGES object exactly.
  */
+import AdminSettings from './pages/AdminSettings';
 import AllLoanersUnfiltered from './pages/AllLoanersUnfiltered';
+import Analytics from './pages/Analytics';
+import Calendar from './pages/Calendar';
 import Dashboard from './pages/Dashboard';
 import ImportData from './pages/ImportData';
 import LoanerDetail from './pages/LoanerDetail';
@@ -55,19 +58,19 @@ import Marketplace from './pages/Marketplace';
 import MyAccount from './pages/MyAccount';
 import MyLoaners from './pages/MyLoaners';
 import MyMissingParts from './pages/MyMissingParts';
+import NotificationPreferences from './pages/NotificationPreferences';
+import RelayGuide from './pages/RelayGuide';
 import Search from './pages/Search';
 import SendBackLog from './pages/SendBackLog';
-import NotificationPreferences from './pages/NotificationPreferences';
-import Analytics from './pages/Analytics';
 import TerritoryInventory from './pages/TerritoryInventory';
-import Calendar from './pages/Calendar';
-import RelayGuide from './pages/RelayGuide';
-import AdminSettings from './pages/AdminSettings';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
+    "AdminSettings": AdminSettings,
     "AllLoanersUnfiltered": AllLoanersUnfiltered,
+    "Analytics": Analytics,
+    "Calendar": Calendar,
     "Dashboard": Dashboard,
     "ImportData": ImportData,
     "LoanerDetail": LoanerDetail,
@@ -75,14 +78,11 @@ export const PAGES = {
     "MyAccount": MyAccount,
     "MyLoaners": MyLoaners,
     "MyMissingParts": MyMissingParts,
+    "NotificationPreferences": NotificationPreferences,
+    "RelayGuide": RelayGuide,
     "Search": Search,
     "SendBackLog": SendBackLog,
-    "NotificationPreferences": NotificationPreferences,
-    "Analytics": Analytics,
     "TerritoryInventory": TerritoryInventory,
-    "Calendar": Calendar,
-    "RelayGuide": RelayGuide,
-    "AdminSettings": AdminSettings,
 }
 
 export const pagesConfig = {
