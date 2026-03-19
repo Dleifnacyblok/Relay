@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
-import { AlertCircle, Package, Send, Edit2, Trash2 } from "lucide-react";
+import { AlertCircle, Package, Send, Edit2, Trash2, Download } from "lucide-react";
+import ExportMissingPartsPDF from "@/components/missingparts/ExportMissingPartsPDF";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
