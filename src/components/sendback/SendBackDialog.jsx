@@ -19,6 +19,7 @@ import BarcodeScanner from "./BarcodeScanner";
 
 export default function SendBackDialog({ open, onOpenChange, selectedLoaners, selectedParts, userName, onSuccess }) {
   const [trackingNumber, setTrackingNumber] = useState("");
+  const [showScanner, setShowScanner] = useState(false);
   const [notes, setNotes] = useState("");
   const [photos, setPhotos] = useState([]);
   const [uploading, setUploading] = useState(false);
