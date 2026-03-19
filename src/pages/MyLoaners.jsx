@@ -18,6 +18,24 @@ export default function MyLoaners() {
   const [showSendBack, setShowSendBack] = useState(false);
   const [showTransfer, setShowTransfer] = useState(false);
   const [showExport, setShowExport] = useState(false);
+  const [syncingCalendar, setSyncingCalendar] = useLocalState(false);
+  const { toast } = useToast();
+
+  const handleSyncCalendar = async () => {
+    setSyncingCalendar(true);
+    try {
+      const res = await base44.functions.invoke('syncLoanersToCalendar', {});
+      const { created, failed } = res.data;
+      toast({
+        title: "Calendar Synced",
+        description: `${created} event${created !== 1 ? 's' : ''} added to Google Calendar.${failed > 0 ? ` ${failed} failed.` : ''}`,
+      });
+    } catch (e) {
+      toast({ title: "Sync Failed", description: e.message, variant: "destructive" });
+    } finally {
+      setSyncingCalendar(false);
+    }
+  };
 
   const { data: user, isLoading: userLoading } = useQuery({
     queryKey: ["currentUser"],
