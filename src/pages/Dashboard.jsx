@@ -66,6 +66,7 @@ export default function Dashboard() {
   });
 
   const navigate = useNavigate();
+  const [escExportOpen, setEscExportOpen] = useState(false);
 
   const userName = user?.full_name || "";
   const computedLoaners = loaners.map(computeLoanerData);
