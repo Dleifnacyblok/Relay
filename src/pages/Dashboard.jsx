@@ -218,6 +218,7 @@ export default function Dashboard() {
         {/* ESC Dashboard */}
           <div>
             <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 px-1">ESC Overview</p>
+            <div className="space-y-2">
             <Link to={createPageUrl("AllLoanersUnfiltered")} className="block bg-white border border-gray-100 rounded-2xl shadow-sm hover:shadow-md hover:border-indigo-100 transition-all group p-4">
               <div className="flex items-center gap-3 mb-3">
                 <div className="w-11 h-11 rounded-xl bg-indigo-50 flex items-center justify-center shrink-0">
