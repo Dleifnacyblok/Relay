@@ -920,6 +920,21 @@ export default function ImportData() {
             </Alert>
           )}
 
+          {partsProgress && (
+            <div className="mt-4">
+              <div className="flex items-center justify-between text-sm text-slate-600 mb-2">
+                <span>Processing parts...</span>
+                <span>{partsProgress.current} / {partsProgress.total}</span>
+              </div>
+              <div className="w-full bg-slate-200 rounded-full h-2">
+                <div
+                  className="bg-orange-500 h-2 rounded-full transition-all duration-300"
+                  style={{ width: `${(partsProgress.current / partsProgress.total) * 100}%` }}
+                />
+              </div>
+            </div>
+          )}
+
           <Button 
             className="w-full mt-6 h-11 bg-orange-600 hover:bg-orange-700"
             onClick={handleImportParts}
