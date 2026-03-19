@@ -14,6 +14,7 @@ import {
   X,
   CalendarDays,
   TrendingUp,
+  Download,
 } from "lucide-react";
 import { computeLoanerData, formatCurrency } from "@/components/loaners/loanerUtils";
 import { Skeleton } from "@/components/ui/skeleton";
