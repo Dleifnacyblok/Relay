@@ -124,10 +124,16 @@ export default function MyLoaners() {
               </h1>
             </div>
             {!isLoading && myLoaners.length > 0 && (
-              <Button variant="outline" size="sm" onClick={() => setShowExport(true)} className="gap-2">
-                <Download className="w-4 h-4" />
-                Export PDF
-              </Button>
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" onClick={handleSyncCalendar} disabled={syncingCalendar} className="gap-2">
+                  <CalendarPlus className="w-4 h-4" />
+                  {syncingCalendar ? "Syncing..." : "Sync to Calendar"}
+                </Button>
+                <Button variant="outline" size="sm" onClick={() => setShowExport(true)} className="gap-2">
+                  <Download className="w-4 h-4" />
+                  Export PDF
+                </Button>
+              </div>
             )}
           </div>
           <p className="text-slate-500 ml-12">
