@@ -3,7 +3,7 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.21';
 Deno.serve(async (req) => {
   const base44 = createClientFromRequest(req);
 
-  const allLoaners = await base44.asServiceRole.entities.Loaners.list('-fineAmount', 1000);
+  const allLoaners = await base44.asServiceRole.entities.Loaners.list('-expectedReturnDate', 500);
 
   const today = new Date();
   const dateStr = today.toLocaleDateString("en-US", {
