@@ -1,14 +1,8 @@
 import { useState } from "react";
-import { jsPDF } from "jspdf";
 import { Download, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { createDoc, addFooters, getNow, getFilename } from "@/lib/pdfUtils";
 
 export default function ExportPDFDialog({ open, onClose, loaners }) {
   const [filter, setFilter] = useState("all");
@@ -16,39 +10,20 @@ export default function ExportPDFDialog({ open, onClose, loaners }) {
   const [isGenerating, setIsGenerating] = useState(false);
 
   const options = [
-    {
-      label: "Include",
-      key: "filter",
-      value: filter,
-      setter: setFilter,
-      choices: [
-        { value: "all", label: "All Loaners" },
-        { value: "overdue", label: "Overdue Only" },
-        { value: "due_soon", label: "Due Soon Only" },
-      ],
-    },
-    {
-      label: "Group By",
-      key: "groupBy",
-      value: groupBy,
-      setter: setGroupBy,
-      choices: [
-        { value: "rep", label: "Representative" },
-        { value: "account", label: "Account" },
-      ],
-    },
+    { label: "Include", key: "filter", value: filter, setter: setFilter,
+      choices: [{ value: "all", label: "All Loaners" }, { value: "overdue", label: "Overdue Only" }, { value: "due_soon", label: "Due Soon Only" }] },
+    { label: "Group By", key: "groupBy", value: groupBy, setter: setGroupBy,
+      choices: [{ value: "rep", label: "Representative" }, { value: "account", label: "Account" }] },
   ];
 
   const handleGenerate = () => {
     setIsGenerating(true);
-
     setTimeout(() => {
       try {
         let filtered = [...loaners];
         if (filter === "overdue") filtered = filtered.filter(l => l.isOverdue);
         else if (filter === "due_soon") filtered = filtered.filter(l => !l.isOverdue && l.daysUntilDue >= 0 && l.daysUntilDue <= 7);
 
-        // Group
         const grouped = {};
         filtered.forEach(l => {
           const key = groupBy === "rep" ? (l.repName || "Unknown") : (l.accountName || "Unknown");
@@ -56,12 +31,9 @@ export default function ExportPDFDialog({ open, onClose, loaners }) {
           grouped[key].push(l);
         });
 
-        const doc = new jsPDF();
-        const pageWidth = doc.internal.pageSize.getWidth();
-        const margin = 14;
-        const now = new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+        const { doc, pageWidth, margin } = createDoc();
+        const now = getNow();
 
-        // Title
         doc.setFontSize(18);
         doc.setFont("helvetica", "bold");
         doc.setTextColor(30, 41, 59);
@@ -74,14 +46,12 @@ export default function ExportPDFDialog({ open, onClose, loaners }) {
 
         let y = 44;
 
-        const groupKeys = Object.keys(grouped).sort();
-        for (const groupKey of groupKeys) {
+        for (const groupKey of Object.keys(grouped).sort()) {
           const items = grouped[groupKey];
           const groupFines = items.reduce((s, l) => s + (l.fineAmount || 0), 0);
 
           if (y > 260) { doc.addPage(); y = 20; }
 
-          // Group header
           doc.setFillColor(238, 242, 255);
           doc.roundedRect(margin, y, pageWidth - margin * 2, 9, 2, 2, "F");
           doc.setFontSize(10);
@@ -96,28 +66,22 @@ export default function ExportPDFDialog({ open, onClose, loaners }) {
             doc.setTextColor(180, 83, 9);
             doc.text(`$${groupFines.toLocaleString()}`, pageWidth - margin - 2, y + 6.5, { align: "right" });
           }
-
           y += 13;
 
           for (const l of items) {
             if (y > 270) { doc.addPage(); y = 20; }
-
-            const isOverdue = l.isOverdue;
             doc.setFontSize(9);
             doc.setFont("helvetica", "bold");
             doc.setTextColor(15, 23, 42);
             doc.text((l.setName || "Unknown Set").substring(0, 38), margin + 3, y);
-
             doc.setFont("helvetica", "normal");
             doc.setTextColor(100, 116, 139);
             doc.text(`#${l.etchId || "N/A"}`, margin + 3, y + 4.5);
-
             const secondCol = groupBy === "rep" ? (l.accountName || "") : (l.repName || "");
             doc.text(secondCol.substring(0, 32), margin + 60, y);
             if (l.expectedReturnDate) doc.text(`Due: ${l.expectedReturnDate}`, margin + 60, y + 4.5);
-
             doc.setFont("helvetica", "bold");
-            if (isOverdue) {
+            if (l.isOverdue) {
               doc.setTextColor(220, 38, 38);
               doc.text(`Overdue ${l.daysOverdue || 0}d`, pageWidth - margin, y, { align: "right" });
               if (l.fineAmount > 0) {
@@ -129,7 +93,6 @@ export default function ExportPDFDialog({ open, onClose, loaners }) {
               doc.setTextColor(16, 185, 129);
               doc.text("Active", pageWidth - margin, y, { align: "right" });
             }
-
             doc.setDrawColor(226, 232, 240);
             doc.setLineWidth(0.2);
             doc.line(margin + 3, y + 7, pageWidth - margin, y + 7);
@@ -138,17 +101,8 @@ export default function ExportPDFDialog({ open, onClose, loaners }) {
           y += 4;
         }
 
-        // Page numbers
-        const totalPages = doc.internal.getNumberOfPages();
-        for (let i = 1; i <= totalPages; i++) {
-          doc.setPage(i);
-          doc.setFontSize(8);
-          doc.setTextColor(148, 163, 184);
-          doc.text(`Page ${i} of ${totalPages}`, pageWidth / 2, 290, { align: "center" });
-          doc.text("Relay Loaner Manager", margin, 290);
-        }
-
-        doc.save(`loaner-report-${new Date().toISOString().slice(0, 10)}.pdf`);
+        addFooters(doc);
+        doc.save(getFilename("loaner-report"));
         onClose();
       } finally {
         setIsGenerating(false);
@@ -162,22 +116,16 @@ export default function ExportPDFDialog({ open, onClose, loaners }) {
         <DialogHeader>
           <DialogTitle>Export PDF Report</DialogTitle>
         </DialogHeader>
-
         <div className="space-y-5 py-2">
           {options.map(opt => (
             <div key={opt.key}>
               <p className="text-sm font-medium text-slate-700 mb-2">{opt.label}</p>
               <div className="flex flex-wrap gap-2">
                 {opt.choices.map(c => (
-                  <button
-                    key={c.value}
-                    onClick={() => opt.setter(c.value)}
+                  <button key={c.value} onClick={() => opt.setter(c.value)}
                     className={`px-3 py-1.5 rounded-lg text-sm font-medium border transition-colors ${
-                      opt.value === c.value
-                        ? "bg-indigo-600 text-white border-indigo-600"
-                        : "bg-white text-slate-600 border-slate-200 hover:border-indigo-300"
-                    }`}
-                  >
+                      opt.value === c.value ? "bg-indigo-600 text-white border-indigo-600" : "bg-white text-slate-600 border-slate-200 hover:border-indigo-300"
+                    }`}>
                     {c.label}
                   </button>
                 ))}
@@ -185,7 +133,6 @@ export default function ExportPDFDialog({ open, onClose, loaners }) {
             </div>
           ))}
         </div>
-
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>Cancel</Button>
           <Button onClick={handleGenerate} disabled={isGenerating} className="gap-2">
