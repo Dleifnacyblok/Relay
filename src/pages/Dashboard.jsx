@@ -65,7 +65,6 @@ export default function Dashboard() {
   });
 
   const navigate = useNavigate();
-  const [searchQuery, setSearchQuery] = useState("");
 
   const userName = user?.full_name || "";
   const computedLoaners = loaners.map(computeLoanerData);
@@ -85,14 +84,6 @@ export default function Dashboard() {
     p.returnStatus !== "sent_back" &&
     p.returnStatus !== "received"
   ).length;
-
-  const q = searchQuery.toLowerCase();
-  const searchResults = q.length > 1 ? computedLoaners.filter(l =>
-    l.setName?.toLowerCase().includes(q) ||
-    l.repName?.toLowerCase().includes(q) ||
-    l.etchId?.toLowerCase().includes(q) ||
-    l.accountName?.toLowerCase().includes(q)
-  ).slice(0, 8) : [];
 
   return (
     <div className="min-h-screen bg-gray-50">
