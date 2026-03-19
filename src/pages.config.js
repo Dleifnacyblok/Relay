@@ -62,6 +62,7 @@ import Analytics from './pages/Analytics';
 import TerritoryInventory from './pages/TerritoryInventory';
 import Calendar from './pages/Calendar';
 import RelayGuide from './pages/RelayGuide';
+import AdminSettings from './pages/AdminSettings';
 import __Layout from './Layout.jsx';
 
 
