@@ -285,11 +285,17 @@ export default function Dashboard() {
           </div>
         ) : (
           <div className="flex gap-2 mt-6">
-            <div className={`flex-1 rounded-xl p-3 text-center ${overdueCount > 0 ? "bg-red-50" : "bg-gray-100"}`}>
+            <div
+              className={`flex-1 rounded-xl p-3 text-center cursor-pointer active:scale-95 transition-transform ${overdueCount > 0 ? "bg-red-50" : "bg-gray-100"}`}
+              onClick={() => navigate('/Search?filter=overdue')}
+            >
               <p className={`text-xl font-bold ${overdueCount > 0 ? "text-red-600" : "text-gray-700"}`}>{overdueCount}</p>
               <p className="text-xs text-gray-500 leading-tight mt-0.5">Overdue</p>
             </div>
-            <div className={`flex-1 rounded-xl p-3 text-center ${dueSoonCount > 0 ? "bg-amber-50" : "bg-gray-100"}`}>
+            <div
+              className={`flex-1 rounded-xl p-3 text-center cursor-pointer active:scale-95 transition-transform ${dueSoonCount > 0 ? "bg-amber-50" : "bg-gray-100"}`}
+              onClick={() => navigate('/Search?filter=due_soon')}
+            >
               <p className={`text-xl font-bold ${dueSoonCount > 0 ? "text-amber-600" : "text-gray-700"}`}>{dueSoonCount}</p>
               <p className="text-xs text-gray-500 leading-tight mt-0.5">Due Soon</p>
             </div>
