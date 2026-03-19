@@ -599,17 +599,32 @@ export default function ImportData() {
         const existingId = existingMap.get(rec.uniqueKey);
         const { uniqueKey, ...recordData } = rec;
 
-        if (existingId) {
-          await base44.entities.MissingPart.update(existingId, recordData);
-          updated++;
-        } else {
-          const newRecord = await base44.entities.MissingPart.create(recordData);
-          created++;
-          existingMap.set(rec.uniqueKey, newRecord.id);
+        let success = false;
+        let retries = 0;
+        const maxRetries = 5;
+        while (!success && retries < maxRetries) {
+          try {
+            if (existingId) {
+              await base44.entities.MissingPart.update(existingId, recordData);
+              updated++;
+            } else {
+              const newRecord = await base44.entities.MissingPart.create(recordData);
+              created++;
+              existingMap.set(rec.uniqueKey, newRecord.id);
+            }
+            success = true;
+          } catch (err) {
+            retries++;
+            if (retries < maxRetries) {
+              await sleep(2000 * retries);
+            } else {
+              console.error(`Failed to process part ${i + 1}:`, err);
+            }
+          }
         }
 
         setPartsProgress({ current: i + 1, total: payload.length });
-        await sleep(300);
+        await sleep(500);
       }
 
       setPartsImportResult({ success: true, created, updated, total: created + updated });
