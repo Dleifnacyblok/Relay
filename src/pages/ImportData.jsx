@@ -584,30 +584,22 @@ export default function ImportData() {
       let updated = 0;
       const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
-      // Process in smaller batches with longer delays
-      const BATCH_SIZE = 5;
-      for (let i = 0; i < payload.length; i += BATCH_SIZE) {
-        const batch = payload.slice(i, i + BATCH_SIZE);
+      for (let i = 0; i < payload.length; i++) {
+        const rec = payload[i];
+        const existingId = existingMap.get(rec.uniqueKey);
+        const { uniqueKey, ...recordData } = rec;
 
-        for (const rec of batch) {
-          const existingId = existingMap.get(rec.uniqueKey);
-          const { uniqueKey, ...recordData } = rec;
-
-          if (existingId) {
-            await base44.entities.MissingPart.update(existingId, recordData);
-            updated++;
-          } else {
-            const newRecord = await base44.entities.MissingPart.create(recordData);
-            created++;
-            existingMap.set(rec.uniqueKey, newRecord.id);
-          }
-
-          await sleep(300);
+        if (existingId) {
+          await base44.entities.MissingPart.update(existingId, recordData);
+          updated++;
+        } else {
+          const newRecord = await base44.entities.MissingPart.create(recordData);
+          created++;
+          existingMap.set(rec.uniqueKey, newRecord.id);
         }
 
-        if (i + BATCH_SIZE < payload.length) {
-          await sleep(2000);
-        }
+        setPartsProgress({ current: i + 1, total: payload.length });
+        await sleep(300);
       }
 
       setPartsImportResult({ success: true, created, updated, total: created + updated });
