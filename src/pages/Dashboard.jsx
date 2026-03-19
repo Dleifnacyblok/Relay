@@ -130,40 +130,6 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Search Bar */}
-        <div className="relative mb-6">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Search loaners, reps, accounts..."
-            value={searchQuery}
-            onChange={e => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-9 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-300 shadow-sm"
-          />
-          {searchQuery && (
-            <button onClick={() => setSearchQuery("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
-              <X className="w-4 h-4" />
-            </button>
-          )}
-          {searchResults.length > 0 && (
-            <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-100 rounded-xl shadow-md overflow-hidden z-10">
-              {searchResults.map(l => (
-                <Link key={l.id} to={createPageUrl("MyLoaners")} className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 border-b border-gray-50 last:border-0">
-                  <div className={`w-2 h-2 rounded-full shrink-0 ${l.risk_status === "Overdue" ? "bg-red-500" : l.risk_status === "Due Soon" ? "bg-amber-400" : "bg-green-400"}`} />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-800 truncate">{l.setName}</p>
-                    <p className="text-xs text-gray-400 truncate">{l.repName} · {l.accountName}</p>
-                  </div>
-                  <span className={`text-xs font-medium shrink-0 ${l.risk_status === "Overdue" ? "text-red-500" : l.risk_status === "Due Soon" ? "text-amber-500" : "text-gray-400"}`}>{l.risk_status}</span>
-                </Link>
-              ))}
-            </div>
-          )}
-          {searchQuery.length > 1 && searchResults.length === 0 && (
-            <p className="mt-2 text-xs text-gray-400 text-center">No loaners found</p>
-          )}
-        </div>
-
         {/* Navigation Sections */}
         <div className="space-y-6">
           {/* Search & Overview */}
@@ -177,33 +143,6 @@ export default function Dashboard() {
                 page="Search"
                 badgeColor={{ bg: "bg-blue-50", icon: "text-blue-500", badge: "" }}
               />
-              {/* ESC Dashboard expanded card */}
-              <Link to={createPageUrl("AllLoanersUnfiltered")} className="block bg-white border border-gray-100 rounded-2xl shadow-sm hover:shadow-md hover:border-indigo-100 transition-all group p-4">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="w-11 h-11 rounded-xl bg-indigo-50 flex items-center justify-center shrink-0">
-                    <Package className="w-5 h-5 text-indigo-500" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-gray-900">ESC Dashboard</p>
-                    <p className="text-xs text-gray-400">Full loaner board with all reps</p>
-                  </div>
-                  <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-indigo-400 transition-colors shrink-0" />
-                </div>
-                <div className="flex gap-2">
-                  <div className="flex-1 bg-red-50 rounded-lg px-2 py-1.5 text-center">
-                    <p className="text-sm font-bold text-red-600">{overdueCount}</p>
-                    <p className="text-[10px] text-gray-500">Overdue</p>
-                  </div>
-                  <div className="flex-1 bg-amber-50 rounded-lg px-2 py-1.5 text-center">
-                    <p className="text-sm font-bold text-amber-600">{dueSoonCount}</p>
-                    <p className="text-[10px] text-gray-500">Due Soon</p>
-                  </div>
-                  <div className="flex-1 bg-gray-50 rounded-lg px-2 py-1.5 text-center">
-                    <p className="text-sm font-bold text-gray-700">{computedLoaners.length}</p>
-                    <p className="text-[10px] text-gray-500">Total</p>
-                  </div>
-                </div>
-              </Link>
             </div>
           </div>
 
