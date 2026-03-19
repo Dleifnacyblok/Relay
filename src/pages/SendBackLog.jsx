@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Package, Clock, Image as ImageIcon, Share2, Check, ArrowRightLeft, Camera, X, Loader2, Plus } from "lucide-react";
@@ -46,6 +46,16 @@ export default function SendBackLog() {
 
   const isLoading = userLoading || logsLoading;
 
+  const loanerById = useMemo(() =>
+    Object.fromEntries(allLoaners.map(l => [l.id, l])),
+    [allLoaners]
+  );
+
+  const partById = useMemo(() =>
+    Object.fromEntries(allParts.map(p => [p.id, p])),
+    [allParts]
+  );
+
   const formatDate = (dateStr) => {
     if (!dateStr) return "—";
     try {
@@ -56,21 +66,15 @@ export default function SendBackLog() {
   };
 
   const getLoanerInfo = (loanerId) => {
-    const loaner = allLoaners.find(l => l.id === loanerId);
+    const loaner = loanerById[loanerId];
     if (!loaner) return { name: "Unknown Loaner", etchId: null };
-    return {
-      name: loaner.setName,
-      etchId: loaner.etchId
-    };
+    return { name: loaner.setName, etchId: loaner.etchId };
   };
 
   const getPartInfo = (partId) => {
-    const part = allParts.find(p => p.id === partId);
+    const part = partById[partId];
     if (!part) return { name: "Unknown Part", quantity: 1 };
-    return {
-      name: part.partName,
-      quantity: part.missingQuantity || 1
-    };
+    return { name: part.partName, quantity: part.missingQuantity || 1 };
   };
 
   const sortedLogs = [...logs].sort((a, b) => 
