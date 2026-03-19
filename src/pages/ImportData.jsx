@@ -544,8 +544,8 @@ export default function ImportData() {
           return;
         }
 
-        // Create unique key for upsert
-        const uniqueKey = `${requestNumber || 'none'}__${partSetNumber || 'none'}__${deductionDate || 'none'}__${repName}`.toLowerCase();
+        // Create unique key for upsert — do NOT include repName as it can vary between imports
+        const uniqueKey = `${requestNumber || 'none'}__${partSetNumber || 'none'}__${deductionDate || 'none'}__${(partName || 'none').slice(0, 20)}`.toLowerCase();
 
         payload.push({
           uniqueKey,
