@@ -150,14 +150,21 @@ export default function RelayGuide() {
     const newMessages = [...messages, { role: "user", content: trimmed }];
     setMessages(newMessages);
 
-    const apiMessages = newMessages.map(m => ({ role: m.role, content: m.content }));
-    const response = await base44.functions.invoke("gregChat", {
-      messages: apiMessages,
-      loanerContext: buildLoanerContext(),
-    });
-
-    setMessages(prev => [...prev, { role: "assistant", content: response.data.content }]);
-    setIsSending(false);
+    try {
+      const apiMessages = newMessages.map(m => ({ role: m.role, content: m.content }));
+      const response = await base44.functions.invoke("gregChat", {
+        messages: apiMessages,
+        loanerContext: buildLoanerContext(),
+      });
+      setMessages(prev => [...prev, { role: "assistant", content: response.data.content }]);
+    } catch {
+      setMessages(prev => [...prev, {
+        role: "assistant",
+        content: "Sorry, I couldn't connect right now. Please try again.",
+      }]);
+    } finally {
+      setIsSending(false);
+    }
   };
 
   const handleKeyDown = (e) => {
