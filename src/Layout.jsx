@@ -57,7 +57,7 @@ export default function Layout({ children, currentPageName }) {
     ...(isAdmin ? [
       { name: "Analytics", page: "Analytics", icon: TrendingUp },
       { name: "Import", page: "ImportData", icon: Upload },
-      { name: "Admin Settings", page: "AdminSettings", icon: Upload },
+      { name: "Admin Settings", page: "AdminSettings", icon: Settings },
     ] : []),
   ];
 
