@@ -11,7 +11,6 @@ import {
   Package,
   FileText,
   ChevronRight,
-  X,
   CalendarDays,
   TrendingUp,
   Download,
@@ -81,8 +80,8 @@ export default function Dashboard() {
      l.associateSalesRep?.toLowerCase() === userName.toLowerCase() ||
      l.fieldSalesRep?.toLowerCase() === userName.toLowerCase())
   ).length;
-  const myMissingCount = missingParts.filter(p => 
-    p.repName?.toLowerCase() === userName.toLowerCase() && 
+  const myMissingCount = missingParts.filter(p =>
+    p.repName?.toLowerCase() === userName.toLowerCase() &&
     p.status === "missing" &&
     p.returnStatus !== "sent_back" &&
     p.returnStatus !== "received"
@@ -92,7 +91,7 @@ export default function Dashboard() {
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-lg mx-auto px-4 py-8">
 
-        {/* Header: calendar | logo+title | notifications */}
+        {/* Header */}
         <div className="flex items-center justify-between mb-4">
           <Link to={createPageUrl("SendBackLog")} className="w-10 h-10 rounded-xl bg-white border border-gray-200 shadow-sm flex items-center justify-center hover:border-blue-300 transition-colors">
             <CalendarDays className="w-5 h-5 text-gray-500" />
@@ -126,6 +125,7 @@ export default function Dashboard() {
 
         {/* Navigation Sections */}
         <div className="space-y-6">
+
           {/* Search & Overview */}
           <div>
             <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 px-1">Search & Overview</p>
@@ -214,60 +214,55 @@ export default function Dashboard() {
               </div>
             </div>
           )}
-        </div>
 
-        {/* ESC Dashboard */}
+          {/* ESC Overview */}
           <div>
             <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 px-1">ESC Overview</p>
             <div className="space-y-2">
-            <Link to={createPageUrl("AllLoanersUnfiltered")} className="block bg-white border border-gray-100 rounded-2xl shadow-sm hover:shadow-md hover:border-indigo-100 transition-all group p-4">
-              <div className="flex items-center gap-3 mb-3">
+              <Link to={createPageUrl("AllLoanersUnfiltered")} className="block bg-white border border-gray-100 rounded-2xl shadow-sm hover:shadow-md hover:border-indigo-100 transition-all group p-4">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-11 h-11 rounded-xl bg-indigo-50 flex items-center justify-center shrink-0">
+                    <Package className="w-5 h-5 text-indigo-500" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-gray-900">ESC Dashboard</p>
+                    <p className="text-xs text-gray-400">Full loaner board with all reps</p>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-indigo-400 transition-colors shrink-0" />
+                </div>
+                <div className="flex gap-2">
+                  <div className="flex-1 bg-red-50 rounded-lg px-2 py-1.5 text-center">
+                    <p className="text-sm font-bold text-red-600">{overdueCount}</p>
+                    <p className="text-[10px] text-gray-500">Overdue</p>
+                  </div>
+                  <div className="flex-1 bg-amber-50 rounded-lg px-2 py-1.5 text-center">
+                    <p className="text-sm font-bold text-amber-600">{dueSoonCount}</p>
+                    <p className="text-[10px] text-gray-500">Due Soon</p>
+                  </div>
+                  <div className="flex-1 bg-gray-50 rounded-lg px-2 py-1.5 text-center">
+                    <p className="text-sm font-bold text-gray-700">{computedLoaners.length}</p>
+                    <p className="text-[10px] text-gray-500">Total</p>
+                  </div>
+                </div>
+              </Link>
+
+              <button
+                onClick={() => setEscExportOpen(true)}
+                className="w-full flex items-center gap-4 p-4 bg-white border border-gray-100 rounded-2xl shadow-sm hover:shadow-md hover:border-indigo-100 transition-all group text-left"
+              >
                 <div className="w-11 h-11 rounded-xl bg-indigo-50 flex items-center justify-center shrink-0">
-                  <Package className="w-5 h-5 text-indigo-500" />
+                  <Download className="w-5 h-5 text-indigo-500" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-gray-900">ESC Dashboard</p>
-                  <p className="text-xs text-gray-400">Full loaner board with all reps</p>
+                  <p className="text-sm font-semibold text-gray-900">Export Reports</p>
+                  <p className="text-xs text-gray-400 mt-0.5">Export loaners or missing parts to PDF</p>
                 </div>
                 <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-indigo-400 transition-colors shrink-0" />
-              </div>
-              <div className="flex gap-2">
-                <div className="flex-1 bg-red-50 rounded-lg px-2 py-1.5 text-center">
-                  <p className="text-sm font-bold text-red-600">{overdueCount}</p>
-                  <p className="text-[10px] text-gray-500">Overdue</p>
-                </div>
-                <div className="flex-1 bg-amber-50 rounded-lg px-2 py-1.5 text-center">
-                  <p className="text-sm font-bold text-amber-600">{dueSoonCount}</p>
-                  <p className="text-[10px] text-gray-500">Due Soon</p>
-                </div>
-                <div className="flex-1 bg-gray-50 rounded-lg px-2 py-1.5 text-center">
-                  <p className="text-sm font-bold text-gray-700">{computedLoaners.length}</p>
-                  <p className="text-[10px] text-gray-500">Total</p>
-                </div>
-              </div>
-            </Link>
-            <button
-              onClick={() => setEscExportOpen(true)}
-              className="w-full flex items-center gap-4 p-4 bg-white border border-gray-100 rounded-2xl shadow-sm hover:shadow-md hover:border-indigo-100 transition-all group text-left"
-            >
-              <div className="w-11 h-11 rounded-xl bg-indigo-50 flex items-center justify-center shrink-0">
-                <Download className="w-5 h-5 text-indigo-500" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-gray-900">Export Reports</p>
-                <p className="text-xs text-gray-400 mt-0.5">Export loaners or missing parts to PDF</p>
-              </div>
-              <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-indigo-400 transition-colors shrink-0" />
-            </button>
+              </button>
             </div>
           </div>
 
-          <ESCExportDialog
-            open={escExportOpen}
-            onClose={() => setEscExportOpen(false)}
-            loaners={computedLoaners}
-            missingParts={missingParts}
-          />
+        </div>
 
         {/* Quick Stats Bar */}
         {isLoading ? (
@@ -300,6 +295,14 @@ export default function Dashboard() {
         <p className="text-center text-xs text-gray-300 mt-4">
           {userName ? `Signed in as ${userName}` : ""}
         </p>
+
+        <ESCExportDialog
+          open={escExportOpen}
+          onClose={() => setEscExportOpen(false)}
+          loaners={computedLoaners}
+          missingParts={missingParts}
+        />
+
       </div>
     </div>
   );
