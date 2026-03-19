@@ -165,6 +165,14 @@ export default function MyMissingParts() {
             {userName ? `Missing parts assigned to you` : "Loading..."}
           </p>
         </div>
+        {!isLoading && myParts.length > 0 && (
+          <div className="flex justify-end mb-2">
+            <Button variant="outline" size="sm" className="gap-2" onClick={() => setShowExportPDF(true)}>
+              <Download className="w-4 h-4" />
+              Export PDF
+            </Button>
+          </div>
+        )}
 
         {/* Quick Stats */}
         {!isLoading && myParts.length > 0 && (
