@@ -222,6 +222,37 @@ export default function Dashboard() {
           )}
         </div>
 
+        {/* ESC Dashboard */}
+          <div>
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 px-1">ESC Overview</p>
+            <Link to={createPageUrl("AllLoanersUnfiltered")} className="block bg-white border border-gray-100 rounded-2xl shadow-sm hover:shadow-md hover:border-indigo-100 transition-all group p-4">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-11 h-11 rounded-xl bg-indigo-50 flex items-center justify-center shrink-0">
+                  <Package className="w-5 h-5 text-indigo-500" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-gray-900">ESC Dashboard</p>
+                  <p className="text-xs text-gray-400">Full loaner board with all reps</p>
+                </div>
+                <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-indigo-400 transition-colors shrink-0" />
+              </div>
+              <div className="flex gap-2">
+                <div className="flex-1 bg-red-50 rounded-lg px-2 py-1.5 text-center">
+                  <p className="text-sm font-bold text-red-600">{overdueCount}</p>
+                  <p className="text-[10px] text-gray-500">Overdue</p>
+                </div>
+                <div className="flex-1 bg-amber-50 rounded-lg px-2 py-1.5 text-center">
+                  <p className="text-sm font-bold text-amber-600">{dueSoonCount}</p>
+                  <p className="text-[10px] text-gray-500">Due Soon</p>
+                </div>
+                <div className="flex-1 bg-gray-50 rounded-lg px-2 py-1.5 text-center">
+                  <p className="text-sm font-bold text-gray-700">{computedLoaners.length}</p>
+                  <p className="text-[10px] text-gray-500">Total</p>
+                </div>
+              </div>
+            </Link>
+          </div>
+
         {/* Quick Stats Bar */}
         {isLoading ? (
           <div className="flex gap-2 mt-6">
