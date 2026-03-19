@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Loader2, HandshakeIcon } from "lucide-react";
+import { toast } from "sonner";
 
 export default function BidDialog({ open, onOpenChange, item, user }) {
   const [message, setMessage] = useState("");
