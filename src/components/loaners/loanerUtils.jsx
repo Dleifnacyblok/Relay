@@ -1,7 +1,9 @@
 export function computeLoanerData(loaner) {
   return {
     ...loaner,
-    risk_status: loaner.isOverdue ? "Overdue" : (loaner.daysUntilDue <= 7 ? "Due Soon" : "Safe"),
+    risk_status: loaner.isOverdue
+      ? "Overdue"
+      : (loaner.daysUntilDue != null && loaner.daysUntilDue <= 7 ? "Due Soon" : "Safe"),
   };
 }
 
