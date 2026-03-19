@@ -17,7 +17,7 @@ export default function MyLoaners() {
   const [showSendBack, setShowSendBack] = useState(false);
   const [showTransfer, setShowTransfer] = useState(false);
   const [showExport, setShowExport] = useState(false);
-  const [syncingCalendar, setSyncingCalendar] = useLocalState(false);
+  const [syncingCalendar, setSyncingCalendar] = useState(false);
   const { toast } = useToast();
 
   const handleSyncCalendar = async () => {
