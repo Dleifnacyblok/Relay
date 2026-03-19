@@ -34,6 +34,9 @@ export default function BidDialog({ open, onOpenChange, item, user }) {
       onOpenChange(false);
       setMessage("");
     },
+    onError: () => {
+      toast.error("Failed to send request. Please try again.");
+    },
   });
 
   return (
