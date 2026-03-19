@@ -141,14 +141,33 @@ export default function SendBackDialog({ open, onOpenChange, selectedLoaners, se
             {/* Tracking Number */}
             <div className="space-y-2">
               <Label htmlFor="tracking">Tracking Number *</Label>
-              <Input
-                id="tracking"
-                value={trackingNumber}
-                onChange={(e) => setTrackingNumber(e.target.value)}
-                placeholder="Enter tracking number"
-                required
-              />
+              <div className="flex gap-2">
+                <Input
+                  id="tracking"
+                  value={trackingNumber}
+                  onChange={(e) => setTrackingNumber(e.target.value)}
+                  placeholder="Enter or scan tracking number"
+                  required
+                  className="flex-1"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setShowScanner(true)}
+                  className="shrink-0 gap-1.5"
+                >
+                  <ScanLine className="w-4 h-4" />
+                  Scan
+                </Button>
+              </div>
             </div>
+
+            {showScanner && (
+              <BarcodeScanner
+                onScan={(result) => { setTrackingNumber(result); setShowScanner(false); }}
+                onClose={() => setShowScanner(false)}
+              />
+            )}
 
             {/* Notes */}
             <div className="space-y-2">
