@@ -206,7 +206,9 @@ function MissingPartsExport({ parts, onClose }) {
           doc.setFont("helvetica", "normal");
           doc.setTextColor(100, 116, 139);
           if (p.repName) doc.text(`Rep: ${p.repName}`, margin + 3, y + 4.5);
-          if (p.partNumber) doc.text(`Part #: ${p.partNumber}`, margin + 3, y + 9);
+          const partLine = [`Part #: ${p.partNumber || "N/A"}`];
+          if ((p.missingQuantity || 1) > 1) partLine.push(`Qty: ${p.missingQuantity}`);
+          doc.text(partLine.join("  |  "), margin + 3, y + 9);
           const line3Parts = [];
           if (p.loanerSetName) line3Parts.push(`Loaner: ${p.loanerSetName}`);
           if (p.etchId) line3Parts.push(`Etch: ${p.etchId}`);
@@ -216,9 +218,11 @@ function MissingPartsExport({ parts, onClose }) {
             doc.setTextColor(220, 38, 38);
             doc.text(`$${(p.fineAmount || 0).toLocaleString()}`, pageWidth - margin, y, { align: "right" });
           }
+          const qty = p.missingQuantity || 1;
           const statusColor = p.status === "missing" ? [220, 38, 38] : p.status === "found" ? [16, 185, 129] : [59, 130, 246];
           doc.setTextColor(...statusColor);
-          doc.text((p.status || "missing").toUpperCase(), pageWidth - margin, y + 4.5, { align: "right" });
+          const statusText = qty > 1 ? `${(p.status || "missing").toUpperCase()} (x${qty})` : (p.status || "missing").toUpperCase();
+          doc.text(statusText, pageWidth - margin, y + 4.5, { align: "right" });
           doc.setDrawColor(226, 232, 240);
           doc.setLineWidth(0.2);
           doc.line(margin + 3, y + 17, pageWidth - margin, y + 17);
