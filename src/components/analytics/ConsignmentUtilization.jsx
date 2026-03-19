@@ -12,19 +12,19 @@ const normalize = (s) => (s || "").toUpperCase().trim();
 export default function ConsignmentUtilization({ computed }) {
   const { data: consignedSets = [] } = useQuery({
     queryKey: ["consignedSets"],
-    queryFn: () => base44.entities.ConsignedSet.list(),
+    queryFn: () => base44.entities.ConsignedSet.list()
   });
 
   // Active loaners only (not returned)
   const activeLoaners = useMemo(() =>
-    computed.filter(l => l.returnStatus !== "sent_back" && l.returnStatus !== "received"),
-    [computed]
+  computed.filter((l) => l.returnStatus !== "sent_back" && l.returnStatus !== "received"),
+  [computed]
   );
 
   // Build a map: normalizedSetName → consigned set
   const consignedByName = useMemo(() => {
     const map = {};
-    consignedSets.forEach(cs => {
+    consignedSets.forEach((cs) => {
       map[normalize(cs.setName)] = cs;
     });
     return map;
@@ -32,14 +32,14 @@ export default function ConsignmentUtilization({ computed }) {
 
   // For each active loaner, check if its setName matches a consigned set
   const matched = useMemo(() =>
-    activeLoaners.filter(l => consignedByName[normalize(l.setName)]),
-    [activeLoaners, consignedByName]
+  activeLoaners.filter((l) => consignedByName[normalize(l.setName)]),
+  [activeLoaners, consignedByName]
   );
 
   // Aggregate per set: how many active loaners per consigned set name
   const utilizationMap = useMemo(() => {
     const map = {};
-    matched.forEach(l => {
+    matched.forEach((l) => {
       const key = normalize(l.setName);
       const cs = consignedByName[key];
       if (!map[key]) {
@@ -51,7 +51,7 @@ export default function ConsignmentUtilization({ computed }) {
           overdueCount: 0,
           accounts: new Set(),
           homeAccounts: cs.homeAccounts || [],
-          tagNumbers: cs.tagNumbers || [],
+          tagNumbers: cs.tagNumbers || []
         };
       }
       map[key].activeLoaners++;
@@ -62,32 +62,32 @@ export default function ConsignmentUtilization({ computed }) {
   }, [matched, consignedByName]);
 
   const utilizationData = useMemo(() =>
-    Object.values(utilizationMap)
-      .map(d => ({
-        ...d,
-        accountCount: d.accounts.size,
-        utilizationRate: d.totalTags > 0 ? Math.round((d.activeLoaners / d.totalTags) * 100) : 0,
-        accounts: Array.from(d.accounts),
-        label: d.setName.length > 22 ? d.setName.slice(0, 22) + "…" : d.setName,
-      }))
-      .sort((a, b) => b.activeLoaners - a.activeLoaners),
-    [utilizationMap]
+  Object.values(utilizationMap).
+  map((d) => ({
+    ...d,
+    accountCount: d.accounts.size,
+    utilizationRate: d.totalTags > 0 ? Math.round(d.activeLoaners / d.totalTags * 100) : 0,
+    accounts: Array.from(d.accounts),
+    label: d.setName.length > 22 ? d.setName.slice(0, 22) + "…" : d.setName
+  })).
+  sort((a, b) => b.activeLoaners - a.activeLoaners),
+  [utilizationMap]
   );
 
   // Displaced = loaner's account is NOT one of the home accounts for that set
   const displaced = useMemo(() =>
-    matched.filter(l => {
-      const cs = consignedByName[normalize(l.setName)];
-      const homes = (cs.homeAccounts || []).map(h => normalize(h)).filter(Boolean);
-      if (homes.length === 0) return false; // no home account defined, skip
-      return !homes.includes(normalize(l.accountName));
-    }),
-    [matched, consignedByName]
+  matched.filter((l) => {
+    const cs = consignedByName[normalize(l.setName)];
+    const homes = (cs.homeAccounts || []).map((h) => normalize(h)).filter(Boolean);
+    if (homes.length === 0) return false; // no home account defined, skip
+    return !homes.includes(normalize(l.accountName));
+  }),
+  [matched, consignedByName]
   );
 
   const displacedBySet = useMemo(() => {
     const map = {};
-    displaced.forEach(l => {
+    displaced.forEach((l) => {
       const key = normalize(l.setName);
       if (!map[key]) map[key] = { setName: l.setName, items: [] };
       map[key].items.push(l);
@@ -103,28 +103,28 @@ export default function ConsignmentUtilization({ computed }) {
     <div>
       {/* KPI row */}
       <div className="grid grid-cols-3 gap-3 mb-5">
-        <Card className="p-4 bg-white border-slate-200">
-          <p className="text-xs text-slate-500 mb-1">Consigned Tags Out on Loan</p>
-          <p className="text-2xl font-bold text-blue-700">{matched.length}</p>
-          <p className="text-xs text-slate-400">of {totalConsigned} total tags</p>
-        </Card>
-        <Card className="p-4 bg-amber-50 border-amber-200">
-          <p className="text-xs text-slate-500 mb-1">Displaced Tags</p>
-          <p className="text-2xl font-bold text-amber-700">{displacedCount}</p>
-          <p className="text-xs text-slate-400">away from home account</p>
-        </Card>
-        <Card className="p-4 bg-red-50 border-red-200">
-          <p className="text-xs text-slate-500 mb-1">Overdue Consigned</p>
-          <p className="text-2xl font-bold text-red-700">
-            {Object.values(utilizationMap).reduce((s, d) => s + d.overdueCount, 0)}
-          </p>
-          <p className="text-xs text-slate-400">territory sets overdue</p>
-        </Card>
+        
+
+
+
+        
+        
+
+
+
+        
+        
+
+
+
+
+
+        
       </div>
 
       {/* Bar chart: active loaners per consigned set */}
-      {utilizationData.length > 0 && (
-        <Card className="p-5 bg-white border-slate-200 mb-5">
+      {utilizationData.length > 0 &&
+      <Card className="p-5 bg-white border-slate-200 mb-5">
           <h3 className="text-sm font-semibold text-slate-700 mb-1">Active Loaners per Consigned Set</h3>
           <p className="text-xs text-slate-400 mb-4">How many tags from each territory set are currently out on loan</p>
           <ResponsiveContainer width="100%" height={Math.max(200, utilizationData.length * 36)}>
@@ -133,25 +133,25 @@ export default function ConsignmentUtilization({ computed }) {
               <XAxis type="number" tick={{ fontSize: 11 }} allowDecimals={false} />
               <YAxis type="category" dataKey="label" tick={{ fontSize: 10 }} width={150} />
               <Tooltip
-                formatter={(v, name) => [v, name]}
-                content={({ active, payload }) => {
-                  if (!active || !payload?.length) return null;
-                  const d = payload[0].payload;
-                  return (
-                    <div className="bg-white border border-slate-200 rounded-lg p-3 shadow text-xs">
+              formatter={(v, name) => [v, name]}
+              content={({ active, payload }) => {
+                if (!active || !payload?.length) return null;
+                const d = payload[0].payload;
+                return (
+                  <div className="bg-white border border-slate-200 rounded-lg p-3 shadow text-xs">
                       <p className="font-semibold text-slate-800 mb-1">{d.setName}</p>
                       <p className="text-blue-600">{d.activeLoaners} active loaner{d.activeLoaners !== 1 ? "s" : ""}</p>
                       {d.totalTags > 0 && <p className="text-slate-500">{d.utilizationRate}% of {d.totalTags} tags out</p>}
                       {d.overdueCount > 0 && <p className="text-red-600">{d.overdueCount} overdue</p>}
                       {d.accountCount > 0 && <p className="text-slate-400 mt-1">At: {d.accounts.slice(0, 3).join(", ")}{d.accounts.length > 3 ? "…" : ""}</p>}
-                    </div>
-                  );
-                }}
-              />
+                    </div>);
+
+              }} />
+            
               <Bar dataKey="activeLoaners" radius={[0, 4, 4, 0]} name="Active Loaners">
-                {utilizationData.map((d, i) => (
-                  <Cell key={i} fill={d.overdueCount > 0 ? "#ef4444" : d.utilizationRate > 50 ? "#f59e0b" : "#3b82f6"} />
-                ))}
+                {utilizationData.map((d, i) =>
+              <Cell key={i} fill={d.overdueCount > 0 ? "#ef4444" : d.utilizationRate > 50 ? "#f59e0b" : "#3b82f6"} />
+              )}
               </Bar>
             </BarChart>
           </ResponsiveContainer>
@@ -161,11 +161,11 @@ export default function ConsignmentUtilization({ computed }) {
             <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-sm bg-red-500 inline-block" /> Has overdue</span>
           </div>
         </Card>
-      )}
+      }
 
       {/* Displaced sets table */}
-      {displacedBySet.length > 0 && (
-        <Card className="p-5 bg-white border-slate-200">
+      {displacedBySet.length > 0 &&
+      <Card className="p-5 bg-white border-slate-200">
           <h3 className="text-sm font-semibold text-slate-700 flex items-center gap-2 mb-1">
             <AlertTriangle className="w-4 h-4 text-amber-500" /> Displaced Consigned Sets
           </h3>
@@ -174,9 +174,9 @@ export default function ConsignmentUtilization({ computed }) {
           </p>
           <div className="space-y-3">
             {displacedBySet.map((d, i) => {
-              const cs = consignedByName[normalize(d.setName)];
-              return (
-                <div key={i} className="border border-slate-100 rounded-lg overflow-hidden">
+            const cs = consignedByName[normalize(d.setName)];
+            return (
+              <div key={i} className="border border-slate-100 rounded-lg overflow-hidden">
                   <div className="flex items-center justify-between px-4 py-2 bg-slate-50 border-b border-slate-100">
                     <span className="text-sm font-semibold text-slate-800">{d.setName}</span>
                     <span className="text-xs font-medium text-amber-700 bg-amber-50 border border-amber-100 px-2 py-0.5 rounded-full">
@@ -185,46 +185,46 @@ export default function ConsignmentUtilization({ computed }) {
                   </div>
                   <div className="divide-y divide-slate-50">
                     {d.items.map((l, j) => {
-                      const tagIdx = (cs?.tagNumbers || []).findIndex(t => normalize(t) === normalize(l.etchId));
-                      const homeAcct = tagIdx >= 0 ? (cs?.homeAccounts || [])[tagIdx] : null;
-                      return (
-                        <div key={j} className="flex flex-wrap items-center justify-between px-4 py-2 gap-2 text-xs">
+                    const tagIdx = (cs?.tagNumbers || []).findIndex((t) => normalize(t) === normalize(l.etchId));
+                    const homeAcct = tagIdx >= 0 ? (cs?.homeAccounts || [])[tagIdx] : null;
+                    return (
+                      <div key={j} className="flex flex-wrap items-center justify-between px-4 py-2 gap-2 text-xs">
                           <div className="flex items-center gap-3">
                             <span className="font-mono text-slate-500">{l.etchId || "—"}</span>
                             <span className="text-slate-700 font-medium">@ {l.accountName}</span>
                             {l.repName && <span className="text-slate-400">· {l.repName}</span>}
                           </div>
                           <div className="flex items-center gap-2">
-                            {homeAcct && (
-                              <span className="text-slate-400 flex items-center gap-1">
+                            {homeAcct &&
+                          <span className="text-slate-400 flex items-center gap-1">
                                 <MapPin className="w-3 h-3" /> home: {homeAcct}
                               </span>
-                            )}
-                            {l.risk_status === "Overdue" ? (
-                              <span className="text-red-700 bg-red-50 border border-red-100 px-2 py-0.5 rounded-full font-semibold">Overdue</span>
-                            ) : l.risk_status === "Due Soon" ? (
-                              <span className="text-amber-700 bg-amber-50 border border-amber-100 px-2 py-0.5 rounded-full font-semibold">Due Soon</span>
-                            ) : (
-                              <span className="text-blue-700 bg-blue-50 border border-blue-100 px-2 py-0.5 rounded-full">Active</span>
-                            )}
+                          }
+                            {l.risk_status === "Overdue" ?
+                          <span className="text-red-700 bg-red-50 border border-red-100 px-2 py-0.5 rounded-full font-semibold">Overdue</span> :
+                          l.risk_status === "Due Soon" ?
+                          <span className="text-amber-700 bg-amber-50 border border-amber-100 px-2 py-0.5 rounded-full font-semibold">Due Soon</span> :
+
+                          <span className="text-blue-700 bg-blue-50 border border-blue-100 px-2 py-0.5 rounded-full">Active</span>
+                          }
                           </div>
-                        </div>
-                      );
-                    })}
+                        </div>);
+
+                  })}
                   </div>
-                </div>
-              );
-            })}
+                </div>);
+
+          })}
           </div>
         </Card>
-      )}
+      }
 
-      {utilizationData.length === 0 && (
-        <Card className="p-8 text-center bg-white border-slate-200">
+      {utilizationData.length === 0 &&
+      <Card className="p-8 text-center bg-white border-slate-200">
           <CheckCircle2 className="w-8 h-8 text-green-400 mx-auto mb-2" />
           <p className="text-sm text-slate-500">No active loaners match consigned territory sets.</p>
         </Card>
-      )}
-    </div>
-  );
+      }
+    </div>);
+
 }
