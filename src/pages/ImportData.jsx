@@ -573,7 +573,7 @@ export default function ImportData() {
       const existingMap = new Map();
 
       allExisting.forEach(e => {
-        const key = `${e.requestNumber || 'none'}__${e.partSetNumber || 'none'}__${e.deductionDate || 'none'}__${e.repName}`.toLowerCase();
+        const key = `${e.requestNumber || 'none'}__${e.partSetNumber || 'none'}__${e.deductionDate || 'none'}__${(e.partName || 'none').slice(0, 20)}`.toLowerCase();
         if (key && e.id) {
           existingMap.set(key, e.id);
         }
