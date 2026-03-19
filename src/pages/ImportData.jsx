@@ -569,16 +569,27 @@ export default function ImportData() {
         throw new Error(`${errors.length} rows have errors: ${errors.map(e => `Row ${e.row}: ${e.error}`).join("; ")}`);
       }
 
-      // Fetch all existing parts and build lookup map
+      // Fetch all existing parts and build lookup map, deduplicating in the process
       const allExisting = await base44.entities.MissingPart.list();
-      const existingMap = new Map();
+      const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
+      // Group all existing records by their computed key
+      const keyToIds = new Map();
       allExisting.forEach(e => {
         const key = `${e.requestNumber || 'none'}__${e.partSetNumber || 'none'}__${e.deductionDate || 'none'}__${(e.partName || 'none').slice(0, 20)}`.toLowerCase();
-        if (key && e.id) {
-          existingMap.set(key, e.id);
-        }
+        if (!keyToIds.has(key)) keyToIds.set(key, []);
+        keyToIds.get(key).push(e.id);
       });
+
+      // Build existingMap keeping only the first record per key; delete extra duplicates
+      const existingMap = new Map();
+      for (const [key, ids] of keyToIds.entries()) {
+        existingMap.set(key, ids[0]);
+        for (let i = 1; i < ids.length; i++) {
+          try { await base44.entities.MissingPart.delete(ids[i]); } catch (_) {}
+          await sleep(200);
+        }
+      }
 
       let created = 0;
       let updated = 0;
