@@ -58,7 +58,7 @@ export default function LoanerTable({ loaners, compact = false, selectable = fal
                   />
                 )}
                 <div className="min-w-0">
-                  <h3 className="font-bold truncate" style={{color: '#000000'}}>{loaner.setName}</h3>
+                  <h3 className="font-bold text-sm leading-tight" style={{color: '#000000', wordBreak: 'break-word', whiteSpace: 'normal'}} title={loaner.setName}>{loaner.setName}</h3>
                   <p className="text-xs mt-0.5">
                     <span style={{color: '#777777'}}>Etch ID: </span>
                     <span style={{color: '#222222', letterSpacing: '0.02em'}}>{loaner.etchId || "(missing)"}</span>
