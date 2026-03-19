@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Card } from "@/components/ui/card";
@@ -50,8 +50,13 @@ export default function NotificationPreferences() {
     queryFn: () => base44.auth.me(),
   });
 
-  const savedPrefs = user?.notification_preferences || {};
-  const [prefs, setPrefs] = useState({ ...DEFAULT_PREFS, ...savedPrefs });
+  const [prefs, setPrefs] = useState(DEFAULT_PREFS);
+
+  useEffect(() => {
+    if (user?.notification_preferences) {
+      setPrefs(prev => ({ ...prev, ...user.notification_preferences }));
+    }
+  }, [user]);
   const [saved, setSaved] = useState(false);
 
   const saveMutation = useMutation({
