@@ -72,21 +72,25 @@ Based on this data, provide exactly:
 
 Be specific, reference actual data points (rep names, numbers, percentages) where relevant. Keep each bullet point concise (1-2 sentences max).`;
 
-    const result = await base44.integrations.Core.InvokeLLM({
-      prompt,
-      response_json_schema: {
-        type: "object",
-        properties: {
-          predictions: { type: "array", items: { type: "string" } },
-          riskFactors: { type: "array", items: { type: "string" } },
-          recommendations: { type: "array", items: { type: "string" } },
+    try {
+      const result = await base44.integrations.Core.InvokeLLM({
+        prompt,
+        response_json_schema: {
+          type: "object",
+          properties: {
+            predictions: { type: "array", items: { type: "string" } },
+            riskFactors: { type: "array", items: { type: "string" } },
+            recommendations: { type: "array", items: { type: "string" } },
+          },
+          required: ["predictions", "riskFactors", "recommendations"],
         },
-        required: ["predictions", "riskFactors", "recommendations"],
-      },
-    });
-
-    setInsights(result);
-    setLoading(false);
+      });
+      setInsights(result);
+    } catch {
+      setError("Failed to generate insights. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
