@@ -82,6 +82,7 @@ export const PAGES = {
     "TerritoryInventory": TerritoryInventory,
     "Calendar": Calendar,
     "RelayGuide": RelayGuide,
+    "AdminSettings": AdminSettings,
 }
 
 export const pagesConfig = {
