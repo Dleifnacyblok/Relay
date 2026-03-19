@@ -51,6 +51,11 @@ export default function ImportData() {
     queryFn: () => base44.entities.MissingPart.list(),
   });
 
+  const { data: repAssignments = [] } = useQuery({
+    queryKey: ["repAccountAssignments"],
+    queryFn: () => base44.entities.RepAccountAssignment.list(),
+  });
+
   const isAdmin = user?.role === "admin";
 
   const toCleanString = (v) => {
@@ -235,37 +240,17 @@ export default function ImportData() {
         const assocRaw = (r["associate sales rep name"] || "").toString().trim();
         let repName = assocRaw || "None";
 
-        // Default reps for accounts without associate rep
+        // Look up assigned rep from RepAccountAssignment if no associate rep
         if (!assocRaw) {
           const lowerAccount = accountName.toLowerCase();
-          if (lowerAccount.includes("corewell wm beaumont")) {
-            repName = "Kristine Binge";
-          } else if (lowerAccount.includes("childrens hospital of mi")) {
-              repName = "Graham Brown";
-            } else if (lowerAccount.includes("trinity health ann arbor")) {
-              repName = "Graham Brown";
-            } else if (lowerAccount.includes("chelsea community hospital")) {
-              repName = "Graham Brown";
-          } else if (lowerAccount.includes("mymichigan medical center") || lowerAccount.includes("my midmichigan") || lowerAccount.includes("midmichigan")) {
-            repName = "John DeLeon / Jason Carter";
-          } else if (lowerAccount.includes("henry ford macomb")) {
-            repName = "Joshua Raptis";
-          } else if (lowerAccount.includes("mclaren bay region")) {
-            repName = "John DeLeon / Michael Pugh";
-          } else if (lowerAccount.includes("va - ann arbor") || lowerAccount.includes("va ann arbor")) {
-            repName = "Zachary Kuta";
-          } else if (lowerAccount.includes("university of michigan")) {
-            repName = "Zachary Kuta";
-          } else if (lowerAccount.includes("trinity health oakland")) {
-            repName = "Shane Morris";
-          } else if (lowerAccount.includes("hurley")) {
-            repName = "John DeLeon & Matt Prus";
-          } else if (lowerAccount.includes("beaumont hospital - dearborn")) {
-            repName = "Joshua Raptis";
-          } else if (lowerAccount.includes("henry ford hospital - detroit") || lowerAccount.includes("beaumont henry ford hospital - detroit") || lowerAccount.includes("henry ford hospital - spine - jr")) {
-            repName = "Joshua Raptis";
-          } else if (lowerAccount.includes("henry ford allegiance")) {
-            repName = "Colin Givens";
+          const match = repAssignments.find(a =>
+            a.accountName && lowerAccount.includes(a.accountName.toLowerCase().trim())
+          );
+          if (match) {
+            const reps = match.assignedReps?.length ? match.assignedReps : (match.assignedRep ? [match.assignedRep] : []);
+            repName = reps.join(" / ") || fieldSalesRep || "None";
+          } else {
+            repName = fieldSalesRep || "None";
           }
         }
         const etchId = (r["etch id"] || "").toString().trim();
