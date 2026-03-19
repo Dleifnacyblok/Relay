@@ -381,6 +381,13 @@ export default function MyMissingParts() {
         </div>
       </div>
 
+      <ExportMissingPartsPDF
+        open={showExportPDF}
+        onClose={() => setShowExportPDF(false)}
+        parts={myParts}
+        userName={userName}
+      />
+
       <SendBackDialog
         open={showSendBack}
         onOpenChange={setShowSendBack}
