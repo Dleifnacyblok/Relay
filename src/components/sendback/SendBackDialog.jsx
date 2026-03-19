@@ -13,8 +13,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Loader2, Package, Camera, X } from "lucide-react";
+import { Loader2, Package, Camera, X, ScanLine } from "lucide-react";
 import { toast } from "sonner";
+import BarcodeScanner from "./BarcodeScanner";
 
 export default function SendBackDialog({ open, onOpenChange, selectedLoaners, selectedParts, userName, onSuccess }) {
   const [trackingNumber, setTrackingNumber] = useState("");
