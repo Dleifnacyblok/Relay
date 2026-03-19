@@ -64,6 +64,7 @@ export default function Dashboard() {
     queryFn: () => base44.entities.MarketplaceItem.filter({ status: "available" }),
   });
 
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
 
   const userName = user?.full_name || "";
