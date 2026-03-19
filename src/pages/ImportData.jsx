@@ -468,6 +468,7 @@ export default function ImportData() {
     setIsUploadingParts(true);
     setPartsError(null);
     setPartsImportResult(null);
+    setPartsProgress(null);
 
     try {
       const arrayBuffer = await partsFile.arrayBuffer();
