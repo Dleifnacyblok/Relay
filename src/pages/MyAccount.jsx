@@ -20,6 +20,8 @@ import OnboardingWizard from "@/components/onboarding/OnboardingWizard";
 export default function MyAccount() {
   const [selectedAccount, setSelectedAccount] = useState(null);
   const [showAccountDialog, setShowAccountDialog] = useState(false);
+  const [showSetup, setShowSetup] = useState(false);
+  const queryClient = useQueryClient();
 
   const { data: user } = useQuery({
     queryKey: ["currentUser"],
