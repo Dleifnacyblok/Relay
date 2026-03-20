@@ -216,6 +216,12 @@ export default function Layout({ children, currentPageName }) {
   // All pages get bottom nav on mobile (including Dashboard)
   return (
     <div className="min-h-screen bg-white">
+      {showOnboarding && (
+        <OnboardingWizard
+          user={user}
+          onComplete={() => queryClient.invalidateQueries({ queryKey: ["currentUser"] })}
+        />
+      )}
       {desktopSidebar}
 
       {/* Main Content — padded for bottom nav */}
