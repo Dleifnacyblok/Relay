@@ -249,6 +249,17 @@ export default function MyAccount() {
           </Card>
         </div>
 
+        {/* Onboarding Re-run */}
+        {showSetup && (
+          <OnboardingWizard
+            user={user}
+            onComplete={() => {
+              queryClient.invalidateQueries({ queryKey: ["currentUser"] });
+              setShowSetup(false);
+            }}
+          />
+        )}
+
         {/* Account Detail Dialog */}
         <Dialog open={showAccountDialog} onOpenChange={setShowAccountDialog}>
           <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
