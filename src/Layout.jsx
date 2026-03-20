@@ -20,6 +20,7 @@ import {
   BookOpen,
   Settings,
 } from "lucide-react";
+import OnboardingWizard from "@/components/onboarding/OnboardingWizard";
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
