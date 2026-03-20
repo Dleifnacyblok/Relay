@@ -117,11 +117,20 @@ export default function MyAccount() {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 pb-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
-            My Accounts
-          </h1>
-          <p className="text-slate-500 mt-1">{user?.full_name}</p>
+        <div className="flex items-start justify-between mb-8">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
+              My Accounts
+            </h1>
+            <p className="text-slate-500 mt-1">{user?.displayName || user?.full_name}</p>
+          </div>
+          <button
+            onClick={() => setShowSetup(true)}
+            className="flex items-center gap-2 text-sm text-slate-500 hover:text-blue-600 border border-slate-200 hover:border-blue-300 rounded-lg px-3 py-2 transition-colors"
+          >
+            <Settings2 className="w-4 h-4" />
+            Edit Setup
+          </button>
         </div>
 
         {/* Accounts List */}
