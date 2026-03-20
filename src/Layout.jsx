@@ -37,6 +37,7 @@ export default function Layout({ children, currentPageName }) {
 
   const isAdmin = user?.role === "admin" || user?.role === "manager";
   const isDashboard = currentPageName === "Dashboard";
+  const showOnboarding = user && !user.onboardingComplete && user.role !== "admin" && user.role !== "manager";
 
   useEffect(() => {
     window.scrollTo(0, 0);
