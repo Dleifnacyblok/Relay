@@ -166,26 +166,50 @@ export default function OnboardingWizard({ user, onComplete }) {
           {step === 2 && (
             <div className="space-y-4">
               <p className="text-gray-600 text-sm">
-                These are the accounts assigned to <strong>{selectedRepName}</strong>. Select the ones you manage.
+                Select accounts from the list, or type one manually and press Enter.
               </p>
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+
+              {/* Manual add input */}
+              <div className="flex gap-2">
                 <Input
-                  className="pl-9"
-                  placeholder="Search accounts..."
-                  value={search2}
-                  onChange={e => setSearch2(e.target.value)}
+                  placeholder="Type an account name and press Enter..."
+                  value={manualAccount}
+                  onChange={e => setManualAccount(e.target.value)}
+                  onKeyDown={e => e.key === "Enter" && addManualAccount()}
                 />
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={addManualAccount}
+                  disabled={!manualAccount.trim()}
+                >
+                  <Plus className="w-4 h-4" />
+                </Button>
               </div>
+
+              {/* Search + count row */}
+              <div className="flex gap-2 items-center">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <Input
+                    className="pl-9"
+                    placeholder="Search accounts..."
+                    value={search2}
+                    onChange={e => setSearch2(e.target.value)}
+                  />
+                </div>
+              </div>
+
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-500">{selectedAccounts.length} selected</span>
+                <span className="text-sm text-gray-500 font-medium">{selectedAccounts.length} selected</span>
                 <div className="flex gap-2">
-                  <button onClick={() => setSelectedAccounts([...repAccounts])} className="text-xs text-blue-600 hover:underline">Select All</button>
+                  <button onClick={() => setSelectedAccounts([...new Set([...selectedAccounts, ...repAccounts])])} className="text-xs text-blue-600 hover:underline">Select All</button>
                   <span className="text-gray-300">|</span>
                   <button onClick={() => setSelectedAccounts([])} className="text-xs text-gray-500 hover:underline">Clear All</button>
                 </div>
               </div>
-              <div className="border rounded-xl overflow-y-auto" style={{ maxHeight: "250px" }}>
+
+              <div className="border rounded-xl overflow-y-auto" style={{ maxHeight: "220px" }}>
                 {filteredAccounts.length === 0 && (
                   <p className="text-center text-gray-400 py-8 text-sm">No accounts found</p>
                 )}
