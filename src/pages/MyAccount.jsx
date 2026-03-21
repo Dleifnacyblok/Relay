@@ -196,7 +196,7 @@ export default function MyAccount() {
                   <button 
                     key={idx}
                     onClick={() => handleAccountClick(account)}
-                    className="w-full p-4 rounded-lg bg-slate-50 hover:bg-slate-100 transition-colors text-left"
+                    className="w-full p-4 min-h-[44px] rounded-lg bg-slate-50 hover:bg-slate-100 transition-colors text-left"
                   >
                     <div className="flex items-start justify-between mb-2">
                       <p className="font-medium text-slate-900">{account}</p>
