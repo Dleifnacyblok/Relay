@@ -32,6 +32,49 @@ export default function MyAccount() {
     queryFn: () => base44.auth.me(),
   });
 
+  const { data: allAssignments = [] } = useQuery({
+    queryKey: ["repAccountAssignments"],
+    queryFn: () => base44.entities.RepAccountAssignment.list(),
+  });
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handler = (e) => {
+      if (addAccountRef.current && !addAccountRef.current.contains(e.target)) {
+        setShowAddAccount(false);
+        setAddAccountSearch("");
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const managedAccounts = user?.managedAccounts || [];
+
+  const accountSearchResults = addAccountSearch.trim()
+    ? [...new Set(allAssignments.map(a => a.accountName).filter(Boolean))]
+        .filter(name =>
+          name.toLowerCase().includes(addAccountSearch.toLowerCase()) &&
+          !managedAccounts.includes(name)
+        )
+        .sort()
+        .slice(0, 10)
+    : [];
+
+  const handleAddAccount = async (accountName) => {
+    const updated = [...managedAccounts, accountName];
+    await base44.auth.updateMe({ managedAccounts: updated });
+    queryClient.invalidateQueries({ queryKey: ["currentUser"] });
+    setAddAccountSearch("");
+    setShowAddAccount(false);
+  };
+
+  const handleRemoveAccount = async (accountName) => {
+    const updated = managedAccounts.filter(a => a !== accountName);
+    await base44.auth.updateMe({ managedAccounts: updated });
+    queryClient.invalidateQueries({ queryKey: ["currentUser"] });
+  };
+
   const { data: loaners = [], isLoading: loadingLoaners } = useQuery({
     queryKey: ["myLoaners", user?.full_name],
     queryFn: () => base44.entities.Loaners.filter({ repName: user?.full_name }),
