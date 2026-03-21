@@ -309,8 +309,8 @@ export default function Search() {
                         className="flex items-center justify-between px-4 py-3 min-h-14 hover:bg-slate-50 active:bg-slate-100 transition-colors"
                       >
                         <div className="min-w-0 flex-1 pr-3">
-                          <p className="font-semibold text-slate-900 truncate">{loaner.accountName || loaner.setName}</p>
-                          <p className="text-sm text-slate-500 truncate">{loaner.repName || loaner.setName}</p>
+                          <p className="font-semibold text-slate-900 truncate">{loaner.setName}</p>
+                          <p className="text-sm text-slate-500 truncate">{loaner.accountName || loaner.repName}</p>
                         </div>
                         {statusPill(loaner)}
                       </Link>
