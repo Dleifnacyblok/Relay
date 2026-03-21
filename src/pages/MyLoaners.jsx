@@ -208,11 +208,11 @@ export default function MyLoaners() {
         )}
 
         {/* Actions Bar */}
-        {!isLoading && myLoaners.length > 0 && (
+        {!isLoading && filteredLoaners.length > 0 && (
           <div className="bg-white rounded-lg border border-slate-200 p-4 mb-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <Checkbox
-                checked={selectedIds.length > 0 && selectedIds.length === myLoaners.length}
+                checked={selectedIds.length > 0 && selectedIds.length === filteredLoaners.length}
                 onCheckedChange={handleSelectAll}
               />
               <span className="text-sm text-slate-600">
