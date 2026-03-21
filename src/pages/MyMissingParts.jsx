@@ -280,11 +280,11 @@ export default function MyMissingParts() {
           ) : (
             <>
               {/* Mobile Card View */}
-              <div className="md:hidden space-y-4 p-4">
-                {myParts.map((part) => (
+              <div className="md:hidden divide-y divide-slate-100">
+                {filteredParts.map((part) => (
                   <div
                     key={part.id}
-                    className="rounded-xl py-5 px-4"
+                    className="px-4 py-4 min-h-14"
                     style={{
                       backgroundColor: '#FFFFFF',
                       border: '1px solid #F8F8F8',
