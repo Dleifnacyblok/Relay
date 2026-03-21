@@ -172,13 +172,7 @@ export default function MyAccount() {
             <p className="text-xs text-slate-400 uppercase font-semibold mt-2 mb-0.5">Rep</p>
             <p className="text-base font-medium text-slate-700">{user?.full_name}</p>
           </div>
-          <button
-            onClick={() => setShowSetup(true)}
-            className="flex items-center gap-2 text-sm text-slate-500 hover:text-blue-600 border border-slate-200 hover:border-blue-300 rounded-lg px-3 py-2 transition-colors"
-          >
-            <Settings2 className="w-4 h-4" />
-            Edit Setup
-          </button>
+          
         </div>
 
         {/* Accounts List */}
