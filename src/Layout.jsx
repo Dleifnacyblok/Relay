@@ -131,7 +131,10 @@ export default function Layout({ children, currentPageName }) {
   const rightNav = navigation.slice(2, 4);
 
   const mobileBottomNav = (
-    <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-100" style={{paddingBottom: 'env(safe-area-inset-bottom)'}}>
+    <nav
+      className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-100"
+      style={{paddingBottom: 'env(safe-area-inset-bottom, 8px)'}}
+    >
       <div className="flex items-end justify-around px-1 pt-2 pb-2">
         {/* Left 2 nav items */}
         {leftNav.map((item) => {
@@ -214,7 +217,6 @@ export default function Layout({ children, currentPageName }) {
     </nav>
   );
 
-  // All pages get bottom nav on mobile (including Dashboard)
   return (
     <div className="min-h-screen bg-white">
       {showOnboarding && (
@@ -225,8 +227,11 @@ export default function Layout({ children, currentPageName }) {
       )}
       {desktopSidebar}
 
-      {/* Main Content — padded for bottom nav */}
-      <main className="lg:pl-64 pb-24 lg:pb-0">
+      {/* Main Content — padded for bottom nav + safe area */}
+      <main
+        className="lg:pl-64 lg:pb-0"
+        style={{paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 6rem)'}}
+      >
         {children}
       </main>
 
