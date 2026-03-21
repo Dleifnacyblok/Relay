@@ -245,7 +245,7 @@ export default function MyAccount() {
             <div className="relative" ref={addAccountRef}>
               <button
                 onClick={() => { setShowAddAccount(v => !v); setAddAccountSearch(""); }}
-                className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700 border border-blue-200 hover:border-blue-400 rounded-full px-3 py-1 transition-colors"
+                className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700 border border-blue-200 hover:border-blue-400 rounded-full px-3 py-2.5 min-h-[44px] transition-colors"
               >
                 <Plus className="w-3 h-3" /> Add Account
               </button>
