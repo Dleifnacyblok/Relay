@@ -285,11 +285,6 @@ export default function MyMissingParts() {
                   <div
                     key={part.id}
                     className="px-4 py-4 min-h-14"
-                    style={{
-                      backgroundColor: '#FFFFFF',
-                      border: '1px solid #F8F8F8',
-                      boxShadow: '0px 4px 16px rgba(0, 0, 0, 0.04)',
-                    }}
                   >
                     <div className="flex items-start gap-3 mb-3">
                       <Checkbox
