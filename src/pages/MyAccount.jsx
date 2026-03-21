@@ -22,6 +22,9 @@ export default function MyAccount() {
   const [selectedAccount, setSelectedAccount] = useState(null);
   const [showAccountDialog, setShowAccountDialog] = useState(false);
   const [showSetup, setShowSetup] = useState(false);
+  const [showAddAccount, setShowAddAccount] = useState(false);
+  const [addAccountSearch, setAddAccountSearch] = useState("");
+  const addAccountRef = useRef(null);
   const queryClient = useQueryClient();
 
   const { data: user } = useQuery({
