@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card } from "@/components/ui/card";
-import { DollarSign, Package, AlertTriangle, Clock, ChevronRight, Bell, Settings2 } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { DollarSign, Package, AlertTriangle, Clock, ChevronRight, Bell, Settings2, X, Plus } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { formatCurrency } from "@/components/loaners/loanerUtils";
