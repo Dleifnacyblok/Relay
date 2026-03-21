@@ -292,16 +292,40 @@ export default function Search() {
               {isLoading ? (
                 <div className="p-6 space-y-4">
                   {[1, 2, 3, 4, 5].map(i => (
-                    <Skeleton key={i} className="h-16 rounded-lg" />
+                    <Skeleton key={i} className="h-14 rounded-lg" />
                   ))}
                 </div>
               ) : (
-                <LoanerTable
-                  loaners={filteredLoaners}
-                  selectable
-                  selectedIds={selectedIds}
-                  onSelectOne={handleSelectOne}
-                />
+                <>
+                  {/* Mobile result rows */}
+                  <div className="lg:hidden divide-y divide-slate-100">
+                    {filteredLoaners.length === 0 && (
+                      <p className="text-center text-slate-400 py-10 text-sm">No results found</p>
+                    )}
+                    {filteredLoaners.map(loaner => (
+                      <Link
+                        key={loaner.id}
+                        to={createPageUrl("LoanerDetail") + `?id=${loaner.id}`}
+                        className="flex items-center justify-between px-4 py-3 min-h-14 hover:bg-slate-50 active:bg-slate-100 transition-colors"
+                      >
+                        <div className="min-w-0 flex-1 pr-3">
+                          <p className="font-semibold text-slate-900 truncate">{loaner.accountName || loaner.setName}</p>
+                          <p className="text-sm text-slate-500 truncate">{loaner.repName || loaner.setName}</p>
+                        </div>
+                        {statusPill(loaner)}
+                      </Link>
+                    ))}
+                  </div>
+                  {/* Desktop table */}
+                  <div className="hidden lg:block">
+                    <LoanerTable
+                      loaners={filteredLoaners}
+                      selectable
+                      selectedIds={selectedIds}
+                      onSelectOne={handleSelectOne}
+                    />
+                  </div>
+                </>
               )}
             </div>
           </div>
