@@ -60,6 +60,13 @@ export default function OnboardingWizard({ user, onComplete }) {
     );
   };
 
+  const addManualAccount = () => {
+    const trimmed = manualAccount.trim();
+    if (!trimmed) return;
+    setSelectedAccounts(prev => prev.includes(trimmed) ? prev : [...prev, trimmed]);
+    setManualAccount("");
+  };
+
   const handleSave = async () => {
     setSaving(true);
     setSaveError("");
