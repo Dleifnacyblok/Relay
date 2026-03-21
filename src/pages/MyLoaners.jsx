@@ -21,6 +21,7 @@ export default function MyLoaners() {
   const [showTransfer, setShowTransfer] = useState(false);
   const [showExport, setShowExport] = useState(false);
   const [syncingCalendar, setSyncingCalendar] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const { toast } = useToast();
 
   const handleSyncCalendar = async () => {

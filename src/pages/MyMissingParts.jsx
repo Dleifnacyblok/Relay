@@ -47,6 +47,7 @@ export default function MyMissingParts() {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [partToDelete, setPartToDelete] = useState(null);
   const [showExportPDF, setShowExportPDF] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const queryClient = useQueryClient();
 
   const { data: user, isLoading: userLoading } = useQuery({
