@@ -249,26 +249,54 @@ export default function MyLoaners() {
           {isLoading ? (
             <div className="p-6 space-y-4">
               {[1, 2, 3, 4].map(i => (
-                <Skeleton key={i} className="h-16 rounded-lg" />
+                <Skeleton key={i} className="h-14 rounded-lg" />
               ))}
             </div>
-          ) : myLoaners.length === 0 ? (
+          ) : filteredLoaners.length === 0 ? (
             <div className="p-12 text-center">
               <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-slate-100 flex items-center justify-center">
                 <Package className="w-6 h-6 text-slate-400" />
               </div>
-              <p className="text-slate-600 font-medium">No loaners assigned to you</p>
+              <p className="text-slate-600 font-medium">{myLoaners.length === 0 ? "No loaners assigned to you" : "No results for your search"}</p>
               <p className="text-sm text-slate-500 mt-1">
-                {userName ? "You're not listed as primary or associate rep on any loaners" : "Please ensure your name matches the rep names in the system"}
+                {myLoaners.length === 0 && (userName ? "You're not listed as primary or associate rep on any loaners" : "Please ensure your name matches the rep names in the system")}
               </p>
             </div>
           ) : (
-            <LoanerTable 
-              loaners={myLoaners}
-              selectable
-              selectedIds={selectedIds}
-              onSelectOne={handleSelectOne}
-            />
+            <>
+              {/* Mobile rows */}
+              <div className="lg:hidden divide-y divide-slate-100">
+                {filteredLoaners.map(loaner => (
+                  <Link
+                    key={loaner.id}
+                    to={createPageUrl("LoanerDetail") + `?id=${loaner.id}`}
+                    className="flex items-center justify-between px-4 py-4 min-h-14 hover:bg-slate-50 active:bg-slate-100 transition-colors"
+                  >
+                    <div className="flex items-center gap-3 min-w-0 flex-1 pr-3">
+                      <Checkbox
+                        checked={selectedIds.includes(loaner.id)}
+                        onCheckedChange={(e) => { e.preventDefault?.(); handleSelectOne(loaner.id); }}
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                      <div className="min-w-0">
+                        <p className="font-semibold text-slate-900 truncate">{loaner.setName}</p>
+                        <p className="text-sm text-slate-500 truncate">{loaner.accountName}</p>
+                      </div>
+                    </div>
+                    {statusPill(loaner)}
+                  </Link>
+                ))}
+              </div>
+              {/* Desktop table */}
+              <div className="hidden lg:block">
+                <LoanerTable 
+                  loaners={filteredLoaners}
+                  selectable
+                  selectedIds={selectedIds}
+                  onSelectOne={handleSelectOne}
+                />
+              </div>
+            </>
           )}
         </div>
       </div>
