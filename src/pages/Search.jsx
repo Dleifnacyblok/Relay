@@ -331,7 +331,6 @@ export default function Search() {
           </div>
         </div>
       </div>
-      </div>
 
       <SendBackDialog
         open={showSendBack}
