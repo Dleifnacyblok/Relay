@@ -346,6 +346,16 @@ export default function MyAccount() {
           </Card>
         </div>
 
+        {/* Re-run setup link */}
+        <div className="text-center mt-10">
+          <button
+            onClick={() => setShowSetup(true)}
+            className="text-xs text-slate-400 hover:text-slate-600 underline underline-offset-2 transition-colors"
+          >
+            Re-run profile setup
+          </button>
+        </div>
+
         {/* Onboarding Re-run */}
         {showSetup && (
           <OnboardingWizard
