@@ -167,9 +167,10 @@ export default function MyAccount() {
         <div className="flex items-start justify-between mb-8">
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
-              My Accounts
+              My Account
             </h1>
-            <p className="text-slate-500 mt-1">{user?.displayName || user?.full_name}</p>
+            <p className="text-xs text-slate-400 uppercase font-semibold mt-2 mb-0.5">Rep</p>
+            <p className="text-base font-medium text-slate-700">{user?.full_name}</p>
           </div>
           <button
             onClick={() => setShowSetup(true)}
