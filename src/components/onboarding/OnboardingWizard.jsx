@@ -120,36 +120,35 @@ export default function OnboardingWizard({ user, onComplete }) {
           {/* STEP 1 */}
           {step === 1 && (
             <div className="space-y-4">
-              <p className="text-gray-600 text-sm">Select your name from the list below to identify yourself in the system.</p>
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                <Input
-                  className="pl-9"
-                  placeholder="Search reps..."
-                  value={search1}
-                  onChange={e => setSearch1(e.target.value)}
-                />
-              </div>
-              <div className="border rounded-xl overflow-y-auto" style={{ maxHeight: "280px" }}>
-                {filteredReps.length === 0 && (
-                  <p className="text-center text-gray-400 py-8 text-sm">No reps found</p>
-                )}
-                {filteredReps.map(name => (
-                  <button
-                    key={name}
-                    onClick={() => setSelectedRepName(name)}
-                    className={cn(
-                      "w-full text-left px-4 py-3 flex items-center justify-between transition-colors border-b last:border-b-0",
-                      selectedRepName === name
-                        ? "bg-blue-50 text-blue-700 font-medium"
-                        : "hover:bg-gray-50 text-gray-700"
-                    )}
-                  >
-                    <span>{name}</span>
-                    {selectedRepName === name && <Check className="w-4 h-4 text-blue-600" />}
-                  </button>
-                ))}
-              </div>
+              <p className="text-gray-600 text-sm">Type your name below or select it from the list.</p>
+              <Input
+                placeholder="Your name..."
+                value={selectedRepName}
+                onChange={e => {
+                  setSelectedRepName(e.target.value);
+                  setSearch1(e.target.value);
+                }}
+                autoFocus
+              />
+              {filteredReps.length > 0 && (
+                <div className="border rounded-xl overflow-y-auto" style={{ maxHeight: "250px" }}>
+                  {filteredReps.map(name => (
+                    <button
+                      key={name}
+                      onClick={() => { setSelectedRepName(name); setSearch1(""); }}
+                      className={cn(
+                        "w-full text-left px-4 py-3 flex items-center justify-between transition-colors border-b last:border-b-0",
+                        selectedRepName === name
+                          ? "bg-blue-50 text-blue-700 font-medium"
+                          : "hover:bg-gray-50 text-gray-700"
+                      )}
+                    >
+                      <span>{name}</span>
+                      {selectedRepName === name && <Check className="w-4 h-4 text-blue-600" />}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 
