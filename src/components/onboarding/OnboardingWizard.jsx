@@ -48,7 +48,7 @@ export default function OnboardingWizard({ user, onComplete }) {
   const addCustomAccount = () => {
     const trimmed = customAccount.trim();
     if (trimmed && !selectedAccounts.includes(trimmed)) {
-      setSelectedAccounts(prev => [...prev, trimmed]);
+      setSelectedAccounts(prev => [...parev, trimmed]);
     }
     setCustomAccount("");
   };
