@@ -13,6 +13,7 @@ export default function OnboardingWizard({ user, onComplete }) {
   const [search2, setSearch2] = useState("");
   const [selectedRepName, setSelectedRepName] = useState(user?.full_name || "");
   const [selectedAccounts, setSelectedAccounts] = useState(user?.managedAccounts || []);
+  const [manualAccount, setManualAccount] = useState("");
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState("");
 
