@@ -48,7 +48,9 @@ export default function OnboardingWizard({ user, onComplete }) {
     }
   }, [selectedRepName, assignments.length]);
 
-  const filteredReps = repNames.filter(n => n.toLowerCase().includes(search1.toLowerCase()));
+  const filteredReps = search1.trim()
+    ? repNames.filter(n => n.toLowerCase().includes(search1.toLowerCase()))
+    : repNames;
   const filteredAccounts = repAccounts.filter(a => a.toLowerCase().includes(search2.toLowerCase()));
 
   const toggleAccount = (acc) => {
