@@ -284,7 +284,7 @@ export default function MyAccount() {
               {managedAccounts.map(acc => (
                 <span key={acc} className="inline-flex items-center gap-1 bg-blue-50 text-blue-700 border border-blue-200 text-xs font-medium px-3 py-1 rounded-full">
                   {acc}
-                  <button onClick={() => handleRemoveAccount(acc)} className="ml-1 text-blue-400 hover:text-red-500 transition-colors">
+                  <button onClick={() => handleRemoveAccount(acc)} className="ml-1 text-blue-400 hover:text-red-500 transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center -mr-2">
                     <X className="w-3 h-3" />
                   </button>
                 </span>
