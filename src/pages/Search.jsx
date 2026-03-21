@@ -155,31 +155,35 @@ export default function Search() {
     </div>
   );
 
+  const statusPill = (loaner) => {
+    if (loaner.risk_status === "Overdue") return <span className="text-xs font-semibold px-2 py-1 rounded-full bg-red-100 text-red-700 whitespace-nowrap">Overdue</span>;
+    if (loaner.risk_status === "Due Soon") return <span className="text-xs font-semibold px-2 py-1 rounded-full bg-yellow-100 text-yellow-700 whitespace-nowrap">Due Soon</span>;
+    return <span className="text-xs font-semibold px-2 py-1 rounded-full bg-green-100 text-green-700 whitespace-nowrap">Active</span>;
+  };
+
   return (
     <div className="min-h-screen" style={{backgroundColor: '#FFFFFF'}}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-        {/* Header */}
-        <div className="mb-6">
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight" style={{color: '#111111'}}>
-            Search Loaners
-          </h1>
-          <p className="mt-1" style={{color: '#666666'}}>
-            Find sets by name, ID, rep, or account
-          </p>
-        </div>
-
-        {/* Search Bar */}
-        <div className="flex gap-3 mb-6">
+      {/* Sticky search bar */}
+      <div className="sticky top-0 z-30 bg-white border-b border-slate-200 px-4 py-3">
+        <div className="max-w-7xl mx-auto flex gap-3">
           <div className="relative flex-1">
             <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
             <Input
               placeholder="Search sets, reps, accounts..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 h-11 bg-white"
+              className="pl-10 pr-10 h-11 bg-white text-base"
             />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery("")}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 min-w-[44px] min-h-[44px] flex items-center justify-center -mr-3"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
           </div>
-          
+
           {/* Mobile Filter Button */}
           <Sheet open={filtersOpen} onOpenChange={setFiltersOpen}>
             <SheetTrigger asChild>
@@ -201,6 +205,18 @@ export default function Search() {
               </div>
             </SheetContent>
           </Sheet>
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+        {/* Header — hidden on mobile since sticky bar takes over */}
+        <div className="hidden sm:block mb-6">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight" style={{color: '#111111'}}>
+            Search Loaners
+          </h1>
+          <p className="mt-1" style={{color: '#666666'}}>
+            Find sets by name, ID, rep, or account
+          </p>
         </div>
 
         <div className="flex gap-6">
