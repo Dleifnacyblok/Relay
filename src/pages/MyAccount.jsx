@@ -268,7 +268,7 @@ export default function MyAccount() {
                     <button
                       key={name}
                       onClick={() => handleAddAccount(name)}
-                      className="w-full text-left text-sm px-3 py-2 rounded-lg hover:bg-blue-50 text-slate-700 hover:text-blue-700 transition-colors"
+                      className="w-full text-left text-sm px-3 py-3 min-h-[44px] rounded-lg hover:bg-blue-50 text-slate-700 hover:text-blue-700 transition-colors"
                     >
                       {name}
                     </button>
