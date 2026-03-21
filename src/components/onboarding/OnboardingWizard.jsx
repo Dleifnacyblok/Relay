@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Check, Search } from "lucide-react";
+import { Check, Search, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export default function OnboardingWizard({ user, onComplete }) {
