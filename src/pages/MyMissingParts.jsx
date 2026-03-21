@@ -267,7 +267,7 @@ export default function MyMissingParts() {
                 <Skeleton key={i} className="h-16 rounded-lg" />
               ))}
             </div>
-          ) : myParts.length === 0 ? (
+          ) : filteredParts.length === 0 ? (
             <div className="p-12 text-center">
               <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-slate-100 flex items-center justify-center">
                 <Package className="w-6 h-6 text-slate-400" />
@@ -441,6 +441,7 @@ export default function MyMissingParts() {
               <div>
                 <Label>Part Name</Label>
                 <Input
+                  className="text-base"
                   value={editingPart.partName}
                   onChange={(e) => setEditingPart({ ...editingPart, partName: e.target.value })}
                 />
@@ -448,6 +449,7 @@ export default function MyMissingParts() {
               <div>
                 <Label>Part Number</Label>
                 <Input
+                  className="text-base"
                   value={editingPart.partNumber || ""}
                   onChange={(e) => setEditingPart({ ...editingPart, partNumber: e.target.value })}
                 />
@@ -456,6 +458,7 @@ export default function MyMissingParts() {
                 <Label>Quantity</Label>
                 <Input
                   type="number"
+                  className="text-base"
                   value={editingPart.missingQuantity || 1}
                   onChange={(e) => setEditingPart({ ...editingPart, missingQuantity: parseInt(e.target.value) || 1 })}
                 />
@@ -464,6 +467,7 @@ export default function MyMissingParts() {
                 <Label>Fine Amount ($)</Label>
                 <Input
                   type="number"
+                  className="text-base"
                   value={editingPart.fineAmount || 0}
                   onChange={(e) => setEditingPart({ ...editingPart, fineAmount: parseFloat(e.target.value) || 0 })}
                 />
