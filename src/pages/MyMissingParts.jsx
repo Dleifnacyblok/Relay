@@ -353,7 +353,7 @@ export default function MyMissingParts() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {myParts.map((part) => (
+                    {filteredParts.map((part) => (
                       <TableRow 
                         key={part.id} 
                         className="border-gray-200 hover:bg-gray-50 transition-colors"
