@@ -89,10 +89,10 @@ export default function MyMissingParts() {
   const selectedParts = filteredParts.filter(p => selectedIds.includes(p.id));
 
   const handleSelectAll = () => {
-    if (selectedIds.length === myParts.length) {
+    if (selectedIds.length === filteredParts.length) {
       setSelectedIds([]);
     } else {
-      setSelectedIds(myParts.map(p => p.id));
+      setSelectedIds(filteredParts.map(p => p.id));
     }
   };
 

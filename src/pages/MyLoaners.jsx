@@ -101,10 +101,10 @@ export default function MyLoaners() {
   const selectedLoaners = filteredLoaners.filter(l => selectedIds.includes(l.id));
 
   const handleSelectAll = () => {
-    if (selectedIds.length === myLoaners.length) {
+    if (selectedIds.length === filteredLoaners.length) {
       setSelectedIds([]);
     } else {
-      setSelectedIds(myLoaners.map(l => l.id));
+      setSelectedIds(filteredLoaners.map(l => l.id));
     }
   };
 
