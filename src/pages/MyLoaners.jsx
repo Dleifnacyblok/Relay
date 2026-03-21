@@ -71,7 +71,7 @@ export default function MyLoaners() {
 
   const computedLoaners = loaners.map(computeLoanerData);
   
-  const myLoaners = sortLoaners(
+  const myLoaners = useMemo(() => sortLoaners(
     computedLoaners.filter(l => 
       l.returnStatus !== "sent_back" && 
       l.returnStatus !== "received" &&
@@ -79,9 +79,26 @@ export default function MyLoaners() {
        l.associateSalesRep?.toLowerCase() === userName.toLowerCase() ||
        l.fieldSalesRep?.toLowerCase() === userName.toLowerCase())
     )
-  );
+  ), [computedLoaners, userName]);
 
-  const selectedLoaners = myLoaners.filter(l => selectedIds.includes(l.id));
+  const filteredLoaners = useMemo(() => {
+    if (!searchQuery.trim()) return myLoaners;
+    const q = searchQuery.toLowerCase();
+    return myLoaners.filter(l =>
+      l.setName?.toLowerCase().includes(q) ||
+      l.accountName?.toLowerCase().includes(q) ||
+      l.etchId?.toLowerCase().includes(q) ||
+      l.setId?.toLowerCase().includes(q)
+    );
+  }, [myLoaners, searchQuery]);
+
+  const statusPill = (loaner) => {
+    if (loaner.risk_status === "Overdue") return <span className="text-xs font-semibold px-2 py-1 rounded-full bg-red-100 text-red-700 whitespace-nowrap">Overdue</span>;
+    if (loaner.risk_status === "Due Soon") return <span className="text-xs font-semibold px-2 py-1 rounded-full bg-yellow-100 text-yellow-700 whitespace-nowrap">Due Soon</span>;
+    return <span className="text-xs font-semibold px-2 py-1 rounded-full bg-green-100 text-green-700 whitespace-nowrap">OK</span>;
+  };
+
+  const selectedLoaners = filteredLoaners.filter(l => selectedIds.includes(l.id));
 
   const handleSelectAll = () => {
     if (selectedIds.length === myLoaners.length) {

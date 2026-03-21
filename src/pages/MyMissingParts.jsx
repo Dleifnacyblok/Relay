@@ -63,12 +63,30 @@ export default function MyMissingParts() {
   const isLoading = userLoading || partsLoading;
   const userName = user?.full_name || "";
 
-  const myParts = missingParts.filter(p => 
-    p.repName?.toLowerCase() === userName.toLowerCase() &&
-    p.returnStatus !== "sent_back" && p.returnStatus !== "received"
-  );
+  const myParts = useMemo(() => {
+    const parts = missingParts.filter(p =>
+      p.repName?.toLowerCase() === userName.toLowerCase() &&
+      p.returnStatus !== "sent_back" && p.returnStatus !== "received"
+    );
+    // Sort: missing first, then found, then paid
+    return [...parts].sort((a, b) => {
+      const order = { missing: 0, found: 1, paid: 2 };
+      return (order[a.status] ?? 0) - (order[b.status] ?? 0);
+    });
+  }, [missingParts, userName]);
 
-  const selectedParts = myParts.filter(p => selectedIds.includes(p.id));
+  const filteredParts = useMemo(() => {
+    if (!searchQuery.trim()) return myParts;
+    const q = searchQuery.toLowerCase();
+    return myParts.filter(p =>
+      p.partName?.toLowerCase().includes(q) ||
+      p.partNumber?.toLowerCase().includes(q) ||
+      p.loanerSetName?.toLowerCase().includes(q) ||
+      p.etchId?.toLowerCase().includes(q)
+    );
+  }, [myParts, searchQuery]);
+
+  const selectedParts = filteredParts.filter(p => selectedIds.includes(p.id));
 
   const handleSelectAll = () => {
     if (selectedIds.length === myParts.length) {
