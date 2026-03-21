@@ -1,237 +1,257 @@
-import { useState, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { CheckCircle2, User, Building2, ChevronRight, Check, Plus, X } from "lucide-react";
+import { Check, Search } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export default function OnboardingWizard({ user, onComplete }) {
-  const [step, setStep] = useState(1);
-  const [displayName, setDisplayName] = useState(user?.full_name || "");
-  const [selectedAccounts, setSelectedAccounts] = useState([]);
-  const [customAccount, setCustomAccount] = useState("");
-  const [saving, setSaving] = useState(false);
-
   const queryClient = useQueryClient();
+  const [step, setStep] = useState(1);
+  const [search1, setSearch1] = useState("");
+  const [search2, setSearch2] = useState("");
+  const [selectedRepName, setSelectedRepName] = useState(user?.full_name || "");
+  const [selectedAccounts, setSelectedAccounts] = useState(user?.managedAccounts || []);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState("");
 
-  // Fetch all loaners to suggest accounts
-  const { data: loaners = [] } = useQuery({
-    queryKey: ["allLoanersForOnboarding"],
-    queryFn: () => base44.entities.Loaners.list(),
+  const { data: assignments = [] } = useQuery({
+    queryKey: ["repAccountAssignments"],
+    queryFn: () => base44.entities.RepAccountAssignment.list(),
   });
 
-  // Suggest accounts based on name matching in repName / associateSalesRep / fieldSalesRep
-  const suggestedAccounts = useMemo(() => {
-    if (!displayName.trim()) return [];
-    const nameLower = displayName.trim().toLowerCase();
-    const matched = loaners
-      .filter(l => {
-        const rep = (l.repName || "").toLowerCase();
-        const assoc = (l.associateSalesRep || "").toLowerCase();
-        const field = (l.fieldSalesRep || "").toLowerCase();
-        return rep.includes(nameLower) || assoc.includes(nameLower) || field.includes(nameLower)
-          || nameLower.includes(rep.split(" ")[0]) || nameLower.includes(assoc.split(" ")[0]);
-      })
-      .map(l => l.accountName)
-      .filter(Boolean);
-    return [...new Set(matched)].sort();
-  }, [loaners, displayName]);
+  // Unique sorted rep names
+  const repNames = [...new Set(assignments.map(a => a.assignedRep).filter(Boolean))].sort();
 
-  const toggleAccount = (acct) => {
+  // Accounts for selected rep
+  const repAccounts = [...new Set(
+    assignments.filter(a => a.assignedRep === selectedRepName).map(a => a.accountName).filter(Boolean)
+  )].sort();
+
+  // Auto-init selectedRepName from user if it matches a rep
+  useEffect(() => {
+    if (assignments.length && user?.full_name && repNames.includes(user.full_name)) {
+      setSelectedRepName(user.full_name);
+    }
+  }, [assignments.length]);
+
+  // When rep changes, pre-select all accounts (or restore saved ones)
+  useEffect(() => {
+    if (selectedRepName) {
+      const saved = user?.managedAccounts;
+      if (saved && saved.length > 0) {
+        setSelectedAccounts(saved);
+      } else {
+        setSelectedAccounts(repAccounts);
+      }
+    }
+  }, [selectedRepName, assignments.length]);
+
+  const filteredReps = repNames.filter(n => n.toLowerCase().includes(search1.toLowerCase()));
+  const filteredAccounts = repAccounts.filter(a => a.toLowerCase().includes(search2.toLowerCase()));
+
+  const toggleAccount = (acc) => {
     setSelectedAccounts(prev =>
-      prev.includes(acct) ? prev.filter(a => a !== acct) : [...prev, acct]
+      prev.includes(acc) ? prev.filter(a => a !== acc) : [...prev, acc]
     );
   };
 
-  const addCustomAccount = () => {
-    const trimmed = customAccount.trim();
-    if (trimmed && !selectedAccounts.includes(trimmed)) {
-      setSelectedAccounts(prev => [...prev, trimmed]);
+  const handleSave = async () => {
+    setSaving(true);
+    setSaveError("");
+    try {
+      await base44.auth.updateMe({
+        full_name: selectedRepName,
+        managedAccounts: selectedAccounts,
+        onboardingComplete: true,
+      });
+      queryClient.invalidateQueries({ queryKey: ["currentUser"] });
+      onComplete();
+    } catch (e) {
+      setSaveError(e.message || "Failed to save profile. Please try again.");
+    } finally {
+      setSaving(false);
     }
-    setCustomAccount("");
   };
 
-  const handleFinish = async () => {
-    setSaving(true);
-    await base44.auth.updateMe({
-      displayName,
-      managedAccounts: selectedAccounts,
-      onboardingComplete: true,
-    });
-    queryClient.invalidateQueries({ queryKey: ["currentUser"] });
-    setSaving(false);
-    onComplete();
-  };
+  const steps = [
+    { num: 1, label: "Match Your Name" },
+    { num: 2, label: "Select Accounts" },
+    { num: 3, label: "Confirm" },
+  ];
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-      <Card className="w-full max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg flex flex-col overflow-hidden" style={{ maxHeight: "90vh" }}>
         {/* Header */}
-        <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-5 text-white">
-          <div className="flex items-center gap-3 mb-1">
-            <div className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center">
-              <span className="text-white font-bold text-base">{user?.full_name?.charAt(0) || "R"}</span>
-            </div>
-            <div>
-              <h2 className="font-semibold text-lg leading-tight">Welcome to Relay</h2>
-              <p className="text-blue-100 text-xs">Let's set up your account</p>
-            </div>
-          </div>
-          {/* Step indicators */}
-          <div className="flex items-center gap-2 mt-4">
-            {[1, 2, 3].map(s => (
-              <div key={s} className={`flex items-center gap-2`}>
-                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold transition-all ${
-                  step > s ? "bg-white text-blue-600" : step === s ? "bg-white/30 text-white border-2 border-white" : "bg-white/10 text-white/50"
-                }`}>
-                  {step > s ? <Check className="w-3 h-3" /> : s}
-                </div>
-                {s < 3 && <div className={`h-0.5 w-8 rounded-full ${step > s ? "bg-white" : "bg-white/20"}`} />}
-              </div>
-            ))}
-            <span className="text-blue-100 text-xs ml-2">Step {step} of 3</span>
-          </div>
+        <div className="bg-gradient-to-r from-blue-600 to-blue-500 px-6 py-5">
+          <h2 className="text-xl font-bold text-white">Set Up Your Rep Profile</h2>
+          <p className="text-blue-100 text-sm mt-0.5">Let's get you configured in just a few steps</p>
         </div>
 
-        <div className="p-6">
-          {/* Step 1: Name confirmation */}
-          {step === 1 && (
-            <div>
-              <div className="flex items-center gap-2 mb-4">
-                <User className="w-5 h-5 text-blue-500" />
-                <h3 className="font-semibold text-slate-800">Confirm Your Name</h3>
+        {/* Step indicator */}
+        <div className="flex items-center px-6 py-4 border-b border-gray-100 gap-0">
+          {steps.map((s, i) => (
+            <div key={s.num} className="flex items-center flex-1">
+              <div className="flex flex-col items-center">
+                <div className={cn(
+                  "w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold",
+                  step > s.num ? "bg-green-500 text-white" :
+                  step === s.num ? "bg-blue-600 text-white" :
+                  "bg-gray-200 text-gray-500"
+                )}>
+                  {step > s.num ? <Check className="w-4 h-4" /> : s.num}
+                </div>
+                <span className={cn("text-xs mt-1 font-medium whitespace-nowrap",
+                  step === s.num ? "text-blue-600" : step > s.num ? "text-green-600" : "text-gray-400"
+                )}>{s.label}</span>
               </div>
-              <p className="text-sm text-slate-500 mb-4">
-                This is how your name appears in the system. It's used to match loaners and records to you — make sure it matches exactly.
-              </p>
-              <div className="mb-2">
-                <label className="text-xs font-medium text-slate-500 mb-1 block">Display Name</label>
+              {i < steps.length - 1 && (
+                <div className={cn("flex-1 h-0.5 mx-2 mb-4", step > s.num ? "bg-green-400" : "bg-gray-200")} />
+              )}
+            </div>
+          ))}
+        </div>
+
+        {/* Body */}
+        <div className="flex-1 overflow-y-auto px-6 py-5">
+
+          {/* STEP 1 */}
+          {step === 1 && (
+            <div className="space-y-4">
+              <p className="text-gray-600 text-sm">Select your name from the list below to identify yourself in the system.</p>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <Input
-                  value={displayName}
-                  onChange={e => setDisplayName(e.target.value)}
-                  placeholder="Your full name"
-                  className="text-base"
+                  className="pl-9"
+                  placeholder="Search reps..."
+                  value={search1}
+                  onChange={e => setSearch1(e.target.value)}
                 />
               </div>
-              <p className="text-xs text-slate-400 mt-2">Account registered as: <span className="font-medium text-slate-600">{user?.full_name}</span></p>
+              <div className="border rounded-xl overflow-y-auto" style={{ maxHeight: "280px" }}>
+                {filteredReps.length === 0 && (
+                  <p className="text-center text-gray-400 py-8 text-sm">No reps found</p>
+                )}
+                {filteredReps.map(name => (
+                  <button
+                    key={name}
+                    onClick={() => setSelectedRepName(name)}
+                    className={cn(
+                      "w-full text-left px-4 py-3 flex items-center justify-between transition-colors border-b last:border-b-0",
+                      selectedRepName === name
+                        ? "bg-blue-50 text-blue-700 font-medium"
+                        : "hover:bg-gray-50 text-gray-700"
+                    )}
+                  >
+                    <span>{name}</span>
+                    {selectedRepName === name && <Check className="w-4 h-4 text-blue-600" />}
+                  </button>
+                ))}
+              </div>
             </div>
           )}
 
-          {/* Step 2: Account selection */}
+          {/* STEP 2 */}
           {step === 2 && (
-            <div>
-              <div className="flex items-center gap-2 mb-4">
-                <Building2 className="w-5 h-5 text-blue-500" />
-                <h3 className="font-semibold text-slate-800">Your Accounts</h3>
-              </div>
-              <p className="text-sm text-slate-500 mb-4">
-                Select the hospital accounts you're responsible for. We've suggested some based on your loaner history.
+            <div className="space-y-4">
+              <p className="text-gray-600 text-sm">
+                These are the accounts assigned to <strong>{selectedRepName}</strong>. Select the ones you manage.
               </p>
-
-              {suggestedAccounts.length > 0 && (
-                <div className="mb-4">
-                  <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">Suggested from your history</p>
-                  <div className="flex flex-wrap gap-2 max-h-48 overflow-y-auto">
-                    {suggestedAccounts.map(acct => (
-                      <button
-                        key={acct}
-                        onClick={() => toggleAccount(acct)}
-                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm border transition-all ${
-                          selectedAccounts.includes(acct)
-                            ? "bg-blue-600 text-white border-blue-600"
-                            : "bg-white text-slate-700 border-slate-200 hover:border-blue-300"
-                        }`}
-                      >
-                        {selectedAccounts.includes(acct) && <Check className="w-3 h-3" />}
-                        {acct}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              <div className="mb-3">
-                <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">Add account manually</p>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <Input
+                  className="pl-9"
+                  placeholder="Search accounts..."
+                  value={search2}
+                  onChange={e => setSearch2(e.target.value)}
+                />
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-500">{selectedAccounts.length} selected</span>
                 <div className="flex gap-2">
-                  <Input
-                    value={customAccount}
-                    onChange={e => setCustomAccount(e.target.value)}
-                    onKeyDown={e => e.key === "Enter" && addCustomAccount()}
-                    placeholder="Type account name..."
-                    className="text-sm"
-                  />
-                  <Button variant="outline" size="icon" onClick={addCustomAccount}><Plus className="w-4 h-4" /></Button>
+                  <button onClick={() => setSelectedAccounts([...repAccounts])} className="text-xs text-blue-600 hover:underline">Select All</button>
+                  <span className="text-gray-300">|</span>
+                  <button onClick={() => setSelectedAccounts([])} className="text-xs text-gray-500 hover:underline">Clear All</button>
                 </div>
               </div>
-
-              {selectedAccounts.length > 0 && (
-                <div>
-                  <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">Selected ({selectedAccounts.length})</p>
-                  <div className="flex flex-wrap gap-2">
-                    {selectedAccounts.map(acct => (
-                      <Badge key={acct} variant="secondary" className="flex items-center gap-1 pr-1">
-                        {acct}
-                        <button onClick={() => toggleAccount(acct)} className="ml-1 hover:text-red-500">
-                          <X className="w-3 h-3" />
-                        </button>
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              )}
+              <div className="border rounded-xl overflow-y-auto" style={{ maxHeight: "250px" }}>
+                {filteredAccounts.length === 0 && (
+                  <p className="text-center text-gray-400 py-8 text-sm">No accounts found</p>
+                )}
+                {filteredAccounts.map(acc => (
+                  <button
+                    key={acc}
+                    onClick={() => toggleAccount(acc)}
+                    className={cn(
+                      "w-full text-left px-4 py-3 flex items-center justify-between transition-colors border-b last:border-b-0",
+                      selectedAccounts.includes(acc)
+                        ? "bg-blue-50 text-blue-700 font-medium"
+                        : "hover:bg-gray-50 text-gray-700"
+                    )}
+                  >
+                    <span>{acc}</span>
+                    {selectedAccounts.includes(acc) && <Check className="w-4 h-4 text-blue-600" />}
+                  </button>
+                ))}
+              </div>
             </div>
           )}
 
-          {/* Step 3: Confirm */}
+          {/* STEP 3 */}
           {step === 3 && (
-            <div className="text-center py-4">
-              <CheckCircle2 className="w-14 h-14 text-green-500 mx-auto mb-4" />
-              <h3 className="font-semibold text-slate-800 text-lg mb-2">You're all set!</h3>
-              <p className="text-sm text-slate-500 mb-5">Here's a summary of your profile setup:</p>
-              <div className="text-left space-y-3 bg-slate-50 rounded-xl p-4 mb-2">
+            <div className="space-y-4">
+              <p className="text-gray-600 text-sm">Review your profile before saving.</p>
+              <div className="bg-gray-50 rounded-xl p-4 space-y-3">
                 <div>
-                  <p className="text-xs text-slate-400 uppercase font-semibold tracking-wide">Name in System</p>
-                  <p className="font-medium text-slate-800">{displayName}</p>
+                  <p className="text-xs text-gray-500 uppercase font-semibold mb-1">Rep Name</p>
+                  <span className="inline-block bg-blue-100 text-blue-700 font-semibold px-3 py-1 rounded-full text-sm">{selectedRepName}</span>
                 </div>
                 <div>
-                  <p className="text-xs text-slate-400 uppercase font-semibold tracking-wide">Managed Accounts ({selectedAccounts.length})</p>
-                  {selectedAccounts.length === 0
-                    ? <p className="text-sm text-slate-400 italic">None selected</p>
-                    : <p className="text-sm text-slate-700">{selectedAccounts.join(", ")}</p>
-                  }
+                  <p className="text-xs text-gray-500 uppercase font-semibold mb-2">Accounts ({selectedAccounts.length})</p>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedAccounts.map(acc => (
+                      <span key={acc} className="bg-white border border-gray-200 text-gray-700 px-2 py-0.5 rounded-full text-xs">{acc}</span>
+                    ))}
+                    {selectedAccounts.length === 0 && <span className="text-gray-400 text-sm">No accounts selected</span>}
+                  </div>
                 </div>
               </div>
-              <p className="text-xs text-slate-400">You can update this anytime from My Account.</p>
+              {saveError && (
+                <p className="text-red-600 text-sm bg-red-50 rounded-lg px-4 py-2">{saveError}</p>
+              )}
             </div>
           )}
         </div>
 
         {/* Footer */}
-        <div className="px-6 pb-6 flex justify-between items-center">
-          {step > 1
-            ? <Button variant="ghost" onClick={() => setStep(s => s - 1)} className="text-slate-500">Back</Button>
-            : <div />
-          }
-          {step < 3
-            ? <Button
-                onClick={() => setStep(s => s + 1)}
-                disabled={step === 1 && !displayName.trim()}
-                className="bg-blue-600 hover:bg-blue-700 text-white gap-2"
-              >
-                Continue <ChevronRight className="w-4 h-4" />
-              </Button>
-            : <Button
-                onClick={handleFinish}
-                disabled={saving}
-                className="bg-green-600 hover:bg-green-700 text-white gap-2"
-              >
-                {saving ? "Saving..." : "Complete Setup"}
-              </Button>
-          }
+        <div className="px-6 py-4 border-t border-gray-100 flex justify-between gap-3">
+          {step > 1 ? (
+            <Button variant="outline" onClick={() => setStep(s => s - 1)}>Back</Button>
+          ) : <div />}
+
+          {step < 3 && (
+            <Button
+              onClick={() => setStep(s => s + 1)}
+              disabled={step === 1 ? !selectedRepName : selectedAccounts.length === 0}
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              Continue
+            </Button>
+          )}
+
+          {step === 3 && (
+            <Button
+              onClick={handleSave}
+              disabled={saving}
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              {saving ? "Saving..." : "Save Profile"}
+            </Button>
+          )}
         </div>
-      </Card>
+      </div>
     </div>
   );
 }
