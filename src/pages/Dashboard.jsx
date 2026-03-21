@@ -24,10 +24,10 @@ import ESCExportDialog from "@/components/dashboard/ESCExportDialog";
 const NavCard = ({ icon: Icon, title, description, page, badge, badgeColor }) => (
   <Link
     to={createPageUrl(page)}
-    className="flex items-center gap-4 p-4 bg-white border border-gray-100 rounded-2xl shadow-sm hover:shadow-md hover:border-blue-100 transition-all group"
+    className="flex items-center gap-4 px-4 py-4 min-h-14 bg-white border border-gray-100 rounded-2xl shadow-sm hover:shadow-md hover:border-blue-100 transition-all group"
   >
     <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${badgeColor ? badgeColor.bg : "bg-gray-50"}`}>
-      <Icon className={`w-5 h-5 ${badgeColor ? badgeColor.icon : "text-gray-500"}`} />
+      <Icon className={`w-6 h-6 ${badgeColor ? badgeColor.icon : "text-gray-500"}`} />
     </div>
     <div className="flex-1 min-w-0">
       <div className="flex items-center gap-2">
@@ -270,29 +270,29 @@ export default function Dashboard() {
             {[1,2,3].map(i => <Skeleton key={i} className="flex-1 h-16 rounded-xl" />)}
           </div>
         ) : (
-          <div className="flex gap-2 mt-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mt-6">
             <div
-              className={`flex-1 rounded-xl p-3 text-center cursor-pointer active:scale-95 transition-transform ${overdueCount > 0 ? "bg-red-50" : "bg-gray-100"}`}
+              className={`rounded-xl p-3 text-center cursor-pointer active:scale-95 transition-transform ${overdueCount > 0 ? "bg-red-50 border border-red-200" : "bg-gray-100"}`}
               onClick={() => navigate('/Search?filter=overdue')}
             >
-              <p className={`text-xl font-bold ${overdueCount > 0 ? "text-red-600" : "text-gray-700"}`}>{overdueCount}</p>
-              <p className="text-xs text-gray-500 leading-tight mt-0.5">Overdue</p>
+              <p className={`text-2xl font-black ${overdueCount > 0 ? "text-red-600" : "text-gray-700"}`}>{overdueCount}</p>
+              <p className="text-xs font-semibold text-gray-500 leading-tight mt-0.5">Overdue</p>
             </div>
             <div
-              className={`flex-1 rounded-xl p-3 text-center cursor-pointer active:scale-95 transition-transform ${dueSoonCount > 0 ? "bg-amber-50" : "bg-gray-100"}`}
+              className={`rounded-xl p-3 text-center cursor-pointer active:scale-95 transition-transform ${dueSoonCount > 0 ? "bg-amber-50" : "bg-gray-100"}`}
               onClick={() => navigate('/Search?filter=due_soon')}
             >
               <p className={`text-xl font-bold ${dueSoonCount > 0 ? "text-amber-600" : "text-gray-700"}`}>{dueSoonCount}</p>
               <p className="text-xs text-gray-500 leading-tight mt-0.5">Due Soon</p>
             </div>
-            <div className={`flex-1 rounded-xl p-3 text-center ${totalFineExposure > 0 ? "bg-red-50" : "bg-gray-100"}`}>
+            <div className={`rounded-xl p-3 text-center ${totalFineExposure > 0 ? "bg-red-50" : "bg-gray-100"}`}>
               <p className={`text-base font-bold ${totalFineExposure > 0 ? "text-red-600" : "text-gray-700"}`}>{formatCurrency(totalFineExposure)}</p>
               <p className="text-xs text-gray-500 leading-tight mt-0.5">Fines</p>
             </div>
           </div>
         )}
 
-        <p className="text-center text-xs text-gray-300 mt-4">
+        <p className="text-center text-xs text-gray-300 mt-4 pb-8">
           {userName ? `Signed in as ${userName}` : ""}
         </p>
 
