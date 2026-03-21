@@ -1,11 +1,14 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { Link } from "react-router-dom";
+import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/base44Client";
-import { Package, User, Send, ArrowRightLeft, Download, CalendarPlus } from "lucide-react";
+import { Package, User, Send, ArrowRightLeft, Download, CalendarPlus, Search, X } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
 import LoanerTable from "@/components/loaners/LoanerTable";
 import SendBackDialog from "@/components/sendback/SendBackDialog";
 import TransferDialog from "@/components/sendback/TransferDialog";
