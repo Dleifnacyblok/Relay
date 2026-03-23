@@ -211,6 +211,7 @@ export default function MyAccount() {
             <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
               My Account
             </h1>
+
             <p className="text-xs text-slate-400 uppercase font-semibold mt-2 mb-0.5">Rep</p>
             {editingName ? (
               <div className="flex items-center gap-2 mt-1">
