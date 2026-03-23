@@ -244,7 +244,18 @@ export default function MyAccount() {
               </div>
             )}
           </div>
-          
+          <button
+            onClick={() => {
+              queryClient.invalidateQueries({ queryKey: ["repAccountAssignments"] });
+              queryClient.invalidateQueries({ queryKey: ["allLoaners"] });
+              queryClient.invalidateQueries({ queryKey: ["currentUser"] });
+              queryClient.invalidateQueries({ queryKey: ["myMissingParts"] });
+            }}
+            className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-blue-600 border border-slate-200 hover:border-blue-300 rounded-full px-3 py-1.5 transition-colors mt-1"
+            title="Refresh account data"
+          >
+            <RefreshCw className="w-3 h-3" /> Refresh
+          </button>
         </div>
 
         {/* Accounts List */}
