@@ -51,12 +51,6 @@ export default function Analytics() {
     queryFn: () => base44.entities.MissingPart.list()
   });
 
-  const { data: consignedSets = [] } = useQuery({
-    queryKey: ["consignedSets"],
-    queryFn: () => base44.entities.ConsignedSet.list(),
-    staleTime: 5 * 60 * 1000,
-  });
-
   const isLoading = loadingLoaners || loadingParts;
 
   if (isLoading) {
