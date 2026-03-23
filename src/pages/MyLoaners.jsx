@@ -301,13 +301,18 @@ export default function MyLoaners() {
                         checked={selectedIds.includes(loaner.id)}
                         onCheckedChange={() => handleSelectOne(loaner.id)}
                       />
-                      <div className="min-w-0">
+                      <Link
+                        to={createPageUrl("LoanerDetail") + `?id=${loaner.id}`}
+                        className="min-w-0 flex-1"
+                      >
                         <p className="font-semibold text-slate-900 truncate">{loaner.setName}</p>
                         <p className="text-sm text-slate-500 truncate">{loaner.accountName}</p>
-                      </div>
+                      </Link>
                     </div>
-                    {statusPill(loaner)}
-                  </Link>
+                    <Link to={createPageUrl("LoanerDetail") + `?id=${loaner.id}`}>
+                      {statusPill(loaner)}
+                    </Link>
+                  </div>
                 ))}
               </div>
               {/* Desktop table */}
