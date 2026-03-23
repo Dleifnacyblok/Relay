@@ -39,12 +39,6 @@ export default function LoanerDetail() {
     queryFn: () => base44.auth.me(),
   });
 
-  const { data: consignedSets = [] } = useQuery({
-    queryKey: ["consignedSets"],
-    queryFn: () => base44.entities.ConsignedSet.list(),
-    staleTime: 5 * 60 * 1000,
-  });
-
   const { data: loaner, isLoading } = useQuery({
     queryKey: ["loaner", loanerId],
     queryFn: async () => {
@@ -79,10 +73,7 @@ export default function LoanerDetail() {
 
   const isAdmin = user?.role === "admin";
 
-  const isIEPSet = useMemo(() => {
-    if (!loaner?.setName || !consignedSets.length) return false;
-    return consignedSets.some(cs => cs.setName?.trim().toLowerCase() === loaner.setName.trim().toLowerCase());
-  }, [loaner, consignedSets]);
+  const isIEPSet = useMemo(() => isIEPLoaner(loaner), [loaner]);
 
   const formatDate = (dateStr) => {
     if (!dateStr) return "—";
