@@ -1,10 +1,12 @@
 import { format, parseISO } from "date-fns";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, MapPin } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import RiskBadge from "./RiskBadge";
 import { formatCurrency } from "./loanerUtils";
+import { useQuery } from "@tanstack/react-query";
+import { base44 } from "@/api/base44Client";
 import {
   Table,
   TableBody,
@@ -15,6 +17,14 @@ import {
 } from "@/components/ui/table";
 
 export default function LoanerTable({ loaners, compact = false, selectable = false, selectedIds = [], onSelectOne }) {
+  const { data: consignedSets = [] } = useQuery({
+    queryKey: ["consignedSets"],
+    queryFn: () => base44.entities.ConsignedSet.list(),
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const territorySetNames = new Set(consignedSets.map(cs => cs.setName?.trim().toLowerCase()));
+  const isIEPSet = (setName) => setName && territorySetNames.has(setName.trim().toLowerCase());
   const formatDate = (dateStr) => {
     if (!dateStr) return "—";
     try {

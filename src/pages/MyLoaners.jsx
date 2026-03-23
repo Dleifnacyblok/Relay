@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/base44Client";
-import { Package, User, Send, ArrowRightLeft, Download, CalendarPlus, Search, X } from "lucide-react";
+import { Package, User, Send, ArrowRightLeft, Download, CalendarPlus, Search, X, MapPin } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
