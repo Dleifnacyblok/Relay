@@ -307,8 +307,8 @@ export default function OnboardingWizard({ user, onComplete }) {
           </div>
         )}
 
-        {/* Footer */}
-        <div className="px-6 py-4 border-t border-gray-100 flex justify-between gap-3">
+        {/* Footer — hidden on step 4 */}
+        {step < 4 && <div className="px-6 py-4 border-t border-gray-100 flex justify-between gap-3">
           {step > 1 && step < 4 ? (
             <Button variant="outline" onClick={() => setStep(s => s - 1)}>Back</Button>
           ) : <div />}
