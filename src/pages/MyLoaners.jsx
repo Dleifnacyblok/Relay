@@ -303,10 +303,13 @@ export default function MyLoaners() {
             <>
               {/* Mobile rows */}
               <div className="lg:hidden divide-y divide-slate-100">
-                {filteredLoaners.map(loaner => (
+                {filteredLoaners.map(loaner => {
+                  const iep = isIEPSet(loaner.setName);
+                  return (
                   <div
                     key={loaner.id}
-                    className="flex items-center justify-between px-4 py-4 min-h-14 hover:bg-slate-50 active:bg-slate-100 transition-colors"
+                    className="flex items-center justify-between px-4 py-4 min-h-14 transition-colors"
+                    style={iep ? { backgroundColor: '#F5F3FF', borderLeft: '3px solid #7C3AED' } : {}}
                   >
                     <div className="flex items-center gap-3 min-w-0 flex-1 pr-3">
                       <Checkbox
@@ -317,7 +320,14 @@ export default function MyLoaners() {
                         to={createPageUrl("LoanerDetail") + `?id=${loaner.id}`}
                         className="min-w-0 flex-1"
                       >
-                        <p className="font-semibold text-slate-900 truncate">{loaner.setName}</p>
+                        <div className="flex items-center gap-2">
+                          <p className="font-semibold text-slate-900 truncate">{loaner.setName}</p>
+                          {iep && (
+                            <span className="inline-flex items-center gap-1 text-xs font-semibold text-purple-700 bg-purple-100 border border-purple-200 px-1.5 py-0.5 rounded-full shrink-0">
+                              <MapPin className="w-3 h-3" /> IEP
+                            </span>
+                          )}
+                        </div>
                         <p className="text-sm text-slate-500 truncate">{loaner.accountName}</p>
                       </Link>
                     </div>
@@ -325,7 +335,8 @@ export default function MyLoaners() {
                       {statusPill(loaner)}
                     </Link>
                   </div>
-                ))}
+                );})}
+
               </div>
               {/* Desktop table */}
               <div className="hidden lg:block">
