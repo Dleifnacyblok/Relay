@@ -122,7 +122,7 @@ export default function TransferDialog({ open, onOpenChange, selectedLoaners, us
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["loaners"] });
-      queryClient.invalidateQueries({ queryKey: ["sendBackLogs"] });
+      queryClient.invalidateQueries({ queryKey: ["sendBackLogs", userName] });
       onOpenChange(false);
       onSuccess?.();
       setTransferTo("");
