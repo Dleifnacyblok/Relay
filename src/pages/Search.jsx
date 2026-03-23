@@ -68,7 +68,9 @@ export default function Search() {
   );
 
   const filteredLoaners = useMemo(() => {
-    let results = computedLoaners;
+    let results = computedLoaners.filter(l =>
+      l.returnStatus !== "sent_back" && l.returnStatus !== "received"
+    );
 
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
