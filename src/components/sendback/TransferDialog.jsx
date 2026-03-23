@@ -50,7 +50,7 @@ export default function TransferDialog({ open, onOpenChange, selectedLoaners, us
       // Update all loaners in parallel
       await Promise.all(selectedLoaners.map(loaner =>
         base44.entities.Loaners.update(loaner.id, {
-          returnStatus: "transferred",
+          returnStatus: "sent_back",
           notes: notesStr,
         })
       ));
