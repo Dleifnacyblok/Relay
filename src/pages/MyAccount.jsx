@@ -137,8 +137,12 @@ export default function MyAccount() {
   const dueSoonLoaners = loaners.filter(l => !l.isOverdue && l.daysUntilDue >= 0 && l.daysUntilDue <= 7).length;
   const totalLoanerFines = loaners.reduce((sum, l) => sum + (l.fineAmount || 0), 0);
   
-  const totalMissingParts = missingParts.length;
-  const totalMissingPartsFines = missingParts.reduce((sum, p) => sum + (p.fineAmount || 0), 0);
+  const myMissingParts = useMemo(() =>
+    missingParts.filter(p => p.repName?.toLowerCase() === (user?.full_name || "").toLowerCase()),
+    [missingParts, user?.full_name]
+  );
+  const totalMissingParts = myMissingParts.length;
+  const totalMissingPartsFines = myMissingParts.reduce((sum, p) => sum + (p.fineAmount || 0), 0);
   
   const totalFines = totalLoanerFines + totalMissingPartsFines;
 
