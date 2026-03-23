@@ -382,7 +382,7 @@ export default function MyAccount() {
         </Card>
 
         {/* Stats Grid */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
+        <div data-tour="myaccount-stats" className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
           <StatCard 
             title="Total Loaners" 
             value={totalLoaners}
