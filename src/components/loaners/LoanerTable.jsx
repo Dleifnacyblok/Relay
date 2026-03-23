@@ -110,7 +110,7 @@ export default function LoanerTable({ loaners, compact = false, selectable = fal
               )}
             </div>
           </div>
-        ))}
+        );})}
       </div>
 
       {/* Desktop Table View */}
@@ -129,10 +129,13 @@ export default function LoanerTable({ loaners, compact = false, selectable = fal
             </TableRow>
           </TableHeader>
           <TableBody>
-            {loaners.map((loaner) => (
+            {loaners.map((loaner) => {
+              const iep = isIEPSet(loaner.setName);
+              return (
               <TableRow 
                 key={loaner.id} 
                 className="border-gray-200 hover:bg-gray-50 transition-colors cursor-pointer"
+                style={iep ? { borderLeft: '3px solid #7C3AED', backgroundColor: '#FAFAFE' } : {}}
               >
                 {selectable && (
                   <TableCell onClick={(e) => e.stopPropagation()}>
@@ -147,7 +150,14 @@ export default function LoanerTable({ loaners, compact = false, selectable = fal
                       to={createPageUrl("LoanerDetail") + `?id=${loaner.id}`}
                       className="hover:text-black"
                     >
-                      <div className="font-bold" style={{color: '#000000'}}>{loaner.setName}</div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold" style={{color: '#000000'}}>{loaner.setName}</span>
+                        {iep && (
+                          <span className="inline-flex items-center gap-1 text-xs font-semibold text-purple-700 bg-purple-100 border border-purple-200 px-1.5 py-0.5 rounded-full">
+                            <MapPin className="w-3 h-3" /> IEP
+                          </span>
+                        )}
+                      </div>
                       <div className="text-xs mt-0.5">
                         <span style={{color: '#777777'}}>Etch ID: </span>
                         <span style={{color: '#222222', letterSpacing: '0.02em'}}>{loaner.etchId || "(missing)"}</span>
