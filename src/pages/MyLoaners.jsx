@@ -66,12 +66,34 @@ export default function MyLoaners() {
     queryFn: () => base44.entities.MissingPart.list(),
   });
 
+  const { data: allAssignments = [] } = useQuery({
+    queryKey: ["repAccountAssignments"],
+    queryFn: () => base44.entities.RepAccountAssignment.list(),
+  });
+
   const isLoading = userLoading || loanersLoading;
   const userName = user?.full_name || "";
 
   const computedLoaners = loaners.map(computeLoanerData);
   
   const managedAccounts = user?.managedAccounts || [];
+
+  // Accounts where this user is assigned as a rep in RepAccountAssignment
+  const assignedAccountNames = useMemo(() => {
+    if (!userName) return [];
+    return allAssignments
+      .filter(a => {
+        const reps = Array.isArray(a.assignedReps) ? a.assignedReps : (a.assignedRep ? [a.assignedRep] : []);
+        return reps.includes(userName);
+      })
+      .map(a => a.accountName)
+      .filter(n => n && !n.startsWith("__rep_placeholder__"));
+  }, [allAssignments, userName]);
+
+  const allUserAccounts = useMemo(() =>
+    [...new Set([...managedAccounts, ...assignedAccountNames])],
+    [managedAccounts, assignedAccountNames]
+  );
 
   const myLoaners = useMemo(() => sortLoaners(
     computedLoaners.filter(l => 
@@ -80,9 +102,9 @@ export default function MyLoaners() {
       (l.repName?.toLowerCase() === userName.toLowerCase() || 
        l.associateSalesRep?.toLowerCase() === userName.toLowerCase() ||
        l.fieldSalesRep?.toLowerCase() === userName.toLowerCase() ||
-       managedAccounts.includes(l.accountName))
+       allUserAccounts.includes(l.accountName))
     )
-  ), [computedLoaners, userName, managedAccounts]);
+  ), [computedLoaners, userName, allUserAccounts]);
 
   const filteredLoaners = useMemo(() => {
     if (!searchQuery.trim()) return myLoaners;
