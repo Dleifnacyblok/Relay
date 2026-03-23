@@ -124,8 +124,8 @@ export default function MyAccount() {
   }, [allLoaners, user?.full_name, allUserAccounts]);
 
   const { data: missingParts = [], isLoading: loadingParts } = useQuery({
-    queryKey: ["myMissingParts", user?.full_name],
-    queryFn: () => base44.entities.MissingPart.filter({ repName: user?.full_name }),
+    queryKey: ["missingParts"],
+    queryFn: () => base44.entities.MissingPart.list(),
     enabled: !!user?.full_name,
   });
 
