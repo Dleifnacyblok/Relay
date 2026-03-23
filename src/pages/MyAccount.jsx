@@ -72,6 +72,16 @@ export default function MyAccount() {
     setShowAddAccount(false);
   };
 
+  const handleSaveName = async () => {
+    const trimmed = nameInput.trim();
+    if (!trimmed || trimmed === user?.full_name) { setEditingName(false); return; }
+    setSavingName(true);
+    await base44.auth.updateMe({ full_name: trimmed });
+    queryClient.invalidateQueries({ queryKey: ["currentUser"] });
+    setSavingName(false);
+    setEditingName(false);
+  };
+
   const handleRemoveAccount = async (accountName) => {
     const updated = managedAccounts.filter(a => a !== accountName);
     await base44.auth.updateMe({ managedAccounts: updated });
