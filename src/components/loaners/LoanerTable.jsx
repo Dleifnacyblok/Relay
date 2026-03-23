@@ -197,7 +197,7 @@ export default function LoanerTable({ loaners, compact = false, selectable = fal
                   </Link>
                 </TableCell>
               </TableRow>
-            ))}
+            );})}
           </TableBody>
         </Table>
       </div>
