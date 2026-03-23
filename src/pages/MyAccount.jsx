@@ -107,7 +107,7 @@ export default function MyAccount() {
   };
 
   const { data: allLoaners = [], isLoading: loadingLoaners } = useQuery({
-    queryKey: ["allLoaners"],
+    queryKey: ["loaners"],
     queryFn: () => base44.entities.Loaners.list(),
     enabled: !!user?.full_name,
   });
