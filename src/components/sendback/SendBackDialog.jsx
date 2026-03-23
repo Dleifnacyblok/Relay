@@ -56,8 +56,8 @@ export default function SendBackDialog({ open, onOpenChange, selectedLoaners, se
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["myLoaners"] });
-      queryClient.invalidateQueries({ queryKey: ["myMissingParts"] });
+      queryClient.invalidateQueries({ queryKey: ["loaners"] });
+      queryClient.invalidateQueries({ queryKey: ["missingParts"] });
       queryClient.invalidateQueries({ queryKey: ["sendBackLogs"] });
       toast.success("Items marked as sent back");
       setTrackingNumber("");
