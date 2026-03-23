@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { DollarSign, Package, AlertTriangle, Clock, ChevronRight, Bell, X, Plus, Pencil, Check, RefreshCw } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { formatCurrency } from "@/components/loaners/loanerUtils";
+import { computeLoanerData, formatCurrency } from "@/components/loaners/loanerUtils";
 import {
   Dialog,
   DialogContent,
