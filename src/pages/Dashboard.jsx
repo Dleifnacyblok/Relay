@@ -222,14 +222,14 @@ export default function Dashboard() {
           <div>
             <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 px-1">ESC Overview</p>
             <div className="space-y-2">
-              <Link to={createPageUrl("AllLoanersUnfiltered")} className="block bg-white border border-gray-100 rounded-2xl shadow-sm hover:shadow-md hover:border-indigo-100 transition-all group p-4">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="w-11 h-11 rounded-xl bg-indigo-50 flex items-center justify-center shrink-0">
-                    <Package className="w-5 h-5 text-indigo-500" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-gray-900">ESC Dashboard</p>
-                    <p className="text-xs text-gray-400">Full loaner board with all reps</p>
+              <Link to={createPageUrl("IEPDashboard")} className="block bg-white border border-gray-100 rounded-2xl shadow-sm hover:shadow-md hover:border-indigo-100 transition-all group p-4">
+               <div className="flex items-center gap-3 mb-3">
+                 <div className="w-11 h-11 rounded-xl bg-indigo-50 flex items-center justify-center shrink-0">
+                   <Package className="w-5 h-5 text-indigo-500" />
+                 </div>
+                 <div className="flex-1 min-w-0">
+                   <p className="text-sm font-semibold text-gray-900">IEP Dashboard</p>
+                   <p className="text-xs text-gray-400">IEP loaner tracking & analytics</p>
                   </div>
                   <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-indigo-400 transition-colors shrink-0" />
                 </div>
