@@ -93,6 +93,7 @@ export default function Marketplace() {
         </div>
 
         {/* Look For Section */}
+        <div data-tour="marketplace-looking-for">
         <LookForSection
           lookForItems={lookForItems}
           marketplaceItems={items}
