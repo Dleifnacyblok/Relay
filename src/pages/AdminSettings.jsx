@@ -268,22 +268,31 @@ export default function AdminSettings() {
       {/* ══ TAB 2 — REP MANAGEMENT ══ */}
       {activeTab === "reps" && (
         <div>
-          <div className="bg-white rounded-xl shadow border border-gray-100 p-4 mb-6 flex gap-3 items-center">
-            <Input
-              placeholder="Full name (e.g. Graham Brown)"
-              value={newRepName}
-              onChange={e => setNewRepName(e.target.value)}
-              onKeyDown={e => {
-                if (e.key === "Enter" && newRepName.trim()) {
-                  // Just noting the name — actual accounts assign via Tab 1
-                  setNewRepName("");
-                }
-              }}
-              className="flex-1 text-base"
-            />
-            <Button disabled className="min-h-[44px] px-4 opacity-50 cursor-not-allowed">
-              <UserPlus size={15} className="mr-1" /> Reps come from user accounts
-            </Button>
+          {/* Add Rep */}
+          <div className="mb-4">
+            {addingRep ? (
+              <div className="flex gap-2 items-center bg-white border border-blue-200 rounded-xl p-3 shadow-sm">
+                <Input
+                  autoFocus
+                  placeholder="Full name (e.g. Graham Brown)"
+                  value={newRepName}
+                  onChange={e => setNewRepName(e.target.value)}
+                  onKeyDown={e => {
+                    if (e.key === "Enter") handleAddNewRep(newRepName);
+                    if (e.key === "Escape") { setAddingRep(false); setNewRepName(""); }
+                  }}
+                  className="flex-1 text-base"
+                />
+                <Button onClick={() => handleAddNewRep(newRepName)} disabled={!newRepName.trim()} className="min-h-[44px]">
+                  <Check size={15} className="mr-1" /> Add
+                </Button>
+                <Button variant="outline" onClick={() => { setAddingRep(false); setNewRepName(""); }} className="min-h-[44px]">Cancel</Button>
+              </div>
+            ) : (
+              <Button onClick={() => setAddingRep(true)} className="min-h-[44px]">
+                <UserPlus size={15} className="mr-1" /> Add New Rep
+              </Button>
+            )}
           </div>
 
           <Input
@@ -295,9 +304,10 @@ export default function AdminSettings() {
 
           <div className="bg-white rounded-xl shadow border border-gray-100 overflow-hidden">
             <div className="grid grid-cols-12 bg-gray-50 px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide border-b">
-              <div className="col-span-5">Rep Name</div>
-              <div className="col-span-5">Accounts Assigned</div>
-              <div className="col-span-2 text-right">Remove</div>
+              <div className="col-span-4">Rep Name</div>
+              <div className="col-span-3">Role</div>
+              <div className="col-span-3">Accounts</div>
+              <div className="col-span-2 text-right">Actions</div>
             </div>
 
             {filteredReps.length === 0 && (
@@ -305,16 +315,65 @@ export default function AdminSettings() {
             )}
 
             {filteredReps.map(repName => {
-              const repAccounts = getRepAccounts(repName);
+              const repAccounts = getRepAccounts(repName).filter(a => !a.accountName?.startsWith("__rep_placeholder__"));
               const isExpanded = expandedRep === repName;
+              const appUser = allUsers.find(u => u.full_name === repName);
+              const isEditing = editingRep?.oldName === repName;
 
               return (
                 <div key={repName} className="border-b last:border-0">
-                  <div className="grid grid-cols-12 px-4 py-4 items-center hover:bg-gray-50 min-h-[56px]">
-                    <div className="col-span-5">
-                      <p className="font-medium text-sm text-gray-800">{repName}</p>
+                  <div className="grid grid-cols-12 px-4 py-3 items-center hover:bg-gray-50 min-h-[56px]">
+                    {/* Name — inline edit */}
+                    <div className="col-span-4">
+                      {isEditing ? (
+                        <div className="flex items-center gap-1">
+                          <Input
+                            autoFocus
+                            value={editingRep.newName}
+                            onChange={e => setEditingRep(r => ({ ...r, newName: e.target.value }))}
+                            onKeyDown={e => {
+                              if (e.key === "Enter") handleRenameRep(repName, editingRep.newName);
+                              if (e.key === "Escape") setEditingRep(null);
+                            }}
+                            className="text-sm h-8 px-2"
+                          />
+                          <button onClick={() => handleRenameRep(repName, editingRep.newName)} className="text-green-600 hover:text-green-800">
+                            <Check size={14} />
+                          </button>
+                          <button onClick={() => setEditingRep(null)} className="text-gray-400 hover:text-gray-600">
+                            <X size={14} />
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-1.5">
+                          <p className="font-medium text-sm text-gray-800">{repName}</p>
+                          <button
+                            onClick={() => setEditingRep({ oldName: repName, newName: repName })}
+                            className="text-gray-300 hover:text-blue-500 transition-colors"
+                          >
+                            <Pencil size={12} />
+                          </button>
+                        </div>
+                      )}
                     </div>
-                    <div className="col-span-5">
+
+                    {/* Role */}
+                    <div className="col-span-3">
+                      {appUser ? (
+                        <span className={`inline-block text-xs font-semibold px-2 py-0.5 rounded-full ${
+                          appUser.role === "admin" ? "bg-purple-100 text-purple-700" :
+                          appUser.role === "manager" ? "bg-blue-100 text-blue-700" :
+                          "bg-gray-100 text-gray-600"
+                        }`}>
+                          {appUser.role || "user"}
+                        </span>
+                      ) : (
+                        <span className="text-xs text-gray-400 italic">Not in app</span>
+                      )}
+                    </div>
+
+                    {/* Accounts */}
+                    <div className="col-span-3">
                       <button
                         onClick={() => setExpandedRep(isExpanded ? null : repName)}
                         className="flex items-center gap-1 text-xs text-blue-600 hover:underline min-h-[44px]"
@@ -324,6 +383,8 @@ export default function AdminSettings() {
                         {isExpanded ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
                       </button>
                     </div>
+
+                    {/* Remove */}
                     <div className="col-span-2 text-right">
                       <button
                         onClick={() => setConfirmRemove({ repName, accounts: repAccounts })}
