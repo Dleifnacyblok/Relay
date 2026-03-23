@@ -338,7 +338,7 @@ export default function AppTour({ onFinish }) {
     return () => clearTimeout(t);
   }, []);
 
-  const handleCallback = useCallback(async (data) => {
+  const handleCallback = useCallback((data) => {
     const { action, index, status, type } = data;
 
     if ([STATUS.FINISHED, STATUS.SKIPPED].includes(status)) {
@@ -361,12 +361,12 @@ export default function AppTour({ onFinish }) {
         setRun(false);
         navigate(createPageUrl(nextStep.page));
 
-        // Wait for the target element to appear in the DOM
-        await waitForElement(nextStep.target, 3000);
-
-        setStepIndex(nextIndex);
-        setRun(true);
-        navigatingRef.current = false;
+        // Poll for the target element to appear, then resume
+        waitForElement(nextStep.target, 3000).then(() => {
+          setStepIndex(nextIndex);
+          setRun(true);
+          navigatingRef.current = false;
+        });
       } else {
         setStepIndex(nextIndex);
       }
