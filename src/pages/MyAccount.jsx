@@ -54,6 +54,24 @@ export default function MyAccount() {
 
   const managedAccounts = user?.managedAccounts || [];
 
+  // Also include accounts where the user is an assigned rep in RepAccountAssignment
+  const assignedAccountNames = useMemo(() => {
+    if (!user?.full_name) return [];
+    return allAssignments
+      .filter(a => {
+        const reps = Array.isArray(a.assignedReps) ? a.assignedReps : (a.assignedRep ? [a.assignedRep] : []);
+        return reps.includes(user.full_name);
+      })
+      .map(a => a.accountName)
+      .filter(n => n && !n.startsWith("__rep_placeholder__"));
+  }, [allAssignments, user?.full_name]);
+
+  // All accounts the user "owns" — managed + assigned
+  const allUserAccounts = useMemo(() =>
+    [...new Set([...managedAccounts, ...assignedAccountNames])],
+    [managedAccounts, assignedAccountNames]
+  );
+
   const accountSearchResults = addAccountSearch.trim()
     ? [...new Set(allAssignments.map(a => a.accountName).filter(Boolean))]
         .filter(name =>
