@@ -86,7 +86,7 @@ export default function OnboardingWizard({ user, onComplete }) {
         onboardingComplete: true,
       });
       queryClient.invalidateQueries({ queryKey: ["currentUser"] });
-      onComplete();
+      setStep(4);
     } catch (e) {
       setSaveError(e.message || "Failed to save profile. Please try again.");
     } finally {
