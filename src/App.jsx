@@ -61,7 +61,7 @@ const AuthenticatedApp = () => {
       ))}
       <Route path="/IEPDashboard" element={
         <LayoutWrapper currentPageName="IEPDashboard">
-          {Pages["IEPDashboard"] && <Pages["IEPDashboard"] />}
+          <IEPDashboard />
         </LayoutWrapper>
       } />
       <Route path="*" element={<PageNotFound />} />
