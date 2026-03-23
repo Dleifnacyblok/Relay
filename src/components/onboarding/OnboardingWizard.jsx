@@ -3,8 +3,9 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Check, Search, Plus } from "lucide-react";
+import { Check, Search, Plus, PlayCircle, SkipForward } from "lucide-react";
 import { cn } from "@/lib/utils";
+import AppTour from "./AppTour";
 
 export default function OnboardingWizard({ user, onComplete }) {
   const queryClient = useQueryClient();
