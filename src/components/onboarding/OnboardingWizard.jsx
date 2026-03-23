@@ -22,12 +22,20 @@ export default function OnboardingWizard({ user, onComplete }) {
     queryFn: () => base44.entities.RepAccountAssignment.list(),
   });
 
-  // Unique sorted rep names
-  const repNames = [...new Set(assignments.map(a => a.assignedRep).filter(Boolean))].sort();
+  // Unique sorted rep names across all assignedReps arrays
+  const repNames = [...new Set(
+    assignments.flatMap(a => Array.isArray(a.assignedReps) ? a.assignedReps : (a.assignedRep ? [a.assignedRep] : []))
+      .filter(Boolean)
+  )].sort();
 
-  // Accounts for selected rep
+  // Accounts where selected rep is assigned
   const repAccounts = [...new Set(
-    assignments.filter(a => a.assignedRep === selectedRepName).map(a => a.accountName).filter(Boolean)
+    assignments
+      .filter(a => {
+        const reps = Array.isArray(a.assignedReps) ? a.assignedReps : (a.assignedRep ? [a.assignedRep] : []);
+        return reps.includes(selectedRepName);
+      })
+      .map(a => a.accountName).filter(Boolean)
   )].sort();
 
   // Auto-init selectedRepName from user if it matches a rep
