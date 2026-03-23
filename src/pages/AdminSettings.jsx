@@ -45,7 +45,12 @@ export default function AdminSettings() {
   const [editingRep, setEditingRep] = useState(null); // { oldName, newName }
   const [addingRep, setAddingRep] = useState(false);
 
-  const invalidate = () => qc.invalidateQueries({ queryKey: ["repAccountAssignments"] });
+  const invalidate = () => {
+    qc.invalidateQueries({ queryKey: ["repAccountAssignments"] });
+    qc.invalidateQueries({ queryKey: ["loaners"] });
+    qc.invalidateQueries({ queryKey: ["allLoaners"] });
+    qc.invalidateQueries({ queryKey: ["currentUser"] });
+  };
 
   const { data: assignments = [], isLoading } = useQuery({
     queryKey: ["repAccountAssignments"],
