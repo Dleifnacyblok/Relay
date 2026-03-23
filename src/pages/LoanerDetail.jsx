@@ -153,7 +153,14 @@ export default function LoanerDetail() {
         }}>
           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-4">
             <div>
-              <h1 className="text-2xl font-bold" style={{color: '#000000'}}>{loaner.setName}</h1>
+              <div className="flex items-center gap-2 flex-wrap">
+                <h1 className="text-2xl font-bold" style={{color: '#000000'}}>{loaner.setName}</h1>
+                {isIEPSet && (
+                  <span className="inline-flex items-center gap-1 text-sm font-semibold text-purple-700 bg-purple-100 border border-purple-200 px-2 py-0.5 rounded-full">
+                    <MapPin className="w-3.5 h-3.5" /> IEP Impact
+                  </span>
+                )}
+              </div>
               <p className="mt-1">
                 <span style={{color: '#777777'}}>Etch ID: </span>
                 <span style={{color: '#222222', letterSpacing: '0.02em'}}>{loaner.etchId || "(missing)"}</span>
@@ -161,6 +168,12 @@ export default function LoanerDetail() {
             </div>
             <RiskBadge riskStatus={loaner.risk_status} />
           </div>
+          {isIEPSet && (
+            <div className="mb-4 p-3 rounded-lg bg-purple-50 border border-purple-200 flex items-center gap-2">
+              <MapPin className="w-4 h-4 text-purple-600 shrink-0" />
+              <p className="text-sm text-purple-800">This set is part of your territory consignment inventory and impacts your IEP score.</p>
+            </div>
+          )}
 
           <RequestLoanerDialog loaner={loaner} currentUser={user} />
 

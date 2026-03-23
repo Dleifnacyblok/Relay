@@ -8,7 +8,7 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, Legend, LineChart, Line, ComposedChart, Area } from
 "recharts";
-import { TrendingUp, AlertTriangle, Package, DollarSign, Building2, Layers } from "lucide-react";
+import { TrendingUp, AlertTriangle, Package, DollarSign, Building2, Layers, MapPin } from "lucide-react";
 import AIInsights from "@/components/analytics/AIInsights";
 import ConsignmentUtilization from "@/components/analytics/ConsignmentUtilization";
 import { useState } from "react";
