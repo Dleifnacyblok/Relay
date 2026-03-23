@@ -234,7 +234,7 @@ export default function MyLoaners() {
 
         {/* Actions Bar */}
         {!isLoading && filteredLoaners.length > 0 && (
-          <div className="bg-white rounded-lg border border-slate-200 p-4 mb-4 flex items-center justify-between">
+          <div data-tour="loaners-actions" className="bg-white rounded-lg border border-slate-200 p-4 mb-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <Checkbox
                 checked={selectedIds.length > 0 && selectedIds.length === filteredLoaners.length}
