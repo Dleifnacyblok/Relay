@@ -42,6 +42,8 @@ export default function AdminSettings() {
   const [expandedRep, setExpandedRep] = useState(null);
   const [confirmRemove, setConfirmRemove] = useState(null);
   const [savingRows, setSavingRows] = useState({});
+  const [editingRep, setEditingRep] = useState(null); // { oldName, newName }
+  const [addingRep, setAddingRep] = useState(false);
 
   const invalidate = () => qc.invalidateQueries({ queryKey: ["repAccountAssignments"] });
 
