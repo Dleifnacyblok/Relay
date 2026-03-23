@@ -39,7 +39,6 @@ const SectionHeader = ({ label }) =>
 
 export default function Analytics() {
   const [accountSort, setAccountSort] = useState("overdue");
-  const [showExportDialog, setShowExportDialog] = useState(false);
 
   const { data: loaners = [], isLoading: loadingLoaners } = useQuery({
     queryKey: ["loaners"],
@@ -200,18 +199,11 @@ export default function Analytics() {
       <div className="max-w-5xl mx-auto px-4 py-6 sm:py-8">
         {/* Header */}
         <div className="mb-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3 mb-1">
-              <div className="p-2 rounded-lg bg-indigo-100">
-                <TrendingUp className="w-5 h-5 text-indigo-600" />
-              </div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">Analytics</h1>
+          <div className="flex items-center gap-3 mb-1">
+            <div className="p-2 rounded-lg bg-indigo-100">
+              <TrendingUp className="w-5 h-5 text-indigo-600" />
             </div>
-            <Button onClick={() => setShowExportDialog(true)} variant="outline" className="gap-2">
-              <Download className="w-4 h-4" />
-              Export PDF
-            </Button>
-            <ExportPDFDialog open={showExportDialog} onClose={() => setShowExportDialog(false)} loaners={computed} />
+            <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">Analytics</h1>
           </div>
           <p className="text-slate-500 ml-12">Loaner performance, overdue frequency & missing parts insights</p>
         </div>
