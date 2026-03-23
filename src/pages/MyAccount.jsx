@@ -349,10 +349,15 @@ export default function MyAccount() {
               )}
             </div>
           </div>
-          {managedAccounts.length === 0 ? (
+          {allUserAccounts.length === 0 ? (
             <p className="text-xs text-slate-400">No accounts added yet.</p>
           ) : (
             <div className="flex flex-wrap gap-2">
+              {assignedAccountNames.map(acc => (
+                <span key={acc} className="inline-flex items-center gap-1 bg-green-50 text-green-700 border border-green-200 text-xs font-medium px-3 py-1 rounded-full">
+                  {acc}
+                </span>
+              ))}
               {managedAccounts.map(acc => (
                 <span key={acc} className="inline-flex items-center gap-1 bg-blue-50 text-blue-700 border border-blue-200 text-xs font-medium px-3 py-1 rounded-full">
                   {acc}
