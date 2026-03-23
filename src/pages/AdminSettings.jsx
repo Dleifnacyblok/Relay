@@ -111,6 +111,37 @@ export default function AdminSettings() {
     setConfirmRemove(null);
   }
 
+  async function handleRenameRep(oldName, newName) {
+    const trimmed = newName.trim();
+    if (!trimmed || trimmed === oldName) { setEditingRep(null); return; }
+    const affected = getRepAccounts(oldName);
+    for (const row of affected) {
+      const updated = getAssignedReps(row).map(r => r === oldName ? trimmed : r);
+      await base44.entities.RepAccountAssignment.update(row.id, { ...row, assignedReps: updated });
+    }
+    // Also update any users whose full_name matches
+    const matchingUser = allUsers.find(u => u.full_name === oldName);
+    if (matchingUser) {
+      await base44.entities.User.update(matchingUser.id, { full_name: trimmed });
+      qc.invalidateQueries({ queryKey: ["allUsers"] });
+    }
+    invalidate();
+    setEditingRep(null);
+  }
+
+  async function handleAddNewRep(name) {
+    const trimmed = name.trim();
+    if (!trimmed) return;
+    // Create a placeholder assignment so the rep appears in the system
+    await base44.entities.RepAccountAssignment.create({
+      accountName: `__rep_placeholder__${trimmed}`,
+      assignedReps: [trimmed],
+    });
+    invalidate();
+    setNewRepName("");
+    setAddingRep(false);
+  }
+
   const filteredAssignments = useMemo(() =>
     assignments.filter(a => a.accountName?.toLowerCase().includes(search.toLowerCase())),
     [assignments, search]
