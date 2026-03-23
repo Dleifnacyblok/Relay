@@ -195,7 +195,37 @@ export default function MyAccount() {
               My Account
             </h1>
             <p className="text-xs text-slate-400 uppercase font-semibold mt-2 mb-0.5">Rep</p>
-            <p className="text-base font-medium text-slate-700">{user?.full_name}</p>
+            {editingName ? (
+              <div className="flex items-center gap-2 mt-1">
+                <Input
+                  autoFocus
+                  value={nameInput}
+                  onChange={e => setNameInput(e.target.value)}
+                  onKeyDown={e => {
+                    if (e.key === "Enter") handleSaveName();
+                    if (e.key === "Escape") setEditingName(false);
+                  }}
+                  className="h-8 text-sm w-48"
+                />
+                <button onClick={handleSaveName} disabled={savingName} className="text-green-600 hover:text-green-800">
+                  <Check size={16} />
+                </button>
+                <button onClick={() => setEditingName(false)} className="text-gray-400 hover:text-gray-600">
+                  <X size={16} />
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 mt-1">
+                <p className="text-base font-medium text-slate-700">{user?.full_name}</p>
+                <button
+                  onClick={() => { setNameInput(user?.full_name || ""); setEditingName(true); }}
+                  className="text-slate-300 hover:text-blue-500 transition-colors"
+                  title="Edit your name"
+                >
+                  <Pencil size={14} />
+                </button>
+              </div>
+            )}
           </div>
           
         </div>
