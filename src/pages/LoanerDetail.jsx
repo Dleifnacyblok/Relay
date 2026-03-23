@@ -78,6 +78,11 @@ export default function LoanerDetail() {
 
   const isAdmin = user?.role === "admin";
 
+  const isIEPSet = useMemo(() => {
+    if (!loaner?.setName || !consignedSets.length) return false;
+    return consignedSets.some(cs => cs.setName?.trim().toLowerCase() === loaner.setName.trim().toLowerCase());
+  }, [loaner, consignedSets]);
+
   const formatDate = (dateStr) => {
     if (!dateStr) return "—";
     try {
