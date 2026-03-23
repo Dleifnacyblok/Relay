@@ -74,6 +74,26 @@ export default function Analytics() {
 
   const computed = loaners.map(computeLoanerData);
 
+  // --- IEP Impact (loaners matching territory consigned set names) ---
+  const territorySetNames = new Set(consignedSets.map(cs => cs.setName?.trim().toUpperCase()));
+  const iepLoaners = computed.filter(l =>
+    l.returnStatus !== "sent_back" && l.returnStatus !== "received" &&
+    territorySetNames.has(l.setName?.trim().toUpperCase())
+  );
+  const iepOverdue = iepLoaners.filter(l => l.risk_status === "Overdue");
+  const iepDueSoon = iepLoaners.filter(l => l.risk_status === "Due Soon");
+
+  // IEP Impact by rep
+  const iepByRepMap = {};
+  iepLoaners.forEach(l => {
+    const rep = l.repName || "Unknown";
+    if (!iepByRepMap[rep]) iepByRepMap[rep] = { rep, total: 0, overdue: 0, dueSoon: 0 };
+    iepByRepMap[rep].total++;
+    if (l.risk_status === "Overdue") iepByRepMap[rep].overdue++;
+    if (l.risk_status === "Due Soon") iepByRepMap[rep].dueSoon++;
+  });
+  const iepByRep = Object.values(iepByRepMap).sort((a, b) => b.overdue - a.overdue).slice(0, 10);
+
   // --- KPIs ---
   const totalLoaners = computed.length;
   const overdueCount = computed.filter((l) => l.risk_status === "Overdue").length;
