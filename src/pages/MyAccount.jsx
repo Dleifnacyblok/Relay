@@ -247,7 +247,7 @@ export default function MyAccount() {
           <button
             onClick={() => {
               queryClient.invalidateQueries({ queryKey: ["repAccountAssignments"] });
-              queryClient.invalidateQueries({ queryKey: ["allLoaners"] });
+              queryClient.invalidateQueries({ queryKey: ["loaners"] });
               queryClient.invalidateQueries({ queryKey: ["currentUser"] });
               queryClient.invalidateQueries({ queryKey: ["myMissingParts"] });
             }}
