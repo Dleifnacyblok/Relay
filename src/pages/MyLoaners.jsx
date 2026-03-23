@@ -157,7 +157,7 @@ export default function MyLoaners() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
       {/* Sticky search bar */}
-      <div className="sticky top-0 z-30 bg-white border-b border-slate-200 px-4 py-3">
+      <div data-tour="loaners-search" className="sticky top-0 z-30 bg-white border-b border-slate-200 px-4 py-3">
         <div className="max-w-7xl mx-auto relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
           <Input
