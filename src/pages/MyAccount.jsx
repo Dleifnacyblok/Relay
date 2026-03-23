@@ -26,6 +26,9 @@ export default function MyAccount() {
   const [addAccountSearch, setAddAccountSearch] = useState("");
   const addAccountRef = useRef(null);
   const queryClient = useQueryClient();
+  const [editingName, setEditingName] = useState(false);
+  const [nameInput, setNameInput] = useState("");
+  const [savingName, setSavingName] = useState(false);
 
   const { data: user } = useQuery({
     queryKey: ["currentUser"],
