@@ -312,12 +312,33 @@ const joyrideStyles = {
   },
 };
 
+// Wait for a DOM element matching `selector` to appear, polling every 100ms up to `maxWait`ms
+function waitForElement(selector, maxWait = 3000) {
+  return new Promise((resolve) => {
+    if (selector === "body") { resolve(true); return; }
+    const start = Date.now();
+    const check = () => {
+      if (document.querySelector(selector)) { resolve(true); return; }
+      if (Date.now() - start > maxWait) { resolve(false); return; }
+      setTimeout(check, 100);
+    };
+    check();
+  });
+}
+
 export default function AppTour({ onFinish }) {
   const navigate = useNavigate();
-  const [run, setRun] = useState(true);
+  const [run, setRun] = useState(false);
   const [stepIndex, setStepIndex] = useState(0);
+  const navigatingRef = useRef(false);
 
-  const handleCallback = useCallback((data) => {
+  // Start the tour after a short delay to allow page to mount
+  useEffect(() => {
+    const t = setTimeout(() => setRun(true), 300);
+    return () => clearTimeout(t);
+  }, []);
+
+  const handleCallback = useCallback(async (data) => {
     const { action, index, status, type } = data;
 
     if ([STATUS.FINISHED, STATUS.SKIPPED].includes(status)) {
@@ -326,16 +347,26 @@ export default function AppTour({ onFinish }) {
     }
 
     if (type === EVENTS.STEP_AFTER || type === EVENTS.TARGET_NOT_FOUND) {
-      const nextIndex = index + (action === ACTIONS.PREV ? -1 : 1);
-      const nextStep = tourSteps[nextIndex];
+      if (navigatingRef.current) return;
 
-      if (nextStep?.page) {
+      const nextIndex = index + (action === ACTIONS.PREV ? -1 : 1);
+      if (nextIndex < 0 || nextIndex >= tourSteps.length) return;
+
+      const nextStep = tourSteps[nextIndex];
+      const currentStep = tourSteps[index];
+
+      // If the next step is on a different page than the current step, navigate
+      if (nextStep?.page && nextStep.page !== currentStep?.page) {
+        navigatingRef.current = true;
         setRun(false);
         navigate(createPageUrl(nextStep.page));
-        setTimeout(() => {
-          setStepIndex(nextIndex);
-          setRun(true);
-        }, 400);
+
+        // Wait for the target element to appear in the DOM
+        await waitForElement(nextStep.target, 3000);
+
+        setStepIndex(nextIndex);
+        setRun(true);
+        navigatingRef.current = false;
       } else {
         setStepIndex(nextIndex);
       }
