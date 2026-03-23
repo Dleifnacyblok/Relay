@@ -206,7 +206,7 @@ export default function MyLoaners() {
 
         {/* Quick Stats */}
         {!isLoading && myLoaners.length > 0 && (
-          <div className="flex flex-wrap gap-3 mb-6">
+          <div data-tour="loaners-stats" className="flex flex-wrap gap-3 mb-6">
             <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-white border border-slate-200 rounded-full text-sm">
               <span className="text-slate-500">Total:</span>
               <span className="font-semibold text-slate-900">{myLoaners.length}</span>
