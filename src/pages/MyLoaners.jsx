@@ -71,15 +71,18 @@ export default function MyLoaners() {
 
   const computedLoaners = loaners.map(computeLoanerData);
   
+  const managedAccounts = user?.managedAccounts || [];
+
   const myLoaners = useMemo(() => sortLoaners(
     computedLoaners.filter(l => 
       l.returnStatus !== "sent_back" && 
       l.returnStatus !== "received" &&
       (l.repName?.toLowerCase() === userName.toLowerCase() || 
        l.associateSalesRep?.toLowerCase() === userName.toLowerCase() ||
-       l.fieldSalesRep?.toLowerCase() === userName.toLowerCase())
+       l.fieldSalesRep?.toLowerCase() === userName.toLowerCase() ||
+       managedAccounts.includes(l.accountName))
     )
-  ), [computedLoaners, userName]);
+  ), [computedLoaners, userName, managedAccounts]);
 
   const filteredLoaners = useMemo(() => {
     if (!searchQuery.trim()) return myLoaners;
