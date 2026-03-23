@@ -116,7 +116,7 @@ export default function Marketplace() {
 
         {/* Grid */}
         {isLoading ? (
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div data-tour="marketplace-list" className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {[1,2,3,4,5,6].map(i => <Skeleton key={i} className="h-48 rounded-xl" />)}
           </div>
         ) : filtered.length === 0 ? (
