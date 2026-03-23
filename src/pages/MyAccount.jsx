@@ -115,12 +115,16 @@ export default function MyAccount() {
   const loaners = useMemo(() => {
     if (!user?.full_name) return [];
     const name = user.full_name.toLowerCase();
-    return allLoaners.filter(l =>
-      l.repName?.toLowerCase() === name ||
-      l.associateSalesRep?.toLowerCase() === name ||
-      l.fieldSalesRep?.toLowerCase() === name ||
-      allUserAccounts.includes(l.accountName)
-    );
+    return allLoaners
+      .filter(l =>
+        l.returnStatus !== "sent_back" &&
+        l.returnStatus !== "received" &&
+        (l.repName?.toLowerCase() === name ||
+         l.associateSalesRep?.toLowerCase() === name ||
+         l.fieldSalesRep?.toLowerCase() === name ||
+         allUserAccounts.includes(l.accountName))
+      )
+      .map(computeLoanerData);
   }, [allLoaners, user?.full_name, allUserAccounts]);
 
   const { data: missingParts = [], isLoading: loadingParts } = useQuery({
