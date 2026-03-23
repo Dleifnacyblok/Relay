@@ -4,7 +4,7 @@ import { base44 } from "@/api/base44Client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { DollarSign, Package, AlertTriangle, Clock, ChevronRight, Bell, X, Plus, Pencil, Check } from "lucide-react";
+import { DollarSign, Package, AlertTriangle, Clock, ChevronRight, Bell, X, Plus, Pencil, Check, RefreshCw } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { formatCurrency } from "@/components/loaners/loanerUtils";
