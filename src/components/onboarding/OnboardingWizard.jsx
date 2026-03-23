@@ -272,6 +272,39 @@ export default function OnboardingWizard({ user, onComplete }) {
               )}
             </div>
           )}
+
+          {/* STEP 4 — App Tour */}
+          {step === 4 && (
+            <div className="flex flex-col items-center text-center gap-6 py-4">
+              <div className="w-16 h-16 rounded-full bg-blue-50 flex items-center justify-center">
+                <PlayCircle className="w-9 h-9 text-blue-600" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-gray-900 mb-2">Take the App Tour</h3>
+                <p className="text-gray-600 text-sm leading-relaxed max-w-xs">
+                  Get a guided walkthrough of <strong>My Loaners</strong>, <strong>Missing Parts</strong>, <strong>Marketplace</strong>, <strong>Track Log</strong>, and <strong>My Account</strong>.
+                </p>
+              </div>
+              <div className="flex flex-col gap-3 w-full max-w-xs">
+                <Button
+                  onClick={() => setShowTour(true)}
+                  className="bg-blue-600 hover:bg-blue-700 text-white gap-2 w-full"
+                >
+                  <PlayCircle className="w-4 h-4" />
+                  Start Interactive Tour
+                </Button>
+                <Button
+                  variant="ghost"
+                  onClick={onComplete}
+                  className="text-gray-500 gap-2 w-full"
+                >
+                  <SkipForward className="w-4 h-4" />
+                  Skip for Now
+                </Button>
+              </div>
+              <p className="text-xs text-gray-400">You can revisit this tour anytime from <strong>My Account</strong>.</p>
+            </div>
+          )}
         </div>
 
         {/* Footer — hidden on step 4 */}
