@@ -249,7 +249,7 @@ export default function OnboardingWizard({ user, onComplete }) {
           )}
 
           {/* STEP 3 */}
-          {step === 3 && (
+          {step === 3 && step !== 4 && (
             <div className="space-y-4">
               <p className="text-gray-600 text-sm">Review your profile before saving.</p>
               <div className="bg-gray-50 rounded-xl p-4 space-y-3">
