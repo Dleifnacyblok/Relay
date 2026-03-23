@@ -16,14 +16,6 @@ import {
 } from "@/components/ui/table";
 
 export default function LoanerTable({ loaners, compact = false, selectable = false, selectedIds = [], onSelectOne }) {
-  const { data: consignedSets = [] } = useQuery({
-    queryKey: ["consignedSets"],
-    queryFn: () => base44.entities.ConsignedSet.list(),
-    staleTime: 5 * 60 * 1000,
-  });
-
-  const territorySetNames = new Set(consignedSets.map(cs => cs.setName?.trim().toLowerCase()));
-  const isIEPSet = (setName) => setName && territorySetNames.has(setName.trim().toLowerCase());
   const formatDate = (dateStr) => {
     if (!dateStr) return "—";
     try {

@@ -72,17 +72,7 @@ export default function MyLoaners() {
     queryFn: () => base44.entities.RepAccountAssignment.list(),
   });
 
-  const { data: consignedSets = [] } = useQuery({
-    queryKey: ["consignedSets"],
-    queryFn: () => base44.entities.ConsignedSet.list(),
-    staleTime: 5 * 60 * 1000,
-  });
 
-  const territorySetNames = useMemo(
-    () => new Set(consignedSets.map(cs => cs.setName?.trim().toLowerCase())),
-    [consignedSets]
-  );
-  const isIEPSet = (setName) => setName && territorySetNames.has(setName.trim().toLowerCase());
 
   const isLoading = userLoading || loanersLoading;
   const userName = user?.full_name || "";
