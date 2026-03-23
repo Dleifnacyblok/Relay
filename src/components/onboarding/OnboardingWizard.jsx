@@ -141,7 +141,7 @@ export default function OnboardingWizard({ user, onComplete }) {
         </div>
 
         {/* Body */}
-        <div className="flex-1 overflow-y-auto px-6 py-5">
+        <div className="flex-1 overflow-y-auto px-6 py-5 flex flex-col">
 
           {/* STEP 1 */}
           {step === 1 && (
