@@ -292,16 +292,14 @@ export default function MyLoaners() {
               {/* Mobile rows */}
               <div className="lg:hidden divide-y divide-slate-100">
                 {filteredLoaners.map(loaner => (
-                  <Link
+                  <div
                     key={loaner.id}
-                    to={createPageUrl("LoanerDetail") + `?id=${loaner.id}`}
                     className="flex items-center justify-between px-4 py-4 min-h-14 hover:bg-slate-50 active:bg-slate-100 transition-colors"
                   >
                     <div className="flex items-center gap-3 min-w-0 flex-1 pr-3">
                       <Checkbox
                         checked={selectedIds.includes(loaner.id)}
-                        onCheckedChange={(e) => { e.preventDefault?.(); handleSelectOne(loaner.id); }}
-                        onClick={(e) => e.stopPropagation()}
+                        onCheckedChange={() => handleSelectOne(loaner.id)}
                       />
                       <div className="min-w-0">
                         <p className="font-semibold text-slate-900 truncate">{loaner.setName}</p>
