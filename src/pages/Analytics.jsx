@@ -11,7 +11,8 @@ import {
 import { TrendingUp, AlertTriangle, Package, DollarSign, Building2, Layers, MapPin } from "lucide-react";
 import AIInsights from "@/components/analytics/AIInsights";
 import ConsignmentUtilization from "@/components/analytics/ConsignmentUtilization";
-import { useState } from "react";
+import { useState, useMemo } from "react";
+import { isIEPLoaner } from "@/lib/iepUtils";
 
 const COLORS = ["#ef4444", "#f59e0b", "#3b82f6", "#10b981", "#8b5cf6", "#ec4899", "#06b6d4", "#f97316"];
 
