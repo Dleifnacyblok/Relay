@@ -253,7 +253,7 @@ export default function MyAccount() {
               queryClient.invalidateQueries({ queryKey: ["repAccountAssignments"] });
               queryClient.invalidateQueries({ queryKey: ["loaners"] });
               queryClient.invalidateQueries({ queryKey: ["currentUser"] });
-              queryClient.invalidateQueries({ queryKey: ["myMissingParts"] });
+              queryClient.invalidateQueries({ queryKey: ["missingParts"] });
             }}
             className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-blue-600 border border-slate-200 hover:border-blue-300 rounded-full px-3 py-1.5 transition-colors mt-1"
             title="Refresh account data"
