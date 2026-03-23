@@ -326,7 +326,7 @@ export default function AdminSettings() {
               return (
                 <div key={repName} className="border-b last:border-0">
                   <div className="grid grid-cols-12 px-4 py-3 items-center hover:bg-gray-50 min-h-[56px]">
-                    {/* Name — inline edit */}
+                    {/* Name — inline edit (only for non-app reps) */}
                     <div className="col-span-4">
                       {isEditing ? (
                         <div className="flex items-center gap-1">
@@ -350,12 +350,20 @@ export default function AdminSettings() {
                       ) : (
                         <div className="flex items-center gap-1.5">
                           <p className="font-medium text-sm text-gray-800">{repName}</p>
-                          <button
-                            onClick={() => setEditingRep({ oldName: repName, newName: repName })}
-                            className="text-gray-300 hover:text-blue-500 transition-colors"
-                          >
-                            <Pencil size={12} />
-                          </button>
+                          {/* Only allow renaming reps who are NOT app users */}
+                          {!appUser ? (
+                            <button
+                              onClick={() => setEditingRep({ oldName: repName, newName: repName })}
+                              className="text-gray-300 hover:text-blue-500 transition-colors"
+                              title="Rename rep"
+                            >
+                              <Pencil size={12} />
+                            </button>
+                          ) : (
+                            <span className="text-[10px] text-gray-400 italic" title="User must update their own name in My Account">
+                              (user updates own name)
+                            </span>
+                          )}
                         </div>
                       )}
                     </div>
