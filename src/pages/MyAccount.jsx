@@ -20,7 +20,6 @@ import LoanerTable from "@/components/loaners/LoanerTable";
 export default function MyAccount() {
   const [selectedAccount, setSelectedAccount] = useState(null);
   const [showAccountDialog, setShowAccountDialog] = useState(false);
-  const [showSetup, setShowSetup] = useState(false);
   const [showAddAccount, setShowAddAccount] = useState(false);
   const [addAccountSearch, setAddAccountSearch] = useState("");
   const addAccountRef = useRef(null);
@@ -440,27 +439,6 @@ export default function MyAccount() {
             <p className="text-3xl font-bold text-red-900">{formatCurrency(totalFines)}</p>
           </Card>
         </div>
-
-        {/* Re-run setup link */}
-        <div className="text-center mt-10">
-          <button
-            onClick={() => setShowSetup(true)}
-            className="text-xs text-slate-400 hover:text-slate-600 underline underline-offset-2 transition-colors"
-          >
-            Re-run profile setup
-          </button>
-        </div>
-
-        {/* Onboarding Re-run */}
-        {showSetup && (
-          <OnboardingWizard
-            user={user}
-            onComplete={() => {
-              queryClient.invalidateQueries({ queryKey: ["currentUser"] });
-              setShowSetup(false);
-            }}
-          />
-        )}
 
         {/* Account Detail Dialog */}
         <Dialog open={showAccountDialog} onOpenChange={setShowAccountDialog}>
