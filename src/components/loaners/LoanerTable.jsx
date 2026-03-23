@@ -5,8 +5,7 @@ import { ChevronRight, MapPin } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import RiskBadge from "./RiskBadge";
 import { formatCurrency } from "./loanerUtils";
-import { useQuery } from "@tanstack/react-query";
-import { base44 } from "@/api/base44Client";
+import { isIEPLoaner } from "@/lib/iepUtils";
 import {
   Table,
   TableBody,
