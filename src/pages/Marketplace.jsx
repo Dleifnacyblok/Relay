@@ -100,6 +100,7 @@ export default function Marketplace() {
           missingParts={missingParts}
           user={user}
         />
+        </div>
 
         {/* Stats */}
         {!isLoading && items.length > 0 && (
