@@ -295,7 +295,7 @@ export default function MyLoaners() {
               {/* Mobile rows */}
               <div className="lg:hidden divide-y divide-slate-100">
                 {filteredLoaners.map(loaner => {
-                  const iep = isIEPSet(loaner.setName);
+                  const iep = isIEPLoaner(loaner);
                   return (
                   <div
                     key={loaner.id}

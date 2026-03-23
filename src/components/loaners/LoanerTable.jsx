@@ -38,7 +38,7 @@ export default function LoanerTable({ loaners, compact = false, selectable = fal
       {/* Mobile Card View */}
       <div className="md:hidden space-y-3 p-3">
         {loaners.map((loaner) => {
-          const iep = isIEPSet(loaner.setName);
+          const iep = isIEPLoaner(loaner);
           return (
           <div
             key={loaner.id}
@@ -121,7 +121,7 @@ export default function LoanerTable({ loaners, compact = false, selectable = fal
           </TableHeader>
           <TableBody>
             {loaners.map((loaner) => {
-              const iep = isIEPSet(loaner.setName);
+              const iep = isIEPLoaner(loaner);
               return (
               <TableRow 
                 key={loaner.id} 
