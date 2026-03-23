@@ -8,12 +8,10 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, Legend, LineChart, Line, ComposedChart, Area } from
 "recharts";
-import { TrendingUp, AlertTriangle, Package, DollarSign, Building2, Layers, Download } from "lucide-react";
+import { TrendingUp, AlertTriangle, Package, DollarSign, Building2, Layers } from "lucide-react";
 import AIInsights from "@/components/analytics/AIInsights";
 import ConsignmentUtilization from "@/components/analytics/ConsignmentUtilization";
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import ExportPDFDialog from "@/components/analytics/ExportPDFDialog";
 
 const COLORS = ["#ef4444", "#f59e0b", "#3b82f6", "#10b981", "#8b5cf6", "#ec4899", "#06b6d4", "#f97316"];
 
