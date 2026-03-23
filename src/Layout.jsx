@@ -17,7 +17,6 @@ import {
   TrendingUp,
   MapPin,
   CalendarDays,
-  BookOpen,
   Settings,
 } from "lucide-react";
 import OnboardingWizard from "@/components/onboarding/OnboardingWizard";
