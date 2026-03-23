@@ -236,7 +236,7 @@ export default function SendBackLog() {
         )}
 
         {/* Log List */}
-        <div className="space-y-4">
+        <div data-tour="tracklog-entries" className="space-y-4">
           {isLoading ? (
             <div className="space-y-4">
               {[1, 2, 3].map(i => (
