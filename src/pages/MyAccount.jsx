@@ -16,7 +16,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import LoanerTable from "@/components/loaners/LoanerTable";
-import OnboardingWizard from "@/components/onboarding/OnboardingWizard";
 
 export default function MyAccount() {
   const [selectedAccount, setSelectedAccount] = useState(null);
