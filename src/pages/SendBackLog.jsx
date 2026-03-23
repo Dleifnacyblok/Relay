@@ -85,7 +85,7 @@ export default function SendBackLog() {
     mutationFn: ({ logId, photoUrls }) =>
       base44.entities.SendBackLog.update(logId, { photoUrls }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["sendBackLogs"] });
+      queryClient.invalidateQueries({ queryKey: ["sendBackLogs", user?.full_name] });
       toast.success("Photos updated");
     },
     onError: () => toast.error("Failed to update photos"),
