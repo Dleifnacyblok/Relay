@@ -75,11 +75,10 @@ export default function Analytics() {
 
   const computed = loaners.map(computeLoanerData);
 
-  // --- IEP Impact (loaners matching territory consigned set names) ---
-  const territorySetNames = new Set(consignedSets.map(cs => cs.setName?.trim().toUpperCase()));
+  // --- IEP Impact (loaners matching IEP tracked set IDs) ---
   const iepLoaners = computed.filter(l =>
     l.returnStatus !== "sent_back" && l.returnStatus !== "received" &&
-    territorySetNames.has(l.setName?.trim().toUpperCase())
+    isIEPLoaner(l)
   );
   const iepOverdue = iepLoaners.filter(l => l.risk_status === "Overdue");
   const iepDueSoon = iepLoaners.filter(l => l.risk_status === "Due Soon");
