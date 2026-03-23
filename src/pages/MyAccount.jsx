@@ -75,11 +75,23 @@ export default function MyAccount() {
     queryClient.invalidateQueries({ queryKey: ["currentUser"] });
   };
 
-  const { data: loaners = [], isLoading: loadingLoaners } = useQuery({
-    queryKey: ["myLoaners", user?.full_name],
-    queryFn: () => base44.entities.Loaners.filter({ repName: user?.full_name }),
+  const { data: allLoaners = [], isLoading: loadingLoaners } = useQuery({
+    queryKey: ["allLoaners"],
+    queryFn: () => base44.entities.Loaners.list(),
     enabled: !!user?.full_name,
   });
+
+  const loaners = useMemo(() => {
+    if (!user?.full_name) return [];
+    const name = user.full_name.toLowerCase();
+    const accounts = user?.managedAccounts || [];
+    return allLoaners.filter(l =>
+      l.repName?.toLowerCase() === name ||
+      l.associateSalesRep?.toLowerCase() === name ||
+      l.fieldSalesRep?.toLowerCase() === name ||
+      accounts.includes(l.accountName)
+    );
+  }, [allLoaners, user?.full_name, user?.managedAccounts]);
 
   const { data: missingParts = [], isLoading: loadingParts } = useQuery({
     queryKey: ["myMissingParts", user?.full_name],
