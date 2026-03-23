@@ -94,10 +94,13 @@ export default function OnboardingWizard({ user, onComplete }) {
     }
   };
 
+  const [showTour, setShowTour] = useState(false);
+
   const steps = [
     { num: 1, label: "Match Your Name" },
     { num: 2, label: "Select Accounts" },
     { num: 3, label: "Confirm" },
+    { num: 4, label: "App Tour" },
   ];
 
   return (
