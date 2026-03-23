@@ -143,7 +143,10 @@ export default function AdminSettings() {
   }
 
   const filteredAssignments = useMemo(() =>
-    assignments.filter(a => a.accountName?.toLowerCase().includes(search.toLowerCase())),
+    assignments.filter(a =>
+      !a.accountName?.startsWith("__rep_placeholder__") &&
+      a.accountName?.toLowerCase().includes(search.toLowerCase())
+    ),
     [assignments, search]
   );
 
