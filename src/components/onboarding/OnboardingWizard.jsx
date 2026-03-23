@@ -274,9 +274,9 @@ export default function OnboardingWizard({ user, onComplete }) {
           )}
         </div>
 
-        {/* STEP 4 — App Tour */}
+        {/* STEP 4 — App Tour (rendered inside body) */}
         {step === 4 && (
-          <div className="flex-1 overflow-y-auto px-6 py-8 flex flex-col items-center text-center gap-6">
+          <div className="px-6 py-8 flex flex-col items-center text-center gap-6">
             <div className="w-16 h-16 rounded-full bg-blue-50 flex items-center justify-center">
               <PlayCircle className="w-9 h-9 text-blue-600" />
             </div>
