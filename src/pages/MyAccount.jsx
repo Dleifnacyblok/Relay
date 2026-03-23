@@ -115,14 +115,13 @@ export default function MyAccount() {
   const loaners = useMemo(() => {
     if (!user?.full_name) return [];
     const name = user.full_name.toLowerCase();
-    const accounts = user?.managedAccounts || [];
     return allLoaners.filter(l =>
       l.repName?.toLowerCase() === name ||
       l.associateSalesRep?.toLowerCase() === name ||
       l.fieldSalesRep?.toLowerCase() === name ||
-      accounts.includes(l.accountName)
+      allUserAccounts.includes(l.accountName)
     );
-  }, [allLoaners, user?.full_name, user?.managedAccounts]);
+  }, [allLoaners, user?.full_name, allUserAccounts]);
 
   const { data: missingParts = [], isLoading: loadingParts } = useQuery({
     queryKey: ["myMissingParts", user?.full_name],
