@@ -123,7 +123,7 @@ export default function MyMissingParts() {
   const updatePartMutation = useMutation({
     mutationFn: ({ id, data }) => base44.entities.MissingPart.update(id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries(["missingParts"]);
+      queryClient.invalidateQueries({ queryKey: ["missingParts"] });
       setShowEditDialog(false);
       setEditingPart(null);
     },
@@ -132,7 +132,7 @@ export default function MyMissingParts() {
   const deletePartMutation = useMutation({
     mutationFn: (id) => base44.entities.MissingPart.delete(id),
     onSuccess: () => {
-      queryClient.invalidateQueries(["missingParts"]);
+      queryClient.invalidateQueries({ queryKey: ["missingParts"] });
       setShowDeleteDialog(false);
       setPartToDelete(null);
     },
