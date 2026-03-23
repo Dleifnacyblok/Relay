@@ -114,16 +114,19 @@ export default function AdminSettings() {
   async function handleRenameRep(oldName, newName) {
     const trimmed = newName.trim();
     if (!trimmed || trimmed === oldName) { setEditingRep(null); return; }
-    const affected = getRepAccounts(oldName);
+    // Update all assignment records that reference the old name
+    const affected = assignments.filter(a => getAssignedReps(a).includes(oldName));
     for (const row of affected) {
       const updated = getAssignedReps(row).map(r => r === oldName ? trimmed : r);
-      await base44.entities.RepAccountAssignment.update(row.id, { ...row, assignedReps: updated });
-    }
-    // Also update any users whose full_name matches
-    const matchingUser = allUsers.find(u => u.full_name === oldName);
-    if (matchingUser) {
-      await base44.entities.User.update(matchingUser.id, { full_name: trimmed });
-      qc.invalidateQueries({ queryKey: ["allUsers"] });
+      // If this was a placeholder for the old name, rename or delete it
+      if (row.accountName === `__rep_placeholder__${oldName}`) {
+        await base44.entities.RepAccountAssignment.update(row.id, {
+          accountName: `__rep_placeholder__${trimmed}`,
+          assignedReps: [trimmed],
+        });
+      } else {
+        await base44.entities.RepAccountAssignment.update(row.id, { ...row, assignedReps: updated });
+      }
     }
     invalidate();
     setEditingRep(null);
