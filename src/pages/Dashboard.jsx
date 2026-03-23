@@ -70,9 +70,12 @@ export default function Dashboard() {
 
   const userName = user?.full_name || "";
   const computedLoaners = loaners.map(computeLoanerData);
-  const overdueCount = computedLoaners.filter(l => l.risk_status === "Overdue").length;
-  const dueSoonCount = computedLoaners.filter(l => l.risk_status === "Due Soon").length;
-  const totalFineExposure = computedLoaners.reduce((sum, l) => sum + (l.fineAmount || 0), 0);
+  const activeLoaners = computedLoaners.filter(l =>
+    l.returnStatus !== "sent_back" && l.returnStatus !== "received"
+  );
+  const overdueCount = activeLoaners.filter(l => l.risk_status === "Overdue").length;
+  const dueSoonCount = activeLoaners.filter(l => l.risk_status === "Due Soon").length;
+  const totalFineExposure = activeLoaners.reduce((sum, l) => sum + (l.fineAmount || 0), 0);
   const myLoanerCount = computedLoaners.filter(l =>
     l.returnStatus !== "sent_back" &&
     l.returnStatus !== "received" &&
