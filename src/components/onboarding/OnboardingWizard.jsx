@@ -332,7 +332,7 @@ export default function OnboardingWizard({ user, onComplete }) {
               {saving ? "Saving..." : "Save & Continue →"}
             </Button>
           )}
-        </div>
+        </div>}
       </div>
     </div>
   );
