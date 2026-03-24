@@ -136,50 +136,6 @@ export default function MyAccount() {
           </button>
         </div>
 
-        {/* Stats Row */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
-          {[
-            { label: "Total Loaners", value: totalLoaners, icon: Package, variant: "default" },
-            { label: "Overdue", value: overdueLoaners, icon: AlertTriangle, variant: "danger" },
-            { label: "Due Soon", value: dueSoonLoaners, icon: Clock, variant: "warning" },
-            { label: "Missing Parts", value: totalMissingParts, icon: Package, variant: "warning" },
-          ].map(({ label, value, icon: Icon, variant }) => (
-            <Card key={label} className={`p-4 ${
-              variant === "danger" ? "bg-red-50 border-red-200" :
-              variant === "warning" ? "bg-amber-50 border-amber-200" :
-              "bg-white border-slate-200"
-            }`}>
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs text-slate-500">{label}</p>
-                  <p className="text-2xl font-bold text-slate-900 mt-0.5">{value}</p>
-                </div>
-                <Icon className={`w-5 h-5 ${
-                  variant === "danger" ? "text-red-400" :
-                  variant === "warning" ? "text-amber-400" :
-                  "text-slate-400"
-                }`} />
-              </div>
-            </Card>
-          ))}
-        </div>
-
-        {/* Fines Row */}
-        <div className="grid grid-cols-3 gap-3 mb-6">
-          <Card className="p-4 bg-white border-slate-200">
-            <p className="text-xs text-slate-500 mb-1">Loaner Fines</p>
-            <p className="text-lg font-bold text-slate-900">{formatCurrency(totalLoanerFines)}</p>
-          </Card>
-          <Card className="p-4 bg-white border-slate-200">
-            <p className="text-xs text-slate-500 mb-1">Parts Fines</p>
-            <p className="text-lg font-bold text-slate-900">{formatCurrency(totalMissingPartsFines)}</p>
-          </Card>
-          <Card className="p-4 bg-gradient-to-br from-red-50 to-red-100 border-red-200">
-            <p className="text-xs text-red-700 font-medium mb-1">Total Fines</p>
-            <p className="text-lg font-bold text-red-900">{formatCurrency(totalFines)}</p>
-          </Card>
-        </div>
-
         {/* Accounts Quick View (profile tab only) */}
         {activeTab === "profile" && uniqueAccounts.length > 0 && (
           <Card className="bg-white border-slate-200 mb-6">
