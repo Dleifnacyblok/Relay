@@ -161,6 +161,8 @@ export default function MyAccount() {
             managedAccounts={managedAccounts}
             assignedAccountNames={assignedAccountNames}
             allAssignments={allAssignments}
+            loaners={loaners}
+            onAccountClick={(account) => { setSelectedAccount(account); setShowAccountDialog(true); }}
           />
         )}
         {activeTab === "calendar" && (
