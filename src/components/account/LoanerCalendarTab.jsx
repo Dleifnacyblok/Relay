@@ -1,14 +1,13 @@
 import { useMemo } from "react";
 import { Calendar, dateFnsLocalizer } from "react-big-calendar";
 import { format, parse, startOfWeek, getDay } from "date-fns";
-import { enUS } from "date-fns/locale/en-US";
 
 const localizer = dateFnsLocalizer({
   format,
   parse,
   startOfWeek: () => startOfWeek(new Date(), { weekStartsOn: 0 }),
   getDay,
-  locales: { "en-US": enUS },
+  locales: {},
 });
 
 const EVENT_COLORS = {
