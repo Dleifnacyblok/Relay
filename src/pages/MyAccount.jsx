@@ -136,37 +136,6 @@ export default function MyAccount() {
           </button>
         </div>
 
-        {/* Accounts Quick View (profile tab only) */}
-        {activeTab === "profile" && uniqueAccounts.length > 0 && (
-          <Card className="bg-white border-slate-200 mb-6">
-            <div className="px-5 py-3 border-b border-slate-100">
-              <p className="text-sm font-semibold text-slate-700">Active Accounts</p>
-            </div>
-            <div className="divide-y divide-slate-50">
-              {uniqueAccounts.map((account, idx) => {
-                const accountLoaners = loaners.filter(l => l.accountName === account);
-                const accountOverdue = accountLoaners.filter(l => l.isOverdue).length;
-                return (
-                  <button
-                    key={idx}
-                    onClick={() => { setSelectedAccount(account); setShowAccountDialog(true); }}
-                    className="w-full flex items-center justify-between px-5 py-3 hover:bg-slate-50 transition-colors text-left"
-                  >
-                    <div>
-                      <p className="font-medium text-sm text-slate-900">{account}</p>
-                      <p className="text-xs text-slate-500 mt-0.5">
-                        {accountLoaners.length} loaner{accountLoaners.length !== 1 ? "s" : ""}
-                        {accountOverdue > 0 && <span className="text-red-500 ml-2">• {accountOverdue} overdue</span>}
-                      </p>
-                    </div>
-                    <ChevronRight className="w-4 h-4 text-slate-400" />
-                  </button>
-                );
-              })}
-            </div>
-          </Card>
-        )}
-
         {/* Tabs */}
         <div className="flex gap-1 bg-slate-100 rounded-xl p-1 mb-5">
           {TABS.map(({ key, label, icon: Icon }) => (
