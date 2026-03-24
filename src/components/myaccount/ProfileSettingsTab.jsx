@@ -8,7 +8,7 @@ import { Check, X, Plus, Pencil } from "lucide-react";
 import { useRef } from "react";
 import { toast } from "sonner";
 
-export default function ProfileSettingsTab({ user, managedAccounts, assignedAccountNames, allAssignments }) {
+export default function ProfileSettingsTab({ user, managedAccounts, assignedAccountNames, allAssignments, loaners = [], onAccountClick }) {
   const queryClient = useQueryClient();
   const [editingName, setEditingName] = useState(false);
   const [nameInput, setNameInput] = useState("");
