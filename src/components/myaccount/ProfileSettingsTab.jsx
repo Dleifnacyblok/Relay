@@ -130,20 +130,36 @@ export default function ProfileSettingsTab({ user, managedAccounts, assignedAcco
         {(managedAccounts.length === 0 && assignedAccountNames.length === 0) ? (
           <p className="text-xs text-slate-400">No accounts added yet.</p>
         ) : (
-          <div className="flex flex-wrap gap-2">
-            {assignedAccountNames.map(acc => (
-              <span key={acc} className="inline-flex items-center gap-1 bg-green-50 text-green-700 border border-green-200 text-xs font-medium px-3 py-1 rounded-full">
-                {acc}
-              </span>
-            ))}
-            {managedAccounts.map(acc => (
-              <span key={acc} className="inline-flex items-center gap-1 bg-blue-50 text-blue-700 border border-blue-200 text-xs font-medium px-3 py-1 rounded-full">
-                {acc}
-                <button onClick={() => handleRemoveAccount(acc)} className="ml-1 text-blue-400 hover:text-red-500 transition-colors">
-                  <X className="w-3 h-3" />
-                </button>
-              </span>
-            ))}
+          <div className="space-y-2 mt-1">
+            {[...assignedAccountNames, ...managedAccounts].filter((v, i, a) => a.indexOf(v) === i).map(acc => {
+              const isManaged = managedAccounts.includes(acc);
+              const accLoaners = loaners.filter(l => l.accountName === acc);
+              const accOverdue = accLoaners.filter(l => l.isOverdue).length;
+              return (
+                <div key={acc} className="flex items-center justify-between rounded-lg border border-slate-100 bg-slate-50 px-3 py-2.5">
+                  <button
+                    className="flex-1 text-left min-w-0"
+                    onClick={() => onAccountClick?.(acc)}
+                  >
+                    <p className="text-sm font-medium text-slate-900 truncate">{acc}</p>
+                    <p className="text-xs text-slate-400 mt-0.5">
+                      {accLoaners.length} loaner{accLoaners.length !== 1 ? "s" : ""}
+                      {accOverdue > 0 && <span className="text-red-500 ml-2">• {accOverdue} overdue</span>}
+                    </p>
+                  </button>
+                  <div className="flex items-center gap-2 ml-2 shrink-0">
+                    <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${isManaged ? "bg-blue-50 text-blue-600 border border-blue-200" : "bg-green-50 text-green-700 border border-green-200"}`}>
+                      {isManaged ? "Added" : "Assigned"}
+                    </span>
+                    {isManaged && (
+                      <button onClick={() => handleRemoveAccount(acc)} className="text-slate-300 hover:text-red-500 transition-colors">
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         )}
       </Card>
