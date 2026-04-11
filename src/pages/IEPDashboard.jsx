@@ -208,7 +208,17 @@ export default function IEPDashboard() {
 
         {/* Stat Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-          <StatCard label="Territory Avg Eff %" value={avgEffPct != null ? `${avgEffPct.toFixed(1)}%` : "—"} icon={Activity} color="purple" sub="across all systems" />
+          {/* Territory Avg — centered focal card */}
+          <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5 flex flex-col items-center justify-center text-center">
+            <div className="p-2.5 rounded-lg bg-purple-50 mb-2">
+              <Activity className="w-5 h-5 text-purple-600" />
+            </div>
+            <p className="text-xs text-slate-500 font-medium uppercase tracking-wide mb-1">Territory Avg Eff %</p>
+            <p className="text-5xl font-extrabold text-purple-600 leading-none mb-1">
+              {avgEffPct != null ? `${avgEffPct.toFixed(1)}%` : "—"}
+            </p>
+            <p className="text-xs text-slate-400">across all systems</p>
+          </div>
           <StatCard label="Above Target (≥100%)" value={aboveTarget} icon={Target} color="green" sub={`${((aboveTarget / systems.length) * 100).toFixed(0)}% of systems`} onClick={() => handleCardClick("above")} active={tableFilter === "above"} />
           <StatCard label="Below Target (<70%)" value={belowTarget} icon={Target} color="red" sub={`${((belowTarget / systems.length) * 100).toFixed(0)}% of systems`} onClick={() => handleCardClick("below")} active={tableFilter === "below"} />
         </div>
