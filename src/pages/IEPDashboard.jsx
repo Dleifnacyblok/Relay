@@ -2,7 +2,7 @@ import { useMemo, useState, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Link } from "react-router-dom";
-import { TrendingUp, Upload, Target, Activity, BarChart2, Clock } from "lucide-react";
+import { TrendingUp, Upload, Target, Activity, BarChart2, Clock, PackageSearch } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from "recharts";
 
 function StatCard({ label, value, sub, icon: Icon, color = "blue", onClick, active }) {
@@ -61,6 +61,11 @@ export default function IEPDashboard() {
     queryFn: () => base44.entities.IEPSystemData.list(),
   });
 
+  const { data: allLoaners = [] } = useQuery({
+    queryKey: ["loaners"],
+    queryFn: () => base44.entities.Loaners.list(),
+  });
+
   const sorted = useMemo(() =>
     [...systems].sort((a, b) => (b.effPct ?? -999) - (a.effPct ?? -999)),
     [systems]
@@ -100,6 +105,19 @@ export default function IEPDashboard() {
     if (tableFilter === "below") return sorted.filter(s => s.effPct != null && s.effPct < 70);
     return sorted;
   }, [sorted, tableFilter]);
+
+  const iepSystemNames = useMemo(() =>
+    new Set(systems.map(s => s.systemName?.toLowerCase().trim())),
+    [systems]
+  );
+
+  const iepAffectedLoaners = useMemo(() =>
+    allLoaners.filter(l =>
+      l.setName && iepSystemNames.has(l.setName.toLowerCase().trim()) &&
+      l.returnStatus !== "received"
+    ),
+    [allLoaners, iepSystemNames]
+  );
 
   const top10 = useMemo(() =>
     sorted.slice(0, 10).map(s => ({
@@ -231,6 +249,51 @@ export default function IEPDashboard() {
                   </div>
                 </>
               )}
+            </div>
+          </div>
+        )}
+
+        {/* IEP-Affected Loaners in Territory */}
+        {iepAffectedLoaners.length > 0 && (
+          <div className="bg-white rounded-xl border border-amber-200 shadow-sm p-6 mb-8">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 rounded-lg bg-amber-50">
+                <PackageSearch className="w-5 h-5 text-amber-600" />
+              </div>
+              <div>
+                <h2 className="text-sm font-semibold text-slate-700">IEP-Tracked Sets Currently in Territory</h2>
+                <p className="text-xs text-slate-400">{iepAffectedLoaners.length} loaner(s) matching active IEP systems</p>
+              </div>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-slate-50 text-xs text-slate-500 uppercase tracking-wide">
+                  <tr>
+                    <th className="px-3 py-2 text-left font-medium">Set Name</th>
+                    <th className="px-3 py-2 text-left font-medium">Account</th>
+                    <th className="px-3 py-2 text-left font-medium">Rep</th>
+                    <th className="px-3 py-2 text-left font-medium">Due Date</th>
+                    <th className="px-3 py-2 text-center font-medium">Status</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {iepAffectedLoaners.map((l, i) => (
+                    <tr key={l.id || i} className="hover:bg-slate-50">
+                      <td className="px-3 py-2.5 font-medium text-slate-800">{l.setName}</td>
+                      <td className="px-3 py-2.5 text-slate-600">{l.accountName || "—"}</td>
+                      <td className="px-3 py-2.5 text-slate-600">{l.repName || l.fieldSalesRep || "—"}</td>
+                      <td className="px-3 py-2.5 text-slate-600">{l.expectedReturnDate || "—"}</td>
+                      <td className="px-3 py-2.5 text-center">
+                        <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-semibold ${
+                          l.isOverdue ? "bg-red-100 text-red-700" : l.daysUntilDue <= 3 ? "bg-amber-100 text-amber-700" : "bg-green-100 text-green-700"
+                        }`}>
+                          {l.isOverdue ? `${l.daysOverdue}d overdue` : l.daysUntilDue != null ? `Due in ${l.daysUntilDue}d` : "Active"}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </div>
         )}
