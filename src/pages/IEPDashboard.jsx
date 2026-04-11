@@ -387,12 +387,16 @@ export default function IEPDashboard() {
                 <p className="px-4 pt-4 pb-2 text-xs font-semibold text-green-700 uppercase tracking-wide">Top 10</p>
                 <div className="space-y-1 px-3 pb-4">
                   {sorted.slice(0, 10).map((s, i) => (
-                    <div key={s.id || i} className="flex items-center justify-between px-3 py-2.5 rounded-lg bg-slate-50 text-left">
+                    <button key={s.id || i} onClick={() => { setSelectedSystem(s); setModalFilter("above"); }}
+                      className="w-full flex items-center justify-between px-3 py-2.5 rounded-lg bg-slate-50 hover:bg-slate-100 transition-colors text-left">
                       <span className="text-sm text-slate-700 font-medium">{s.systemName}</span>
-                      <span className={`text-xs font-bold px-2 py-0.5 rounded-full ml-2 shrink-0 ${
-                        s.effPct >= 100 ? "bg-green-100 text-green-700" : s.effPct >= 70 ? "bg-yellow-100 text-yellow-700" : "bg-red-100 text-red-700"
-                      }`}>{s.effPct != null ? `${s.effPct.toFixed(1)}%` : "—"}</span>
-                    </div>
+                      <div className="flex items-center gap-2">
+                        <span className={`text-xs font-bold px-2 py-0.5 rounded-full shrink-0 ${
+                          s.effPct >= 100 ? "bg-green-100 text-green-700" : s.effPct >= 70 ? "bg-yellow-100 text-yellow-700" : "bg-red-100 text-red-700"
+                        }`}>{s.effPct != null ? `${s.effPct.toFixed(1)}%` : "\u2014"}</span>
+                        <span className="text-slate-300 text-xs">›</span>
+                      </div>
+                    </button>
                   ))}
                 </div>
               </div>
@@ -401,12 +405,16 @@ export default function IEPDashboard() {
                 <p className="px-4 pt-4 pb-2 text-xs font-semibold text-red-600 uppercase tracking-wide">Bottom 10</p>
                 <div className="space-y-1 px-3 pb-4">
                   {[...sorted].reverse().slice(0, 10).map((s, i) => (
-                    <div key={s.id || i} className="flex items-center justify-between px-3 py-2.5 rounded-lg bg-slate-50 text-left">
+                    <button key={s.id || i} onClick={() => { setSelectedSystem(s); setModalFilter("below"); }}
+                      className="w-full flex items-center justify-between px-3 py-2.5 rounded-lg bg-slate-50 hover:bg-slate-100 transition-colors text-left">
                       <span className="text-sm text-slate-700 font-medium">{s.systemName}</span>
-                      <span className={`text-xs font-bold px-2 py-0.5 rounded-full ml-2 shrink-0 ${
-                        s.effPct >= 100 ? "bg-green-100 text-green-700" : s.effPct >= 70 ? "bg-yellow-100 text-yellow-700" : "bg-red-100 text-red-700"
-                      }`}>{s.effPct != null ? `${s.effPct.toFixed(1)}%` : "—"}</span>
-                    </div>
+                      <div className="flex items-center gap-2">
+                        <span className={`text-xs font-bold px-2 py-0.5 rounded-full shrink-0 ${
+                          s.effPct >= 100 ? "bg-green-100 text-green-700" : s.effPct >= 70 ? "bg-yellow-100 text-yellow-700" : "bg-red-100 text-red-700"
+                        }`}>{s.effPct != null ? `${s.effPct.toFixed(1)}%` : "\u2014"}</span>
+                        <span className="text-slate-300 text-xs">›</span>
+                      </div>
+                    </button>
                   ))}
                 </div>
               </div>
