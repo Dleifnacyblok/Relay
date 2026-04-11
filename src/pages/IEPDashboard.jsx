@@ -80,10 +80,10 @@ export default function IEPDashboard() {
   const belowTarget = useMemo(() => systems.filter(s => s.effPct != null && s.effPct < 70).length, [systems]);
 
   const avgLoanerEffPct = useMemo(() => {
-    const vals = systems
-      .filter(s => s.loanerExpUsage != null && s.loanerExpUsage > 0 && s.procCmpl != null)
-      .map(s => (s.procCmpl / s.loanerExpUsage) * 100);
-    return vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : null;
+    const eligible = systems.filter(s => s.loanerExpUsage != null && s.loanerExpUsage > 0 && s.effPct != null);
+    const totalWeight = eligible.reduce((a, s) => a + s.loanerExpUsage, 0);
+    if (!totalWeight) return null;
+    return eligible.reduce((a, s) => a + s.effPct * s.loanerExpUsage, 0) / totalWeight;
   }, [systems]);
 
   const lastImport = useMemo(() => {
