@@ -423,38 +423,6 @@ export default function Analytics() {
           </Card>
         </div>
 
-        {/* ── IEP IMPACT LOANERS ── */}
-        <SectionHeader label="IEP Impact — Territory Set Loaners" />
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-4">
-          <KpiCard title="Active IEP Loaners" value={iepLoaners.length} sub="matching territory sets" icon={MapPin}
-            color={{ bg: "bg-purple-50", border: "border-purple-200", text: "text-purple-700", iconBg: "bg-purple-100", iconText: "text-purple-600" }} />
-          <KpiCard title="IEP Overdue" value={iepOverdue.length} sub="need immediate action" icon={AlertTriangle}
-            color={{ bg: "bg-red-50", border: "border-red-200", text: "text-red-700", iconBg: "bg-red-100", iconText: "text-red-600" }} />
-          <KpiCard title="IEP Due Soon" value={iepDueSoon.length} sub="coming up" icon={Package}
-            color={{ bg: "bg-amber-50", border: "border-amber-200", text: "text-amber-700", iconBg: "bg-amber-100", iconText: "text-amber-600" }} />
-        </div>
-
-        {iepByRep.length > 0 && (
-          <Card className="p-5 bg-white border-slate-200 mb-5">
-            <h3 className="text-sm font-semibold text-slate-700 mb-1 flex items-center gap-2">
-              <MapPin className="w-4 h-4 text-purple-500" /> IEP-Impacted Loaners by Representative
-            </h3>
-            <p className="text-xs text-slate-400 mb-4">Reps with active loaners that match territory consigned set names</p>
-            <ResponsiveContainer width="100%" height={Math.max(200, iepByRep.length * 36)}>
-              <BarChart data={iepByRep} layout="vertical" barSize={16}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" horizontal={false} />
-                <XAxis type="number" tick={{ fontSize: 11 }} allowDecimals={false} />
-                <YAxis type="category" dataKey="rep" tick={{ fontSize: 11 }} width={110} />
-                <Tooltip />
-                <Legend />
-                <Bar dataKey="total" fill="#e2e8f0" radius={[0, 4, 4, 0]} name="Total IEP" />
-                <Bar dataKey="overdue" fill="#ef4444" radius={[0, 4, 4, 0]} name="Overdue" />
-                <Bar dataKey="dueSoon" fill="#f59e0b" radius={[0, 4, 4, 0]} name="Due Soon" />
-              </BarChart>
-            </ResponsiveContainer>
-          </Card>
-        )}
-
         {/* ── TERRITORY CONSIGNMENT UTILIZATION ── */}
         <SectionHeader label="Territory Consignment Utilization" />
         
