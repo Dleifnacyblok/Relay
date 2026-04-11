@@ -59,7 +59,7 @@ export default function Layout({ children, currentPageName }) {
     ...(isAdmin ? [
       { name: "Analytics", page: "Analytics", icon: TrendingUp },
       { name: "IEP Dashboard", page: "IEPDashboard", icon: TrendingUp },
-      { name: "IEP Import", page: "IEPImport", icon: TrendingUp },
+
       { name: "Import", page: "ImportData", icon: Upload },
       { name: "Manager Settings", page: "AdminSettings", icon: Settings },
     ] : []),
