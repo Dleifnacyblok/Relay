@@ -28,31 +28,10 @@ function detectFileType(rows) {
   return null;
 }
 
-async function importGrid6(rows) {
-  const importedAt = new Date().toISOString();
-  const valid = rows.filter(r => cleanStr(r["Name"]));
-  const existing = await base44.entities.IEPSystemData.list();
-  for (const rec of existing) await base44.entities.IEPSystemData.delete(rec.id);
-  for (const row of valid) {
-    await base44.entities.IEPSystemData.create({
-      systemName: cleanStr(row["Name"]),
-      sysCnt: toNum(row["Sys Cnt"]),
-      consExpUsage: toNum(row["Cons Exp Usage"]),
-      consExpUsageProj: toNum(row["Cons Exp Usage Proj"]),
-      loanerExpUsage: toNum(row["Loaner Exp Usage"]),
-      loanerExpUsageProj: toNum(row["Loaner Exp Usage Proj"]),
-      totalExpUsage: toNum(row["Total Exp Usage"]),
-      totalExpUsageProj: toNum(row["Total Exp Usage Proj"]),
-      procCmpl: toNum(row["Proc Cmpl"]),
-      procCmplProj: toNum(row["Proc Cmpl Proj"]),
-      effScore: toNum(row["Eff Score"]),
-      effScoreProj: toNum(row["Eff Score Proj"]),
-      effPct: toNum(row["Eff %"]),
-      effPctProj: toNum(row["Eff % Proj"]),
-      importedAt,
-    });
-  }
-  return valid.length;
+async function importViaBackend(fileUrl, fileType, setProgress) {
+  setProgress(`Uploading to server...`);
+  const res = await base44.functions.invoke('importIEPFiles', { fileUrl, fileType });
+  return res.data.imported;
 }
 
 async function importGrid4(rows, setProgress) {
@@ -66,8 +45,7 @@ async function importGrid4(rows, setProgress) {
     const consCompl = toNum(row["Cons Compl"]);
     const consTotProj = toNum(row["Cons Tot Proj"]);
     const effPct = (consCompl != null && consTotProj != null && consTotProj > 0)
-      ? (consCompl / consTotProj) * 100
-      : null;
+      ? (consCompl / consTotProj) * 100 : null;
     await base44.entities.IEPConsignmentData.create({
       adName: cleanStr(row["Ad Name"]),
       fieldSales: cleanStr(row["Field Sales"]),
@@ -86,50 +64,6 @@ async function importGrid4(rows, setProgress) {
       last2MoCmpl: toNum(row["Last 2 Mon. Cmpl"]),
       consTotProj,
       effPct,
-      importedAt,
-    });
-    count++;
-  }
-  return count;
-}
-
-async function importGrid5(rows, setProgress) {
-  const importedAt = new Date().toISOString();
-  const valid = rows.filter(r => cleanStr(r["Set Name"]));
-  const existing = await base44.entities.IEPLoanerData.list();
-  for (const rec of existing) await base44.entities.IEPLoanerData.delete(rec.id);
-  let count = 0;
-  for (const row of valid) {
-    setProgress(`Importing loaner ${count + 1} of ${valid.length}...`);
-    const loanerCmpl = toNum(row["Loaner Cmpl"]);
-    const loanerTotProj = toNum(row["Loaner Tot Proj"]);
-    const statusRaw = cleanStr(row["Status"]);
-    const isMissing = statusRaw.toLowerCase() === "missing";
-    const effPct = (loanerCmpl != null && loanerTotProj != null && loanerTotProj > 0)
-      ? (loanerCmpl / loanerTotProj) * 100
-      : null;
-    const assocRaw = cleanStr(row["Assoc. Rep"]);
-    await base44.entities.IEPLoanerData.create({
-      ad: cleanStr(row["AD"]),
-      fieldSales: cleanStr(row["Field Sales"]),
-      system: cleanStr(row["System"]),
-      type: cleanStr(row["Type"]),
-      setId: cleanStr(row["Set Id"]),
-      setName: cleanStr(row["Set Name"]),
-      loanerId: cleanStr(row["Loaner Id"]),
-      etchId: cleanStr(row["Etch Id"]),
-      consignmentId: cleanStr(row["Consignment ID"]),
-      rep: cleanStr(row["Rep"]),
-      assocRep: assocRaw || "",
-      status: statusRaw,
-      placementDate: cleanStr(row["Placement Date"]),
-      returnDate: cleanStr(row["Return Date"]),
-      loanerCmpl,
-      loanerLast2Mo: toNum(row["Loaner Last 2 Mo."]),
-      loanerProj: toNum(row["Loaner Proj"]),
-      loanerTotProj,
-      effPct,
-      isMissing,
       importedAt,
     });
     count++;
@@ -213,9 +147,14 @@ function FileImportCard({ typeKey, onSuccess }) {
 
       let count = 0;
       setProgress("Clearing existing data...");
-      if (typeKey === "grid6") count = await importGrid6(rows);
-      else if (typeKey === "grid4") count = await importGrid4(rows, setProgress);
-      else if (typeKey === "grid5") count = await importGrid5(rows, setProgress);
+      if (typeKey === "grid6") {
+        const { file_url } = await base44.integrations.Core.UploadFile({ file });
+        count = await importViaBackend(file_url, 'grid6', setProgress);
+      } else if (typeKey === "grid4") count = await importGrid4(rows, setProgress);
+      else if (typeKey === "grid5") {
+        const { file_url } = await base44.integrations.Core.UploadFile({ file });
+        count = await importViaBackend(file_url, 'grid5', setProgress);
+      }
 
       setResult(count);
       setFile(null);
