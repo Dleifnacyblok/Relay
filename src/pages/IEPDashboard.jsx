@@ -350,7 +350,7 @@ export default function IEPDashboard() {
           )}
         </div>
 
-        {/* Bottom 10 Table */
+        {/* Bottom 10 Table */}
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden mb-8">
           <button onClick={() => setBottom10Open(o => !o)}
             className="w-full flex items-center justify-between px-6 py-4 hover:bg-slate-50 transition-colors">
