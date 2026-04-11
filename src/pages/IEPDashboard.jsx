@@ -2,8 +2,8 @@ import { useMemo, useState, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Link } from "react-router-dom";
-import { TrendingUp, Upload, Target, Activity, BarChart2, Clock, PackageSearch } from "lucide-react";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from "recharts";
+import { TrendingUp, Upload, Target, Activity, BarChart2, Clock, PackageSearch, MapPin, AlertTriangle, Box, ChevronDown, ChevronUp } from "lucide-react";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, Legend } from "recharts";
 
 function StatCard({ label, value, sub, icon: Icon, color = "blue", onClick, active }) {
   const colors = {
@@ -118,6 +118,24 @@ export default function IEPDashboard() {
     ),
     [allLoaners, iepSystemNames]
   );
+
+  const iepOverdue = useMemo(() => iepAffectedLoaners.filter(l => l.isOverdue), [iepAffectedLoaners]);
+  const iepDueSoon = useMemo(() => iepAffectedLoaners.filter(l => !l.isOverdue && l.daysUntilDue != null && l.daysUntilDue <= 7), [iepAffectedLoaners]);
+
+  const repChartData = useMemo(() => {
+    const map = {};
+    iepAffectedLoaners.forEach(l => {
+      const rep = l.repName || l.fieldSalesRep || "Unknown";
+      if (!map[rep]) map[rep] = { rep, total: 0, overdue: 0, dueSoon: 0, loaners: [] };
+      map[rep].total++;
+      if (l.isOverdue) map[rep].overdue++;
+      else if (l.daysUntilDue != null && l.daysUntilDue <= 7) map[rep].dueSoon++;
+      map[rep].loaners.push(l);
+    });
+    return Object.values(map).sort((a, b) => b.total - a.total);
+  }, [iepAffectedLoaners]);
+
+  const [expandedIepCard, setExpandedIepCard] = useState(null);
 
   const top10 = useMemo(() =>
     sorted.slice(0, 10).map(s => ({
@@ -355,6 +373,94 @@ export default function IEPDashboard() {
             </table>
           </div>
         </div>
+
+        {/* IEP Impact — Territory Set Loaners */}
+        {iepAffectedLoaners.length > 0 && (
+          <div className="mt-8">
+            <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-3">IEP Impact — Territory Set Loaners</p>
+
+            {/* Mini stat cards */}
+            <div className="grid grid-cols-3 gap-3 mb-5">
+              {[
+                { key: "active", label: "Active IEP Loaners", value: iepAffectedLoaners.length, sub: "matching territory sets", icon: MapPin, bg: "bg-purple-50", text: "text-purple-600", border: "border-purple-100", loaners: iepAffectedLoaners },
+                { key: "overdue", label: "IEP Overdue", value: iepOverdue.length, sub: "need immediate action", icon: AlertTriangle, bg: "bg-red-50", text: "text-red-500", border: "border-red-100", loaners: iepOverdue },
+                { key: "dueSoon", label: "IEP Due Soon", value: iepDueSoon.length, sub: "coming up", icon: Box, bg: "bg-amber-50", text: "text-amber-500", border: "border-amber-100", loaners: iepDueSoon },
+              ].map(card => {
+                const Icon = card.icon;
+                const isOpen = expandedIepCard === card.key;
+                return (
+                  <div key={card.key} className={`rounded-xl border ${card.border} bg-white shadow-sm overflow-hidden`}>
+                    <button onClick={() => setExpandedIepCard(isOpen ? null : card.key)}
+                      className="w-full flex items-center justify-between px-3 py-2.5 hover:bg-slate-50 transition-colors">
+                      <div className="flex items-center gap-2">
+                        <div className={`p-1.5 rounded-lg ${card.bg}`}><Icon className={`w-3.5 h-3.5 ${card.text}`} /></div>
+                        <div className="text-left">
+                          <p className="text-[10px] text-slate-500 font-medium leading-tight">{card.label}</p>
+                          <p className={`text-xl font-bold leading-tight ${card.text}`}>{card.value}</p>
+                          <p className="text-[10px] text-slate-400">{card.sub}</p>
+                        </div>
+                      </div>
+                      {isOpen ? <ChevronUp className="w-3.5 h-3.5 text-slate-400 shrink-0" /> : <ChevronDown className="w-3.5 h-3.5 text-slate-400 shrink-0" />}
+                    </button>
+                    {isOpen && (
+                      <div className="border-t border-slate-100 max-h-48 overflow-y-auto">
+                        {card.loaners.length === 0 ? (
+                          <p className="text-xs text-slate-400 text-center py-3">None</p>
+                        ) : card.loaners.map((l, i) => (
+                          <div key={l.id || i} className="flex items-center justify-between px-3 py-2 border-b border-slate-50 last:border-0">
+                            <div>
+                              <p className="text-xs font-medium text-slate-700 leading-tight">{l.setName}</p>
+                              <p className="text-[10px] text-slate-400">{l.accountName} · {l.repName || l.fieldSalesRep}</p>
+                            </div>
+                            <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full shrink-0 ml-2 ${
+                              l.isOverdue ? "bg-red-100 text-red-700" : "bg-amber-100 text-amber-700"
+                            }`}>
+                              {l.isOverdue ? `${l.daysOverdue}d over` : `${l.daysUntilDue}d`}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Rep bar chart */}
+            <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
+              <div className="flex items-center gap-2 mb-1">
+                <MapPin className="w-4 h-4 text-purple-500" />
+                <h2 className="text-sm font-semibold text-slate-700">IEP-Impacted Loaners by Representative</h2>
+              </div>
+              <p className="text-xs text-slate-400 mb-4">Reps with active loaners that match IEP set names</p>
+              <ResponsiveContainer width="100%" height={Math.max(160, repChartData.length * 32)}>
+                <BarChart data={repChartData} layout="vertical" margin={{ top: 0, right: 20, left: 80, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" horizontal={false} />
+                  <XAxis type="number" tick={{ fontSize: 10, fill: "#94a3b8" }} />
+                  <YAxis type="category" dataKey="rep" tick={{ fontSize: 10, fill: "#64748b" }} width={78} />
+                  <Tooltip
+                    content={({ active, payload, label }) => {
+                      if (!active || !payload?.length) return null;
+                      return (
+                        <div className="bg-white border border-slate-200 rounded-lg p-3 shadow-lg text-xs">
+                          <p className="font-semibold text-slate-800 mb-1">{label}</p>
+                          <p className="text-slate-500">Total IEP : {payload[0]?.value ?? 0}</p>
+                          <p className="text-red-500 font-medium">Overdue : {payload[1]?.value ?? 0}</p>
+                          <p className="text-amber-500 font-medium">Due Soon : {payload[2]?.value ?? 0}</p>
+                        </div>
+                      );
+                    }}
+                  />
+                  <Bar dataKey="total" fill="#e2e8f0" radius={[0, 3, 3, 0]} name="Total IEP" />
+                  <Bar dataKey="overdue" fill="#ef4444" radius={[0, 3, 3, 0]} name="Overdue" />
+                  <Bar dataKey="dueSoon" fill="#f59e0b" radius={[0, 3, 3, 0]} name="Due Soon" />
+                  <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 11, paddingTop: 8 }} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        )}
+
       </div>
     </div>
   );
