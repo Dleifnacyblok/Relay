@@ -1,11 +1,11 @@
-import { useMemo } from "react";
+import { useMemo, useState, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Link } from "react-router-dom";
 import { TrendingUp, Upload, Target, Activity, BarChart2, Clock } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from "recharts";
 
-function StatCard({ label, value, sub, icon: Icon, color = "blue" }) {
+function StatCard({ label, value, sub, icon: Icon, color = "blue", onClick, active }) {
   const colors = {
     blue: "bg-blue-50 text-blue-600",
     green: "bg-green-50 text-green-600",
@@ -14,7 +14,14 @@ function StatCard({ label, value, sub, icon: Icon, color = "blue" }) {
     purple: "bg-purple-50 text-purple-600",
   };
   return (
-    <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5 flex items-start gap-4">
+    <div
+      onClick={onClick}
+      className={`bg-white rounded-xl border shadow-sm p-5 flex items-start gap-4 transition-all ${
+        onClick ? "cursor-pointer hover:shadow-md" : ""
+      } ${
+        active ? "border-blue-400 ring-1 ring-blue-300" : "border-slate-200"
+      }`}
+    >
       <div className={`p-2.5 rounded-lg ${colors[color]}`}>
         <Icon className="w-5 h-5" />
       </div>
@@ -72,6 +79,20 @@ export default function IEPDashboard() {
     if (!dates.length) return null;
     return new Date(Math.max(...dates));
   }, [systems]);
+
+  const [tableFilter, setTableFilter] = useState(null); // null | 'above' | 'below'
+  const tableRef = useRef(null);
+
+  const handleCardClick = (filter) => {
+    setTableFilter(prev => prev === filter ? null : filter);
+    setTimeout(() => tableRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
+  };
+
+  const filteredSystems = useMemo(() => {
+    if (tableFilter === "above") return sorted.filter(s => s.effPct != null && s.effPct >= 100);
+    if (tableFilter === "below") return sorted.filter(s => s.effPct != null && s.effPct < 70);
+    return sorted;
+  }, [sorted, tableFilter]);
 
   const top10 = useMemo(() =>
     sorted.slice(0, 10).map(s => ({
@@ -136,9 +157,9 @@ export default function IEPDashboard() {
 
         {/* Stat Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-          <StatCard label="Territory Avg Eff %" value={avgEffPct != null ? `${avgEffPct.toFixed(1)}%` : "—"} icon={Activity} color="purple" sub="across all systems" />
-          <StatCard label="Above Target (≥100%)" value={aboveTarget} icon={Target} color="green" sub={`${((aboveTarget / systems.length) * 100).toFixed(0)}% of systems`} />
-          <StatCard label="Below Target (<70%)" value={belowTarget} icon={Target} color="red" sub={`${((belowTarget / systems.length) * 100).toFixed(0)}% of systems`} />
+          <StatCard label="Territory Avg Eff %" value={avgEffPct != null ? `${avgEffPct.toFixed(1)}%` : "—"} icon={Activity} color="purple" sub="across all systems" onClick={() => { setTableFilter(null); setTimeout(() => tableRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 50); }} />
+          <StatCard label="Above Target (≥100%)" value={aboveTarget} icon={Target} color="green" sub={`${((aboveTarget / systems.length) * 100).toFixed(0)}% of systems`} onClick={() => handleCardClick("above")} active={tableFilter === "above"} />
+          <StatCard label="Below Target (<70%)" value={belowTarget} icon={Target} color="red" sub={`${((belowTarget / systems.length) * 100).toFixed(0)}% of systems`} onClick={() => handleCardClick("below")} active={tableFilter === "below"} />
         </div>
 
         {/* Bar Chart */}
@@ -160,9 +181,14 @@ export default function IEPDashboard() {
         </div>
 
         {/* Table */}
-        <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-          <div className="px-6 py-4 border-b border-slate-100">
-            <h2 className="text-sm font-semibold text-slate-700">All Systems — sorted by Eff % (descending)</h2>
+        <div ref={tableRef} className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+          <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+            <h2 className="text-sm font-semibold text-slate-700">
+              {tableFilter === "above" ? "Above Target Systems (≥100%)" : tableFilter === "below" ? "Below Target Systems (<70%)" : "All Systems — sorted by Eff % (descending)"}
+            </h2>
+            {tableFilter && (
+              <button onClick={() => setTableFilter(null)} className="text-xs text-blue-500 hover:underline">Clear filter</button>
+            )}
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
@@ -178,7 +204,7 @@ export default function IEPDashboard() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {sorted.map((s, i) => (
+                {filteredSystems.map((s, i) => (
                   <tr key={s.id || i} className="hover:bg-slate-50 transition-colors">
                     <td className="px-4 py-3 font-medium text-slate-800">{s.systemName}</td>
                     <td className="px-4 py-3 text-right text-slate-600">{fmt(s.sysCnt)}</td>
