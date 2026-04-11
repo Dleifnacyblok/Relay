@@ -145,6 +145,11 @@ export default function IEPDashboard() {
     [sorted]
   );
 
+  const bottom10 = useMemo(() =>
+    [...sorted].reverse().slice(0, 10),
+    [sorted]
+  );
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -317,7 +322,7 @@ export default function IEPDashboard() {
         )}
 
         {/* Bar Chart */}
-        <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6 mb-8">
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6 mb-6">
           <h2 className="text-sm font-semibold text-slate-700 mb-4">Top 10 Systems by Eff %</h2>
           <ResponsiveContainer width="100%" height={220}>
             <BarChart data={top10} margin={{ top: 0, right: 0, left: -20, bottom: 40 }}>
@@ -332,6 +337,42 @@ export default function IEPDashboard() {
               </Bar>
             </BarChart>
           </ResponsiveContainer>
+        </div>
+
+        {/* Bottom 10 Table */}
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden mb-8">
+          <div className="px-6 py-4 border-b border-slate-100">
+            <h2 className="text-sm font-semibold text-slate-700">Bottom 10 Systems by Eff %</h2>
+            <p className="text-xs text-slate-400 mt-0.5">Lowest performing systems — needs attention</p>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-slate-50 text-xs text-slate-500 uppercase tracking-wide">
+                <tr>
+                  <th className="px-4 py-3 text-left font-medium">#</th>
+                  <th className="px-4 py-3 text-left font-medium">System Name</th>
+                  <th className="px-4 py-3 text-right font-medium">Sets</th>
+                  <th className="px-4 py-3 text-right font-medium">Proc Cmpl</th>
+                  <th className="px-4 py-3 text-right font-medium">Expected</th>
+                  <th className="px-4 py-3 text-center font-medium">Eff %</th>
+                  <th className="px-4 py-3 text-center font-medium">Proj Eff %</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {bottom10.map((s, i) => (
+                  <tr key={s.id || i} className="hover:bg-red-50 transition-colors">
+                    <td className="px-4 py-3 text-slate-300 font-mono text-xs">{i + 1}</td>
+                    <td className="px-4 py-3 font-medium text-slate-800">{s.systemName}</td>
+                    <td className="px-4 py-3 text-right text-slate-600">{fmt(s.sysCnt)}</td>
+                    <td className="px-4 py-3 text-right text-slate-600">{fmt(s.procCmpl)}</td>
+                    <td className="px-4 py-3 text-right text-slate-600">{fmt(s.totalExpUsage)}</td>
+                    <td className="px-4 py-3 text-center"><EffBadge val={s.effPct} /></td>
+                    <td className="px-4 py-3 text-center"><EffBadge val={s.effPctProj} /></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
 
         {/* Table */}
