@@ -1,0 +1,88 @@
+{
+  "name": "IEPLoanerData",
+  "type": "object",
+  "properties": {
+    "ad": {
+      "type": "string",
+      "description": "AD Name"
+    },
+    "fieldSales": {
+      "type": "string",
+      "description": "Field Sales rep"
+    },
+    "system": {
+      "type": "string",
+      "description": "System name"
+    },
+    "type": {
+      "type": "string",
+      "description": "Type (e.g. Degen)"
+    },
+    "setId": {
+      "type": "string",
+      "description": "Set ID"
+    },
+    "setName": {
+      "type": "string",
+      "description": "Set name"
+    },
+    "loanerId": {
+      "type": "string",
+      "description": "Loaner ID"
+    },
+    "etchId": {
+      "type": "string",
+      "description": "Etch ID"
+    },
+    "consignmentId": {
+      "type": "string",
+      "description": "Consignment ID"
+    },
+    "rep": {
+      "type": "string",
+      "description": "Rep name"
+    },
+    "assocRep": {
+      "type": "string",
+      "description": "Associate rep name"
+    },
+    "status": {
+      "type": "string",
+      "description": "Status (e.g. Missing)"
+    },
+    "placementDate": {
+      "type": "string"
+    },
+    "returnDate": {
+      "type": "string"
+    },
+    "loanerCmpl": {
+      "type": "number",
+      "description": "Loaner completions"
+    },
+    "loanerLast2Mo": {
+      "type": "number"
+    },
+    "loanerProj": {
+      "type": "number"
+    },
+    "loanerTotProj": {
+      "type": "number",
+      "description": "Total projected completions"
+    },
+    "effPct": {
+      "type": "number",
+      "description": "Computed eff %: loanerCmpl / loanerTotProj * 100"
+    },
+    "isMissing": {
+      "type": "boolean",
+      "description": "True if status is Missing"
+    },
+    "importedAt": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "setName"
+  ]
+}

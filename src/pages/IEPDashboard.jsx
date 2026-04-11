@@ -4,6 +4,8 @@ import { base44 } from "@/api/base44Client";
 import { Link } from "react-router-dom";
 import { TrendingUp, Upload, Target, Activity, BarChart2, Clock, PackageSearch, MapPin, AlertTriangle, Box, ChevronDown, ChevronUp } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, Legend } from "recharts";
+import IEPConsignmentTable from "@/components/iep/IEPConsignmentTable";
+import IEPLoanerTable from "@/components/iep/IEPLoanerTable";
 
 function StatCard({ label, value, sub, icon: Icon, color = "blue", onClick, active }) {
   const colors = {
@@ -59,6 +61,16 @@ export default function IEPDashboard() {
   const { data: systems = [], isLoading } = useQuery({
     queryKey: ["iepSystemData"],
     queryFn: () => base44.entities.IEPSystemData.list(),
+  });
+
+  const { data: consignmentData = [] } = useQuery({
+    queryKey: ["iepConsignmentData"],
+    queryFn: () => base44.entities.IEPConsignmentData.list(),
+  });
+
+  const { data: loanerData = [] } = useQuery({
+    queryKey: ["iepLoanerData"],
+    queryFn: () => base44.entities.IEPLoanerData.list(),
   });
 
   const { data: allLoaners = [] } = useQuery({
@@ -449,6 +461,15 @@ export default function IEPDashboard() {
             </div>
           )}
         </div>
+
+        {/* Consignment & Loaner individual tables */}
+        {consignmentData.length > 0 && (
+          <IEPConsignmentTable data={consignmentData} />
+        )}
+
+        {loanerData.length > 0 && (
+          <IEPLoanerTable data={loanerData} />
+        )}
 
         {/* IEP Impact — Territory Set Loaners */}
         {iepAffectedLoaners.length > 0 && (

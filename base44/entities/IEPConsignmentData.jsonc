@@ -1,0 +1,76 @@
+{
+  "name": "IEPConsignmentData",
+  "type": "object",
+  "properties": {
+    "adName": {
+      "type": "string",
+      "description": "AD Name"
+    },
+    "fieldSales": {
+      "type": "string",
+      "description": "Field Sales rep"
+    },
+    "tagId": {
+      "type": "string",
+      "description": "Tag ID"
+    },
+    "system": {
+      "type": "string",
+      "description": "System name"
+    },
+    "type": {
+      "type": "string",
+      "description": "Type (e.g. Degen)"
+    },
+    "setId": {
+      "type": "string",
+      "description": "Set ID"
+    },
+    "setName": {
+      "type": "string",
+      "description": "Set name"
+    },
+    "consignmentId": {
+      "type": "string",
+      "description": "Consignment ID"
+    },
+    "placementDate": {
+      "type": "string",
+      "description": "Placement date"
+    },
+    "returnDate": {
+      "type": "string",
+      "description": "Return date"
+    },
+    "daysKept": {
+      "type": "number"
+    },
+    "last2MoDaysKept": {
+      "type": "number"
+    },
+    "projDaysKept": {
+      "type": "number"
+    },
+    "consCompl": {
+      "type": "number",
+      "description": "Consignment completions"
+    },
+    "last2MoCmpl": {
+      "type": "number"
+    },
+    "consTotProj": {
+      "type": "number",
+      "description": "Total projected completions"
+    },
+    "effPct": {
+      "type": "number",
+      "description": "Computed eff %: consCompl / consTotProj * 100"
+    },
+    "importedAt": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "setName"
+  ]
+}
