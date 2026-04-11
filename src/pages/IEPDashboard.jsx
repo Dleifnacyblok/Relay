@@ -119,6 +119,7 @@ export default function IEPDashboard() {
             </div>
             <div>
               <h1 className="text-2xl font-bold text-slate-900">IEP Efficiency Dashboard</h1>
+              <p className="text-xs text-slate-400 mt-0.5">{systems.length} systems tracked</p>
               {lastImport && (
                 <p className="text-xs text-slate-400 flex items-center gap-1 mt-0.5">
                   <Clock className="w-3 h-3" />
@@ -134,9 +135,8 @@ export default function IEPDashboard() {
         </div>
 
         {/* Stat Cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
           <StatCard label="Territory Avg Eff %" value={avgEffPct != null ? `${avgEffPct.toFixed(1)}%` : "—"} icon={Activity} color="purple" sub="across all systems" />
-          <StatCard label="Systems Tracked" value={systems.length} icon={BarChart2} color="blue" />
           <StatCard label="Above Target (≥100%)" value={aboveTarget} icon={Target} color="green" sub={`${((aboveTarget / systems.length) * 100).toFixed(0)}% of systems`} />
           <StatCard label="Below Target (<70%)" value={belowTarget} icon={Target} color="red" sub={`${((belowTarget / systems.length) * 100).toFixed(0)}% of systems`} />
         </div>
