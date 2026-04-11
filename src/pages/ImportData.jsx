@@ -25,6 +25,13 @@ export default function ImportData() {
   const [uploadProgress, setUploadProgress] = useState(null);
   const [failedRows, setFailedRows] = useState([]);
   
+  // IEP Efficiency Report state
+  const [iepFile, setIepFile] = useState(null);
+  const [isUploadingIep, setIsUploadingIep] = useState(false);
+  const [iepImportResult, setIepImportResult] = useState(null);
+  const [iepError, setIepError] = useState(null);
+  const [iepProgress, setIepProgress] = useState(null);
+
   // Missing Parts state
   const [partsFile, setPartsFile] = useState(null);
   const [isUploadingParts, setIsUploadingParts] = useState(false);
