@@ -136,6 +136,9 @@ export default function IEPDashboard() {
   }, [iepAffectedLoaners]);
 
   const [expandedIepCard, setExpandedIepCard] = useState(null);
+  const [top10Open, setTop10Open] = useState(false);
+  const [bottom10Open, setBottom10Open] = useState(false);
+  const [allTableOpen, setAllTableOpen] = useState(false);
 
   const top10 = useMemo(() =>
     sorted.slice(0, 10).map(s => ({
@@ -322,97 +325,117 @@ export default function IEPDashboard() {
         )}
 
         {/* Bar Chart */}
-        <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6 mb-6">
-          <h2 className="text-sm font-semibold text-slate-700 mb-4">Top 10 Systems by Eff %</h2>
-          <ResponsiveContainer width="100%" height={220}>
-            <BarChart data={top10} margin={{ top: 0, right: 0, left: -20, bottom: 40 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-              <XAxis dataKey="name" tick={{ fontSize: 10, fill: "#94a3b8" }} angle={-35} textAnchor="end" interval={0} />
-              <YAxis tick={{ fontSize: 11, fill: "#94a3b8" }} />
-              <Tooltip formatter={(v) => [`${v.toFixed(1)}%`, "Eff %"]} />
-              <Bar dataKey="effPct" radius={[4, 4, 0, 0]}>
-                {top10.map((entry, i) => (
-                  <Cell key={i} fill={entry.effPct >= 100 ? "#22c55e" : entry.effPct >= 70 ? "#eab308" : "#ef4444"} />
-                ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden mb-6">
+          <button onClick={() => setTop10Open(o => !o)}
+            className="w-full flex items-center justify-between px-6 py-4 hover:bg-slate-50 transition-colors">
+            <h2 className="text-sm font-semibold text-slate-700">Top 10 Systems by Eff %</h2>
+            {top10Open ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
+          </button>
+          {top10Open && (
+            <div className="px-6 pb-6">
+              <ResponsiveContainer width="100%" height={220}>
+                <BarChart data={top10} margin={{ top: 0, right: 0, left: -20, bottom: 40 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                  <XAxis dataKey="name" tick={{ fontSize: 10, fill: "#94a3b8" }} angle={-35} textAnchor="end" interval={0} />
+                  <YAxis tick={{ fontSize: 11, fill: "#94a3b8" }} />
+                  <Tooltip formatter={(v) => [`${v.toFixed(1)}%`, "Eff %"]} />
+                  <Bar dataKey="effPct" radius={[4, 4, 0, 0]}>
+                    {top10.map((entry, i) => (
+                      <Cell key={i} fill={entry.effPct >= 100 ? "#22c55e" : entry.effPct >= 70 ? "#eab308" : "#ef4444"} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          )}
         </div>
 
-        {/* Bottom 10 Table */}
+        {/* Bottom 10 Table */
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden mb-8">
-          <div className="px-6 py-4 border-b border-slate-100">
-            <h2 className="text-sm font-semibold text-slate-700">Bottom 10 Systems by Eff %</h2>
-            <p className="text-xs text-slate-400 mt-0.5">Lowest performing systems — needs attention</p>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-slate-50 text-xs text-slate-500 uppercase tracking-wide">
-                <tr>
-                  <th className="px-4 py-3 text-left font-medium">#</th>
-                  <th className="px-4 py-3 text-left font-medium">System Name</th>
-                  <th className="px-4 py-3 text-right font-medium">Sets</th>
-                  <th className="px-4 py-3 text-right font-medium">Proc Cmpl</th>
-                  <th className="px-4 py-3 text-right font-medium">Expected</th>
-                  <th className="px-4 py-3 text-center font-medium">Eff %</th>
-                  <th className="px-4 py-3 text-center font-medium">Proj Eff %</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {bottom10.map((s, i) => (
-                  <tr key={s.id || i} className="hover:bg-red-50 transition-colors">
-                    <td className="px-4 py-3 text-slate-300 font-mono text-xs">{i + 1}</td>
-                    <td className="px-4 py-3 font-medium text-slate-800">{s.systemName}</td>
-                    <td className="px-4 py-3 text-right text-slate-600">{fmt(s.sysCnt)}</td>
-                    <td className="px-4 py-3 text-right text-slate-600">{fmt(s.procCmpl)}</td>
-                    <td className="px-4 py-3 text-right text-slate-600">{fmt(s.totalExpUsage)}</td>
-                    <td className="px-4 py-3 text-center"><EffBadge val={s.effPct} /></td>
-                    <td className="px-4 py-3 text-center"><EffBadge val={s.effPctProj} /></td>
+          <button onClick={() => setBottom10Open(o => !o)}
+            className="w-full flex items-center justify-between px-6 py-4 hover:bg-slate-50 transition-colors">
+            <div className="text-left">
+              <h2 className="text-sm font-semibold text-slate-700">Bottom 10 Systems by Eff %</h2>
+              <p className="text-xs text-slate-400 mt-0.5">Lowest performing systems — needs attention</p>
+            </div>
+            {bottom10Open ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
+          </button>
+          {bottom10Open && (
+            <div className="overflow-x-auto border-t border-slate-100">
+              <table className="w-full text-sm">
+                <thead className="bg-slate-50 text-xs text-slate-500 uppercase tracking-wide">
+                  <tr>
+                    <th className="px-4 py-3 text-left font-medium">#</th>
+                    <th className="px-4 py-3 text-left font-medium">System Name</th>
+                    <th className="px-4 py-3 text-right font-medium">Sets</th>
+                    <th className="px-4 py-3 text-right font-medium">Proc Cmpl</th>
+                    <th className="px-4 py-3 text-right font-medium">Expected</th>
+                    <th className="px-4 py-3 text-center font-medium">Eff %</th>
+                    <th className="px-4 py-3 text-center font-medium">Proj Eff %</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {bottom10.map((s, i) => (
+                    <tr key={s.id || i} className="hover:bg-red-50 transition-colors">
+                      <td className="px-4 py-3 text-slate-300 font-mono text-xs">{i + 1}</td>
+                      <td className="px-4 py-3 font-medium text-slate-800">{s.systemName}</td>
+                      <td className="px-4 py-3 text-right text-slate-600">{fmt(s.sysCnt)}</td>
+                      <td className="px-4 py-3 text-right text-slate-600">{fmt(s.procCmpl)}</td>
+                      <td className="px-4 py-3 text-right text-slate-600">{fmt(s.totalExpUsage)}</td>
+                      <td className="px-4 py-3 text-center"><EffBadge val={s.effPct} /></td>
+                      <td className="px-4 py-3 text-center"><EffBadge val={s.effPctProj} /></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
 
         {/* Table */}
         <div ref={tableRef} className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-          <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-slate-700">
-              {tableFilter === "above" ? "Above Target Systems (≥100%)" : tableFilter === "below" ? "Below Target Systems (<70%)" : "All Systems — sorted by Eff % (descending)"}
-            </h2>
-            {tableFilter && (
-              <button onClick={() => setTableFilter(null)} className="text-xs text-blue-500 hover:underline">Clear filter</button>
-            )}
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-slate-50 text-xs text-slate-500 uppercase tracking-wide">
-                <tr>
-                  <th className="px-4 py-3 text-left font-medium">System Name</th>
-                  <th className="px-4 py-3 text-right font-medium">Sets</th>
-                  <th className="px-4 py-3 text-right font-medium">Proc Cmpl</th>
-                  <th className="px-4 py-3 text-right font-medium">Expected</th>
-                  <th className="px-4 py-3 text-center font-medium">Eff %</th>
-                  <th className="px-4 py-3 text-center font-medium">Proj Eff %</th>
-                  <th className="px-4 py-3 text-right font-medium">Eff Score</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {filteredSystems.map((s, i) => (
-                  <tr key={s.id || i} className="hover:bg-slate-50 transition-colors">
-                    <td className="px-4 py-3 font-medium text-slate-800">{s.systemName}</td>
-                    <td className="px-4 py-3 text-right text-slate-600">{fmt(s.sysCnt)}</td>
-                    <td className="px-4 py-3 text-right text-slate-600">{fmt(s.procCmpl)}</td>
-                    <td className="px-4 py-3 text-right text-slate-600">{fmt(s.totalExpUsage)}</td>
-                    <td className="px-4 py-3 text-center"><EffBadge val={s.effPct} /></td>
-                    <td className="px-4 py-3 text-center"><EffBadge val={s.effPctProj} /></td>
-                    <td className="px-4 py-3 text-right"><ScoreCell val={s.effScore} /></td>
+          <button onClick={() => setAllTableOpen(o => !o)}
+            className="w-full flex items-center justify-between px-6 py-4 hover:bg-slate-50 transition-colors">
+            <div className="text-left">
+              <h2 className="text-sm font-semibold text-slate-700">
+                {tableFilter === "above" ? "Above Target Systems (≥100%)" : tableFilter === "below" ? "Below Target Systems (<70%)" : "All Systems — sorted by Eff % (descending)"}
+              </h2>
+              {tableFilter && (
+                <button onClick={(e) => { e.stopPropagation(); setTableFilter(null); }} className="text-xs text-blue-500 hover:underline mt-0.5">Clear filter</button>
+              )}
+            </div>
+            {allTableOpen ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
+          </button>
+          {allTableOpen && (
+            <div className="overflow-x-auto border-t border-slate-100">
+              <table className="w-full text-sm">
+                <thead className="bg-slate-50 text-xs text-slate-500 uppercase tracking-wide">
+                  <tr>
+                    <th className="px-4 py-3 text-left font-medium">System Name</th>
+                    <th className="px-4 py-3 text-right font-medium">Sets</th>
+                    <th className="px-4 py-3 text-right font-medium">Proc Cmpl</th>
+                    <th className="px-4 py-3 text-right font-medium">Expected</th>
+                    <th className="px-4 py-3 text-center font-medium">Eff %</th>
+                    <th className="px-4 py-3 text-center font-medium">Proj Eff %</th>
+                    <th className="px-4 py-3 text-right font-medium">Eff Score</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {filteredSystems.map((s, i) => (
+                    <tr key={s.id || i} className="hover:bg-slate-50 transition-colors">
+                      <td className="px-4 py-3 font-medium text-slate-800">{s.systemName}</td>
+                      <td className="px-4 py-3 text-right text-slate-600">{fmt(s.sysCnt)}</td>
+                      <td className="px-4 py-3 text-right text-slate-600">{fmt(s.procCmpl)}</td>
+                      <td className="px-4 py-3 text-right text-slate-600">{fmt(s.totalExpUsage)}</td>
+                      <td className="px-4 py-3 text-center"><EffBadge val={s.effPct} /></td>
+                      <td className="px-4 py-3 text-center"><EffBadge val={s.effPctProj} /></td>
+                      <td className="px-4 py-3 text-right"><ScoreCell val={s.effScore} /></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
 
         {/* IEP Impact — Territory Set Loaners */}
