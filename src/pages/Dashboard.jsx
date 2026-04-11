@@ -9,6 +9,7 @@ import {
   User,
   Upload,
   Package,
+  Layers,
   FileText,
   ChevronRight,
   TrendingUp,
@@ -159,7 +160,7 @@ export default function Dashboard() {
               <div className="pl-4 space-y-1.5">
                 <NavCard
                   small
-                  icon={User}
+                  icon={Layers}
                   title="My Loaners"
                   description=""
                   page="MyLoaners"
