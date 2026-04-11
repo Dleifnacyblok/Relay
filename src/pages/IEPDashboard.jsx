@@ -82,7 +82,8 @@ export default function IEPDashboard() {
 
   const [tableFilter, setTableFilter] = useState(null);
   const tableRef = useRef(null);
-  const [modalFilter, setModalFilter] = useState(null); // null | 'above' | 'below'
+  const [modalFilter, setModalFilter] = useState(null);
+  const [selectedSystem, setSelectedSystem] = useState(null); // null | 'above' | 'below'
 
   const handleCardClick = (filter) => {
     setModalFilter(filter);
@@ -170,25 +171,66 @@ export default function IEPDashboard() {
 
         {/* Modal for above/below target set names */}
         {modalFilter && (
-          <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4" onClick={() => setModalFilter(null)}>
-            <div className="bg-white rounded-2xl shadow-xl max-w-sm w-full p-6 max-h-[70vh] flex flex-col" onClick={e => e.stopPropagation()}>
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="font-semibold text-slate-800">
-                  {modalFilter === "above" ? "Above Target (≥100%)" : "Below Target (<70%)"}
-                  <span className="ml-2 text-xs font-normal text-slate-400">{modalSystems.length} systems</span>
-                </h3>
-                <button onClick={() => setModalFilter(null)} className="text-slate-400 hover:text-slate-600 text-lg leading-none">&times;</button>
-              </div>
-              <div className="overflow-y-auto space-y-2">
-                {modalSystems.map((s, i) => (
-                  <div key={s.id || i} className="flex items-center justify-between px-3 py-2 rounded-lg bg-slate-50">
-                    <span className="text-sm text-slate-700 font-medium">{s.systemName}</span>
-                    <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
-                      s.effPct >= 100 ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
-                    }`}>{s.effPct?.toFixed(1)}%</span>
+          <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4" onClick={() => { setModalFilter(null); setSelectedSystem(null); }}>
+            <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 max-h-[80vh] flex flex-col" onClick={e => e.stopPropagation()}>
+
+              {/* Detail view */}
+              {selectedSystem ? (
+                <>
+                  <div className="flex items-center gap-3 mb-5">
+                    <button onClick={() => setSelectedSystem(null)} className="text-slate-400 hover:text-slate-700 text-sm flex items-center gap-1">← Back</button>
+                    <h3 className="font-semibold text-slate-800 text-base flex-1 truncate">{selectedSystem.systemName}</h3>
+                    <button onClick={() => { setModalFilter(null); setSelectedSystem(null); }} className="text-slate-400 hover:text-slate-600 text-lg leading-none">&times;</button>
                   </div>
-                ))}
-              </div>
+                  <div className="overflow-y-auto space-y-3">
+                    <div className="grid grid-cols-2 gap-3">
+                      {[
+                        { label: "Eff %", value: selectedSystem.effPct != null ? `${selectedSystem.effPct.toFixed(1)}%` : "—" },
+                        { label: "Proj Eff %", value: selectedSystem.effPctProj != null ? `${selectedSystem.effPctProj.toFixed(1)}%` : "—" },
+                        { label: "Eff Score", value: selectedSystem.effScore != null ? selectedSystem.effScore.toFixed(2) : "—" },
+                        { label: "Proj Eff Score", value: selectedSystem.effScoreProj != null ? selectedSystem.effScoreProj.toFixed(2) : "—" },
+                        { label: "System Count", value: fmt(selectedSystem.sysCnt) },
+                        { label: "Proc Completed", value: fmt(selectedSystem.procCmpl) },
+                        { label: "Proj Proc Cmpl", value: fmt(selectedSystem.procCmplProj) },
+                        { label: "Total Exp Usage", value: fmt(selectedSystem.totalExpUsage) },
+                        { label: "Proj Exp Usage", value: fmt(selectedSystem.totalExpUsageProj) },
+                        { label: "Cons Exp Usage", value: fmt(selectedSystem.consExpUsage) },
+                        { label: "Loaner Exp Usage", value: fmt(selectedSystem.loanerExpUsage) },
+                      ].map(({ label, value }) => (
+                        <div key={label} className="bg-slate-50 rounded-lg px-4 py-3">
+                          <p className="text-xs text-slate-400 font-medium uppercase tracking-wide mb-0.5">{label}</p>
+                          <p className="text-lg font-bold text-slate-800">{value}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              ) : (
+                /* List view */
+                <>
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="font-semibold text-slate-800">
+                      {modalFilter === "above" ? "Above Target (≥100%)" : "Below Target (<70%)"}
+                      <span className="ml-2 text-xs font-normal text-slate-400">{modalSystems.length} systems</span>
+                    </h3>
+                    <button onClick={() => { setModalFilter(null); setSelectedSystem(null); }} className="text-slate-400 hover:text-slate-600 text-lg leading-none">&times;</button>
+                  </div>
+                  <div className="overflow-y-auto space-y-2">
+                    {modalSystems.map((s, i) => (
+                      <button key={s.id || i} onClick={() => setSelectedSystem(s)}
+                        className="w-full flex items-center justify-between px-3 py-2.5 rounded-lg bg-slate-50 hover:bg-slate-100 transition-colors text-left">
+                        <span className="text-sm text-slate-700 font-medium">{s.systemName}</span>
+                        <div className="flex items-center gap-2">
+                          <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
+                            s.effPct >= 100 ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+                          }`}>{s.effPct?.toFixed(1)}%</span>
+                          <span className="text-slate-300 text-xs">›</span>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
             </div>
           </div>
         )}
