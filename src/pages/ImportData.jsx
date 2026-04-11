@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import * as XLSX from "xlsx";
-import { Upload, FileSpreadsheet, AlertCircle, CheckCircle, Loader2, Trash2, Download } from "lucide-react";
+import { Upload, FileSpreadsheet, AlertCircle, CheckCircle, Loader2, Trash2, Download, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -630,6 +630,67 @@ export default function ImportData() {
     }
   };
 
+  const toNum = (v) => {
+    if (v === null || v === undefined || v === "") return null;
+    const n = parseFloat(String(v).replace(/[,%]/g, "").trim());
+    return isNaN(n) ? null : n;
+  };
+
+  const handleIepImport = async () => {
+    if (!iepFile || isUploadingIep) return;
+    setIsUploadingIep(true);
+    setIepError(null);
+    setIepImportResult(null);
+    setIepProgress("Reading file...");
+    try {
+      const arrayBuffer = await iepFile.arrayBuffer();
+      const workbook = XLSX.read(arrayBuffer, { type: "array", cellDates: true });
+      const sheetName = workbook.SheetNames[0];
+      const worksheet = workbook.Sheets[sheetName];
+      const allRows = XLSX.utils.sheet_to_json(worksheet, { defval: "", raw: false });
+      const validRows = allRows.filter((r) => r["Name"] && String(r["Name"]).trim() !== "");
+      if (!validRows.length) throw new Error("No valid rows found. Make sure the sheet has a 'Name' column.");
+      const importedAt = new Date().toISOString();
+      setIepProgress("Clearing existing IEP data...");
+      const existing = await base44.entities.IEPSystemData.list();
+      const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+      for (const rec of existing) {
+        await base44.entities.IEPSystemData.delete(rec.id);
+        await sleep(200);
+      }
+      let count = 0;
+      for (const row of validRows) {
+        setIepProgress(`Importing system ${count + 1} of ${validRows.length}...`);
+        await base44.entities.IEPSystemData.create({
+          systemName: String(row["Name"]).trim(),
+          sysCnt: toNum(row["Sys Cnt"]),
+          consExpUsage: toNum(row["Cons Exp Usage"]),
+          consExpUsageProj: toNum(row["Cons Exp Usage Proj"]),
+          loanerExpUsage: toNum(row["Loaner Exp Usage"]),
+          loanerExpUsageProj: toNum(row["Loaner Exp Usage Proj"]),
+          totalExpUsage: toNum(row["Total Exp Usage"]),
+          totalExpUsageProj: toNum(row["Total Exp Usage Proj"]),
+          procCmpl: toNum(row["Proc Cmpl"]),
+          procCmplProj: toNum(row["Proc Cmpl Proj"]),
+          effScore: toNum(row["Eff Score"]),
+          effScoreProj: toNum(row["Eff Score Proj"]),
+          effPct: toNum(row["Eff %"]),
+          effPctProj: toNum(row["Eff % Proj"]),
+          importedAt,
+        });
+        count++;
+        await sleep(300);
+      }
+      setIepImportResult(count);
+      setIepFile(null);
+    } catch (err) {
+      setIepError(err.message || "Import failed.");
+    } finally {
+      setIsUploadingIep(false);
+      setIepProgress(null);
+    }
+  };
+
   if (!isAdmin) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-4">
@@ -967,6 +1028,83 @@ export default function ImportData() {
                 <Upload className="w-4 h-4 mr-2" />
                 Import Missing Parts
               </>
+            )}
+          </Button>
+        </div>
+
+        {/* IEP Efficiency Import */}
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6 mt-6">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="p-2.5 rounded-lg bg-purple-100">
+              <TrendingUp className="w-5 h-5 text-purple-600" />
+            </div>
+            <div>
+              <h2 className="font-semibold text-slate-900">Upload IEP Efficiency Report</h2>
+              <p className="text-sm text-slate-500">Globus Grid 6 system efficiency report (.xlsx)</p>
+            </div>
+          </div>
+
+          <div className="bg-slate-50 rounded-lg p-4 mb-6 text-xs text-slate-600 space-y-1">
+            <p className="font-medium text-slate-700 mb-1">Expected columns (first sheet):</p>
+            <p>Name <span className="text-red-500">*</span>, Sys Cnt, Cons Exp Usage, Cons Exp Usage Proj</p>
+            <p>Loaner Exp Usage, Loaner Exp Usage Proj, Total Exp Usage, Total Exp Usage Proj</p>
+            <p>Proc Cmpl, Proc Cmpl Proj, Eff Score, Eff Score Proj, Eff %, Eff % Proj</p>
+            <p className="text-slate-400 italic mt-1">Each import fully replaces all previous IEP system records.</p>
+          </div>
+
+          <div className="border-2 border-dashed border-slate-200 rounded-lg p-8 text-center hover:border-purple-300 transition-colors">
+            <TrendingUp className="w-10 h-10 text-slate-300 mx-auto mb-3" />
+            <Input
+              type="file"
+              accept=".xlsx"
+              onChange={(e) => { const f = e.target.files?.[0]; if (f) { setIepFile(f); setIepImportResult(null); setIepError(null); } }}
+              className="hidden"
+              id="iep-file-upload"
+            />
+            <label htmlFor="iep-file-upload" className="cursor-pointer text-purple-600 hover:text-purple-700 font-medium">
+              Choose Excel file (.xlsx)
+            </label>
+            <p className="text-sm text-slate-500 mt-2">or drag and drop</p>
+            {iepFile && (
+              <div className="mt-4 p-3 bg-slate-100 rounded-lg inline-flex items-center gap-2">
+                <FileSpreadsheet className="w-4 h-4 text-slate-500" />
+                <span className="text-sm font-medium text-slate-700">{iepFile.name}</span>
+              </div>
+            )}
+          </div>
+
+          {iepProgress && (
+            <div className="flex items-center gap-2 text-sm text-slate-600 mt-4">
+              <Loader2 className="w-4 h-4 animate-spin text-purple-500" />
+              <span>{iepProgress}</span>
+            </div>
+          )}
+
+          {iepImportResult !== null && (
+            <Alert className="mt-4 border-green-200 bg-green-50">
+              <CheckCircle className="h-4 w-4 text-green-600" />
+              <AlertDescription className="text-green-800">
+                {iepImportResult} systems imported successfully. IEP Dashboard is now updated.
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {iepError && (
+            <Alert variant="destructive" className="mt-4">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{iepError}</AlertDescription>
+            </Alert>
+          )}
+
+          <Button
+            className="w-full mt-6 h-11 bg-purple-600 hover:bg-purple-700"
+            onClick={handleIepImport}
+            disabled={!iepFile || isUploadingIep}
+          >
+            {isUploadingIep ? (
+              <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Importing...</>
+            ) : (
+              <><TrendingUp className="w-4 h-4 mr-2" />Import IEP Data</>
             )}
           </Button>
         </div>
