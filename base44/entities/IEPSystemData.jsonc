@@ -1,0 +1,69 @@
+{
+  "name": "IEPSystemData",
+  "type": "object",
+  "properties": {
+    "systemName": {
+      "type": "string",
+      "description": "Name of the system (from Globus Grid 6 report)"
+    },
+    "sysCnt": {
+      "type": "number",
+      "description": "System count"
+    },
+    "consExpUsage": {
+      "type": "number",
+      "description": "Consignment expected usage"
+    },
+    "consExpUsageProj": {
+      "type": "number",
+      "description": "Consignment expected usage (projected)"
+    },
+    "loanerExpUsage": {
+      "type": "number",
+      "description": "Loaner expected usage"
+    },
+    "loanerExpUsageProj": {
+      "type": "number",
+      "description": "Loaner expected usage (projected)"
+    },
+    "totalExpUsage": {
+      "type": "number",
+      "description": "Total expected usage"
+    },
+    "totalExpUsageProj": {
+      "type": "number",
+      "description": "Total expected usage (projected)"
+    },
+    "procCmpl": {
+      "type": "number",
+      "description": "Procedures completed"
+    },
+    "procCmplProj": {
+      "type": "number",
+      "description": "Procedures completed (projected)"
+    },
+    "effScore": {
+      "type": "number",
+      "description": "Efficiency score"
+    },
+    "effScoreProj": {
+      "type": "number",
+      "description": "Efficiency score (projected)"
+    },
+    "effPct": {
+      "type": "number",
+      "description": "Efficiency percentage"
+    },
+    "effPctProj": {
+      "type": "number",
+      "description": "Efficiency percentage (projected)"
+    },
+    "importedAt": {
+      "type": "string",
+      "description": "Timestamp of when this record was imported"
+    }
+  },
+  "required": [
+    "systemName"
+  ]
+}
