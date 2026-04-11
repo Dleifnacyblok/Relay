@@ -1,214 +1,198 @@
+import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
-import { Package, AlertTriangle, TrendingUp, Users } from "lucide-react";
-import { Skeleton } from "@/components/ui/skeleton";
-import LoanerTable from "@/components/loaners/LoanerTable";
-import { computeLoanerData, formatCurrency } from "@/components/loaners/loanerUtils";
-import { isIEPLoaner } from "@/lib/iepUtils";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
+import { Link } from "react-router-dom";
+import { TrendingUp, Upload, Target, Activity, BarChart2, Clock } from "lucide-react";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from "recharts";
 
-const StatCard = ({ icon: Icon, label, value, color }) => (
-  <div className={`bg-white rounded-xl border border-gray-200 p-4 shadow-sm ${color}`}>
-    <div className="flex items-start gap-3">
-      <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${color}`}>
-        <Icon className="w-5 h-5 text-white" />
+function StatCard({ label, value, sub, icon: Icon, color = "blue" }) {
+  const colors = {
+    blue: "bg-blue-50 text-blue-600",
+    green: "bg-green-50 text-green-600",
+    yellow: "bg-yellow-50 text-yellow-600",
+    red: "bg-red-50 text-red-600",
+    purple: "bg-purple-50 text-purple-600",
+  };
+  return (
+    <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5 flex items-start gap-4">
+      <div className={`p-2.5 rounded-lg ${colors[color]}`}>
+        <Icon className="w-5 h-5" />
       </div>
-      <div className="flex-1 min-w-0">
-        <p className="text-xs text-gray-600 font-medium">{label}</p>
-        <p className="text-2xl font-bold text-black mt-1">{value}</p>
+      <div>
+        <p className="text-xs text-slate-500 font-medium uppercase tracking-wide">{label}</p>
+        <p className="text-2xl font-bold text-slate-900 mt-0.5">{value}</p>
+        {sub && <p className="text-xs text-slate-400 mt-0.5">{sub}</p>}
       </div>
     </div>
-  </div>
-);
+  );
+}
+
+function EffBadge({ val }) {
+  if (val === null || val === undefined) return <span className="text-slate-400">—</span>;
+  const pct = typeof val === "number" ? val : parseFloat(val);
+  if (pct >= 100) return <span className="inline-block px-2 py-0.5 rounded-full text-xs font-semibold bg-green-100 text-green-700">{pct.toFixed(1)}%</span>;
+  if (pct >= 70) return <span className="inline-block px-2 py-0.5 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-700">{pct.toFixed(1)}%</span>;
+  return <span className="inline-block px-2 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-700">{pct.toFixed(1)}%</span>;
+}
+
+function ScoreCell({ val }) {
+  if (val === null || val === undefined) return <span className="text-slate-400">—</span>;
+  const n = typeof val === "number" ? val : parseFloat(val);
+  if (isNaN(n)) return <span className="text-slate-400">—</span>;
+  return <span className={n < 0 ? "text-red-600 font-medium" : "text-green-700 font-medium"}>{n.toFixed(2)}</span>;
+}
+
+function fmt(val) {
+  if (val === null || val === undefined || val === "") return "—";
+  const n = typeof val === "number" ? val : parseFloat(val);
+  return isNaN(n) ? "—" : n.toFixed(1);
+}
 
 export default function IEPDashboard() {
-  const { data: loaners = [], isLoading } = useQuery({
-    queryKey: ["loaners"],
-    queryFn: () => base44.entities.Loaners.list(),
+  const { data: systems = [], isLoading } = useQuery({
+    queryKey: ["iepSystemData"],
+    queryFn: () => base44.entities.IEPSystemData.list(),
   });
 
-  const computedLoaners = loaners.map(computeLoanerData);
-  
-  // Filter for IEP loaners only (active)
-  const iepLoaners = computedLoaners.filter(l => 
-    isIEPLoaner(l) && 
-    l.returnStatus !== "sent_back" && 
-    l.returnStatus !== "received"
+  const sorted = useMemo(() =>
+    [...systems].sort((a, b) => (b.effPct ?? -999) - (a.effPct ?? -999)),
+    [systems]
   );
 
-  // Calculate metrics
-  const iepOverdueCount = iepLoaners.filter(l => l.risk_status === "Overdue").length;
-  const iepDueSoonCount = iepLoaners.filter(l => l.risk_status === "Due Soon").length;
-  const iepTotalFines = iepLoaners.reduce((sum, l) => sum + (l.fineAmount || 0), 0);
+  const avgEffPct = useMemo(() => {
+    const vals = systems.filter(s => s.effPct != null).map(s => s.effPct);
+    return vals.length ? (vals.reduce((a, b) => a + b, 0) / vals.length) : null;
+  }, [systems]);
 
-  // Rep distribution
-  const repDistribution = {};
-  iepLoaners.forEach(l => {
-    const rep = l.repName || "Unassigned";
-    repDistribution[rep] = (repDistribution[rep] || 0) + 1;
-  });
-  const repData = Object.entries(repDistribution)
-    .map(([name, count]) => ({ name, count }))
-    .sort((a, b) => b.count - a.count);
+  const aboveTarget = useMemo(() => systems.filter(s => s.effPct != null && s.effPct >= 100).length, [systems]);
+  const belowTarget = useMemo(() => systems.filter(s => s.effPct != null && s.effPct < 70).length, [systems]);
 
-  // Account distribution
-  const accountDistribution = {};
-  iepLoaners.forEach(l => {
-    const account = l.accountName || "Unassigned";
-    accountDistribution[account] = (accountDistribution[account] || 0) + 1;
-  });
-  const accountData = Object.entries(accountDistribution)
-    .map(([name, count]) => ({ name, count }))
-    .sort((a, b) => b.count - a.count);
+  const lastImport = useMemo(() => {
+    const dates = systems.filter(s => s.importedAt).map(s => new Date(s.importedAt));
+    if (!dates.length) return null;
+    return new Date(Math.max(...dates));
+  }, [systems]);
 
-  // Most consistent users (reps with most IEP loaner instances)
-  const topReps = repData.slice(0, 5);
+  const top10 = useMemo(() =>
+    sorted.slice(0, 10).map(s => ({
+      name: s.systemName?.length > 16 ? s.systemName.slice(0, 16) + "…" : s.systemName,
+      effPct: s.effPct ?? 0,
+    })),
+    [sorted]
+  );
 
-  const COLORS = ["#3B82F6", "#8B5CF6", "#EC4899", "#F59E0B", "#10B981"];
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-slate-200 border-t-purple-500 rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (!systems.length) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-6">
+        <div className="text-center max-w-sm">
+          <div className="w-16 h-16 bg-purple-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <TrendingUp className="w-8 h-8 text-purple-500" />
+          </div>
+          <h2 className="text-xl font-bold text-slate-800 mb-2">No IEP Data Yet</h2>
+          <p className="text-slate-500 text-sm mb-6">Import a Globus Grid 6 efficiency report to populate this dashboard.</p>
+          <Link to="/IEPImport"
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-sm font-medium transition-colors">
+            <Upload className="w-4 h-4" /> Upload IEP Report
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+      <div className="max-w-7xl mx-auto px-4 py-8">
+
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl sm:text-4xl font-bold text-black tracking-tight mb-2">
-            IEP Loaners Dashboard
-          </h1>
-          <p className="text-gray-600">
-            Tracked IEP loaner inventory and usage patterns
-          </p>
+        <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 rounded-lg bg-purple-100">
+              <TrendingUp className="w-6 h-6 text-purple-600" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold text-slate-900">IEP Efficiency Dashboard</h1>
+              {lastImport && (
+                <p className="text-xs text-slate-400 flex items-center gap-1 mt-0.5">
+                  <Clock className="w-3 h-3" />
+                  Last updated {lastImport.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", hour: "2-digit", minute: "2-digit" })}
+                </p>
+              )}
+            </div>
+          </div>
+          <Link to="/IEPImport"
+            className="inline-flex items-center gap-2 px-4 py-2 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 rounded-lg text-sm font-medium transition-colors shadow-sm">
+            <Upload className="w-4 h-4" /> Re-import Data
+          </Link>
         </div>
 
-        {isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-24 rounded-xl" />)}
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            <StatCard 
-              icon={Package}
-              label="Total IEP Loaners"
-              value={iepLoaners.length}
-              color="bg-blue-50"
-            />
-            <StatCard 
-              icon={AlertTriangle}
-              label="IEP Overdue"
-              value={iepOverdueCount}
-              color={iepOverdueCount > 0 ? "bg-red-50" : "bg-gray-50"}
-            />
-            <StatCard 
-              icon={TrendingUp}
-              label="Due Soon"
-              value={iepDueSoonCount}
-              color={iepDueSoonCount > 0 ? "bg-amber-50" : "bg-gray-50"}
-            />
-            <StatCard 
-              icon={AlertTriangle}
-              label="Total Fines"
-              value={formatCurrency(iepTotalFines)}
-              color={iepTotalFines > 0 ? "bg-red-50" : "bg-gray-50"}
-            />
-          </div>
-        )}
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          {/* Rep Distribution Chart */}
-          {!isLoading && repData.length > 0 && (
-            <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
-              <h2 className="text-lg font-semibold text-black mb-4">IEP Loaners by Rep</h2>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={repData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                  <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-                  <YAxis tick={{ fontSize: 12 }} />
-                  <Tooltip 
-                    contentStyle={{ backgroundColor: "#fff", border: "1px solid #e5e7eb" }}
-                    cursor={{ fill: "rgba(59, 130, 246, 0.1)" }}
-                  />
-                  <Bar dataKey="count" fill="#3B82F6" radius={[8, 8, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          )}
-
-          {/* Account Distribution Chart */}
-          {!isLoading && accountData.length > 0 && (
-            <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
-              <h2 className="text-lg font-semibold text-black mb-4">IEP Loaners by Account</h2>
-              <ResponsiveContainer width="100%" height={300}>
-                <PieChart>
-                  <Pie
-                    data={accountData}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    label={({ name, count }) => `${name}: ${count}`}
-                    outerRadius={80}
-                    fill="#8884d8"
-                    dataKey="count"
-                  >
-                    {accountData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-          )}
+        {/* Stat Cards */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          <StatCard label="Territory Avg Eff %" value={avgEffPct != null ? `${avgEffPct.toFixed(1)}%` : "—"} icon={Activity} color="purple" sub="across all systems" />
+          <StatCard label="Systems Tracked" value={systems.length} icon={BarChart2} color="blue" />
+          <StatCard label="Above Target (≥100%)" value={aboveTarget} icon={Target} color="green" sub={`${((aboveTarget / systems.length) * 100).toFixed(0)}% of systems`} />
+          <StatCard label="Below Target (<70%)" value={belowTarget} icon={Target} color="red" sub={`${((belowTarget / systems.length) * 100).toFixed(0)}% of systems`} />
         </div>
 
-        {/* Top Reps Using IEP Loaners */}
-        {!isLoading && topReps.length > 0 && (
-          <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm mb-8">
-            <h2 className="text-lg font-semibold text-black mb-4 flex items-center gap-2">
-              <Users className="w-5 h-5 text-blue-600" />
-              Most Consistent IEP Users
-            </h2>
-            <div className="space-y-3">
-              {topReps.map((rep, idx) => (
-                <div key={rep.name} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-sm font-semibold text-blue-600">
-                      {idx + 1}
-                    </div>
-                    <span className="font-medium text-black">{rep.name}</span>
-                  </div>
-                  <span className="text-sm font-semibold text-gray-600">{rep.count} loaner{rep.count !== 1 ? 's' : ''}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* IEP Loaners Table */}
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h2 className="text-lg font-semibold text-black">All IEP Loaners</h2>
-            <p className="text-sm text-gray-600 mt-1">
-              Detailed view of tracked IEP loaner inventory
-            </p>
-          </div>
-          
-          {isLoading ? (
-            <div className="p-6 space-y-4">
-              {[1, 2, 3, 4, 5].map(i => (
-                <Skeleton key={i} className="h-16 rounded-lg bg-gray-100" />
-              ))}
-            </div>
-          ) : iepLoaners.length === 0 ? (
-            <div className="p-12 text-center">
-              <Package className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-black font-medium">No IEP loaners found</p>
-              <p className="text-sm text-gray-600 mt-1">No tracked IEP loaners in the system</p>
-            </div>
-          ) : (
-            <LoanerTable loaners={iepLoaners} />
-          )}
+        {/* Bar Chart */}
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6 mb-8">
+          <h2 className="text-sm font-semibold text-slate-700 mb-4">Top 10 Systems by Eff %</h2>
+          <ResponsiveContainer width="100%" height={220}>
+            <BarChart data={top10} margin={{ top: 0, right: 0, left: -20, bottom: 40 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+              <XAxis dataKey="name" tick={{ fontSize: 10, fill: "#94a3b8" }} angle={-35} textAnchor="end" interval={0} />
+              <YAxis tick={{ fontSize: 11, fill: "#94a3b8" }} />
+              <Tooltip formatter={(v) => [`${v.toFixed(1)}%`, "Eff %"]} />
+              <Bar dataKey="effPct" radius={[4, 4, 0, 0]}>
+                {top10.map((entry, i) => (
+                  <Cell key={i} fill={entry.effPct >= 100 ? "#22c55e" : entry.effPct >= 70 ? "#eab308" : "#ef4444"} />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
         </div>
 
+        {/* Table */}
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+          <div className="px-6 py-4 border-b border-slate-100">
+            <h2 className="text-sm font-semibold text-slate-700">All Systems — sorted by Eff % (descending)</h2>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-slate-50 text-xs text-slate-500 uppercase tracking-wide">
+                <tr>
+                  <th className="px-4 py-3 text-left font-medium">System Name</th>
+                  <th className="px-4 py-3 text-right font-medium">Sets</th>
+                  <th className="px-4 py-3 text-right font-medium">Proc Cmpl</th>
+                  <th className="px-4 py-3 text-right font-medium">Expected</th>
+                  <th className="px-4 py-3 text-center font-medium">Eff %</th>
+                  <th className="px-4 py-3 text-center font-medium">Proj Eff %</th>
+                  <th className="px-4 py-3 text-right font-medium">Eff Score</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {sorted.map((s, i) => (
+                  <tr key={s.id || i} className="hover:bg-slate-50 transition-colors">
+                    <td className="px-4 py-3 font-medium text-slate-800">{s.systemName}</td>
+                    <td className="px-4 py-3 text-right text-slate-600">{fmt(s.sysCnt)}</td>
+                    <td className="px-4 py-3 text-right text-slate-600">{fmt(s.procCmpl)}</td>
+                    <td className="px-4 py-3 text-right text-slate-600">{fmt(s.totalExpUsage)}</td>
+                    <td className="px-4 py-3 text-center"><EffBadge val={s.effPct} /></td>
+                    <td className="px-4 py-3 text-center"><EffBadge val={s.effPctProj} /></td>
+                    <td className="px-4 py-3 text-right"><ScoreCell val={s.effScore} /></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
     </div>
   );
