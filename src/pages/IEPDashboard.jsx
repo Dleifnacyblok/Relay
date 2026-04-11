@@ -324,81 +324,13 @@ export default function IEPDashboard() {
           </div>
         )}
 
-        {/* Bar Chart */}
-        <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden mb-6">
-          <button onClick={() => setTop10Open(o => !o)}
-            className="w-full flex items-center justify-between px-6 py-4 hover:bg-slate-50 transition-colors">
-            <h2 className="text-sm font-semibold text-slate-700">Top 10 Systems by Eff %</h2>
-            {top10Open ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
-          </button>
-          {top10Open && (
-            <div className="px-6 pb-6">
-              <ResponsiveContainer width="100%" height={220}>
-                <BarChart data={top10} margin={{ top: 0, right: 0, left: -20, bottom: 40 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                  <XAxis dataKey="name" tick={{ fontSize: 10, fill: "#94a3b8" }} angle={-35} textAnchor="end" interval={0} />
-                  <YAxis tick={{ fontSize: 11, fill: "#94a3b8" }} />
-                  <Tooltip formatter={(v) => [`${v.toFixed(1)}%`, "Eff %"]} />
-                  <Bar dataKey="effPct" radius={[4, 4, 0, 0]}>
-                    {top10.map((entry, i) => (
-                      <Cell key={i} fill={entry.effPct >= 100 ? "#22c55e" : entry.effPct >= 70 ? "#eab308" : "#ef4444"} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          )}
-        </div>
-
-        {/* Bottom 10 Table */}
-        <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden mb-8">
-          <button onClick={() => setBottom10Open(o => !o)}
-            className="w-full flex items-center justify-between px-6 py-4 hover:bg-slate-50 transition-colors">
-            <div className="text-left">
-              <h2 className="text-sm font-semibold text-slate-700">Bottom 10 Systems by Eff %</h2>
-              <p className="text-xs text-slate-400 mt-0.5">Lowest performing systems — needs attention</p>
-            </div>
-            {bottom10Open ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
-          </button>
-          {bottom10Open && (
-            <div className="overflow-x-auto border-t border-slate-100">
-              <table className="w-full text-sm">
-                <thead className="bg-slate-50 text-xs text-slate-500 uppercase tracking-wide">
-                  <tr>
-                    <th className="px-4 py-3 text-left font-medium">#</th>
-                    <th className="px-4 py-3 text-left font-medium">System Name</th>
-                    <th className="px-4 py-3 text-right font-medium">Sets</th>
-                    <th className="px-4 py-3 text-right font-medium">Proc Cmpl</th>
-                    <th className="px-4 py-3 text-right font-medium">Expected</th>
-                    <th className="px-4 py-3 text-center font-medium">Eff %</th>
-                    <th className="px-4 py-3 text-center font-medium">Proj Eff %</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {bottom10.map((s, i) => (
-                    <tr key={s.id || i} className="hover:bg-red-50 transition-colors">
-                      <td className="px-4 py-3 text-slate-300 font-mono text-xs">{i + 1}</td>
-                      <td className="px-4 py-3 font-medium text-slate-800">{s.systemName}</td>
-                      <td className="px-4 py-3 text-right text-slate-600">{fmt(s.sysCnt)}</td>
-                      <td className="px-4 py-3 text-right text-slate-600">{fmt(s.procCmpl)}</td>
-                      <td className="px-4 py-3 text-right text-slate-600">{fmt(s.totalExpUsage)}</td>
-                      <td className="px-4 py-3 text-center"><EffBadge val={s.effPct} /></td>
-                      <td className="px-4 py-3 text-center"><EffBadge val={s.effPctProj} /></td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-
-        {/* Table */}
-        <div ref={tableRef} className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        {/* All Systems Table — first */}
+        <div ref={tableRef} className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden mb-6">
           <button onClick={() => setAllTableOpen(o => !o)}
             className="w-full flex items-center justify-between px-6 py-4 hover:bg-slate-50 transition-colors">
             <div className="text-left">
               <h2 className="text-sm font-semibold text-slate-700">
-                {tableFilter === "above" ? "Above Target Systems (≥100%)" : tableFilter === "below" ? "Below Target Systems (<70%)" : "All Systems — sorted by Eff % (descending)"}
+                {tableFilter === "above" ? "Above Target Systems (\u2265100%)" : tableFilter === "below" ? "Below Target Systems (<70%)" : "All Systems \u2014 sorted by Eff % (descending)"}
               </h2>
               {tableFilter && (
                 <button onClick={(e) => { e.stopPropagation(); setTableFilter(null); }} className="text-xs text-blue-500 hover:underline mt-0.5">Clear filter</button>
@@ -434,6 +366,50 @@ export default function IEPDashboard() {
                   ))}
                 </tbody>
               </table>
+            </div>
+          )}
+        </div>
+
+        {/* Top 10 & Bottom 10 Combined */}
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden mb-8">
+          <button onClick={() => setTop10Open(o => !o)}
+            className="w-full flex items-center justify-between px-6 py-4 hover:bg-slate-50 transition-colors">
+            <div className="text-left">
+              <h2 className="text-sm font-semibold text-slate-700">Top 10 &amp; Bottom 10 Systems by Eff %</h2>
+              <p className="text-xs text-slate-400 mt-0.5">Highest and lowest performing systems</p>
+            </div>
+            {top10Open ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
+          </button>
+          {top10Open && (
+            <div className="border-t border-slate-100 grid grid-cols-1 sm:grid-cols-2 divide-y sm:divide-y-0 sm:divide-x divide-slate-100">
+              {/* Top 10 */}
+              <div>
+                <p className="px-4 pt-4 pb-2 text-xs font-semibold text-green-700 uppercase tracking-wide">Top 10</p>
+                <div className="space-y-1 px-3 pb-4">
+                  {sorted.slice(0, 10).map((s, i) => (
+                    <div key={s.id || i} className="flex items-center justify-between px-3 py-2.5 rounded-lg bg-slate-50 text-left">
+                      <span className="text-sm text-slate-700 font-medium">{s.systemName}</span>
+                      <span className={`text-xs font-bold px-2 py-0.5 rounded-full ml-2 shrink-0 ${
+                        s.effPct >= 100 ? "bg-green-100 text-green-700" : s.effPct >= 70 ? "bg-yellow-100 text-yellow-700" : "bg-red-100 text-red-700"
+                      }`}>{s.effPct != null ? `${s.effPct.toFixed(1)}%` : "—"}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              {/* Bottom 10 */}
+              <div>
+                <p className="px-4 pt-4 pb-2 text-xs font-semibold text-red-600 uppercase tracking-wide">Bottom 10</p>
+                <div className="space-y-1 px-3 pb-4">
+                  {[...sorted].reverse().slice(0, 10).map((s, i) => (
+                    <div key={s.id || i} className="flex items-center justify-between px-3 py-2.5 rounded-lg bg-slate-50 text-left">
+                      <span className="text-sm text-slate-700 font-medium">{s.systemName}</span>
+                      <span className={`text-xs font-bold px-2 py-0.5 rounded-full ml-2 shrink-0 ${
+                        s.effPct >= 100 ? "bg-green-100 text-green-700" : s.effPct >= 70 ? "bg-yellow-100 text-yellow-700" : "bg-red-100 text-red-700"
+                      }`}>{s.effPct != null ? `${s.effPct.toFixed(1)}%` : "—"}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           )}
         </div>
