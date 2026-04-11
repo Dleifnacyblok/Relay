@@ -423,11 +423,6 @@ export default function Analytics() {
           </Card>
         </div>
 
-        {/* ── TERRITORY CONSIGNMENT UTILIZATION ── */}
-        <SectionHeader label="Territory Consignment Utilization" />
-        
-        <ConsignmentUtilization computed={computed} />
-
         {/* ── MISSING PARTS & FINES ── */}
         <SectionHeader label="Missing Parts & Fines" />
         <div className="grid gap-5 md:grid-cols-2">
