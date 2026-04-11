@@ -63,6 +63,7 @@ import RelayGuide from './pages/RelayGuide';
 import Search from './pages/Search';
 import SendBackLog from './pages/SendBackLog';
 import TerritoryInventory from './pages/TerritoryInventory';
+import IEPImport from './pages/IEPImport';
 import __Layout from './Layout.jsx';
 
 
@@ -83,6 +84,7 @@ export const PAGES = {
     "Search": Search,
     "SendBackLog": SendBackLog,
     "TerritoryInventory": TerritoryInventory,
+    "IEPImport": IEPImport,
 }
 
 export const pagesConfig = {
