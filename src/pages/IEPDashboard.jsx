@@ -80,13 +80,19 @@ export default function IEPDashboard() {
     return new Date(Math.max(...dates));
   }, [systems]);
 
-  const [tableFilter, setTableFilter] = useState(null); // null | 'above' | 'below'
+  const [tableFilter, setTableFilter] = useState(null);
   const tableRef = useRef(null);
+  const [modalFilter, setModalFilter] = useState(null); // null | 'above' | 'below'
 
   const handleCardClick = (filter) => {
-    setTableFilter(prev => prev === filter ? null : filter);
-    setTimeout(() => tableRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
+    setModalFilter(filter);
   };
+
+  const modalSystems = useMemo(() => {
+    if (modalFilter === "above") return sorted.filter(s => s.effPct != null && s.effPct >= 100);
+    if (modalFilter === "below") return sorted.filter(s => s.effPct != null && s.effPct < 70);
+    return [];
+  }, [sorted, modalFilter]);
 
   const filteredSystems = useMemo(() => {
     if (tableFilter === "above") return sorted.filter(s => s.effPct != null && s.effPct >= 100);
@@ -157,10 +163,35 @@ export default function IEPDashboard() {
 
         {/* Stat Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-          <StatCard label="Territory Avg Eff %" value={avgEffPct != null ? `${avgEffPct.toFixed(1)}%` : "—"} icon={Activity} color="purple" sub="across all systems" onClick={() => { setTableFilter(null); setTimeout(() => tableRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 50); }} />
+          <StatCard label="Territory Avg Eff %" value={avgEffPct != null ? `${avgEffPct.toFixed(1)}%` : "—"} icon={Activity} color="purple" sub="across all systems" />
           <StatCard label="Above Target (≥100%)" value={aboveTarget} icon={Target} color="green" sub={`${((aboveTarget / systems.length) * 100).toFixed(0)}% of systems`} onClick={() => handleCardClick("above")} active={tableFilter === "above"} />
           <StatCard label="Below Target (<70%)" value={belowTarget} icon={Target} color="red" sub={`${((belowTarget / systems.length) * 100).toFixed(0)}% of systems`} onClick={() => handleCardClick("below")} active={tableFilter === "below"} />
         </div>
+
+        {/* Modal for above/below target set names */}
+        {modalFilter && (
+          <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4" onClick={() => setModalFilter(null)}>
+            <div className="bg-white rounded-2xl shadow-xl max-w-sm w-full p-6 max-h-[70vh] flex flex-col" onClick={e => e.stopPropagation()}>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-semibold text-slate-800">
+                  {modalFilter === "above" ? "Above Target (≥100%)" : "Below Target (<70%)"}
+                  <span className="ml-2 text-xs font-normal text-slate-400">{modalSystems.length} systems</span>
+                </h3>
+                <button onClick={() => setModalFilter(null)} className="text-slate-400 hover:text-slate-600 text-lg leading-none">&times;</button>
+              </div>
+              <div className="overflow-y-auto space-y-2">
+                {modalSystems.map((s, i) => (
+                  <div key={s.id || i} className="flex items-center justify-between px-3 py-2 rounded-lg bg-slate-50">
+                    <span className="text-sm text-slate-700 font-medium">{s.systemName}</span>
+                    <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
+                      s.effPct >= 100 ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+                    }`}>{s.effPct?.toFixed(1)}%</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Bar Chart */}
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6 mb-8">
