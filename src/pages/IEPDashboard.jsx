@@ -79,6 +79,13 @@ export default function IEPDashboard() {
   const aboveTarget = useMemo(() => systems.filter(s => s.effPct != null && s.effPct >= 100).length, [systems]);
   const belowTarget = useMemo(() => systems.filter(s => s.effPct != null && s.effPct < 70).length, [systems]);
 
+  const avgLoanerEffPct = useMemo(() => {
+    const vals = systems
+      .filter(s => s.loanerExpUsage != null && s.loanerExpUsage > 0 && s.procCmpl != null)
+      .map(s => (s.procCmpl / s.loanerExpUsage) * 100);
+    return vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : null;
+  }, [systems]);
+
   const lastImport = useMemo(() => {
     const dates = systems.filter(s => s.importedAt).map(s => new Date(s.importedAt));
     if (!dates.length) return null;
@@ -207,7 +214,7 @@ export default function IEPDashboard() {
         </div>
 
         {/* Stat Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           {/* Territory Avg — centered focal card */}
           <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5 flex flex-col items-center justify-center text-center">
             <div className="p-2.5 rounded-lg bg-purple-50 mb-2">
@@ -218,6 +225,17 @@ export default function IEPDashboard() {
               {avgEffPct != null ? `${avgEffPct.toFixed(1)}%` : "—"}
             </p>
             <p className="text-xs text-slate-400">across all systems</p>
+          </div>
+          {/* Loaner-only Eff % card */}
+          <div className="bg-white rounded-xl border border-blue-100 shadow-sm p-5 flex flex-col items-center justify-center text-center">
+            <div className="p-2.5 rounded-lg bg-blue-50 mb-2">
+              <BarChart2 className="w-5 h-5 text-blue-500" />
+            </div>
+            <p className="text-xs text-slate-500 font-medium uppercase tracking-wide mb-1">Loaner Eff %</p>
+            <p className="text-5xl font-extrabold text-blue-500 leading-none mb-1">
+              {avgLoanerEffPct != null ? `${avgLoanerEffPct.toFixed(1)}%` : "—"}
+            </p>
+            <p className="text-xs text-slate-400">loaner usage only</p>
           </div>
           <StatCard label="Above Target (≥100%)" value={aboveTarget} icon={Target} color="green" sub={`${((aboveTarget / systems.length) * 100).toFixed(0)}% of systems`} onClick={() => handleCardClick("above")} active={tableFilter === "above"} />
           <StatCard label="Below Target (<70%)" value={belowTarget} icon={Target} color="red" sub={`${((belowTarget / systems.length) * 100).toFixed(0)}% of systems`} onClick={() => handleCardClick("below")} active={tableFilter === "below"} />
