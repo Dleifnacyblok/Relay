@@ -60,7 +60,11 @@ export default function IEPMonthlyReports() {
           </div>
         ) : (
           <div className="space-y-3">
-            {reports.map(report => {
+            {[...reports].sort((a, b) => {
+              const ma = a.reportMonth || "";
+              const mb = b.reportMonth || "";
+              return mb.localeCompare(ma);
+            }).map(report => {
               const score = report.overallScore;
               const scoreColor = score == null ? "text-slate-400" : score >= 90 ? "text-green-600" : score >= 70 ? "text-yellow-600" : "text-red-600";
               const date = report.created_date ? new Date(report.created_date).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" }) : "";
