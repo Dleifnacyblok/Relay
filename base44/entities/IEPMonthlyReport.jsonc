@@ -1,0 +1,33 @@
+{
+  "name": "IEPMonthlyReport",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Report title, e.g. 'March 2025'"
+    },
+    "reportMonth": {
+      "type": "string",
+      "description": "Month/year string e.g. '2025-03'"
+    },
+    "overallScore": {
+      "type": "number",
+      "description": "Overall IEP efficiency score (avg eff %)"
+    },
+    "systems": {
+      "type": "array",
+      "description": "Snapshot of all IEPSystemData records at time of save",
+      "items": {
+        "type": "object"
+      }
+    },
+    "notes": {
+      "type": "string",
+      "description": "Optional notes about this report period"
+    }
+  },
+  "required": [
+    "title",
+    "reportMonth"
+  ]
+}

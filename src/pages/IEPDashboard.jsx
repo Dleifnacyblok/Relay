@@ -2,7 +2,8 @@ import { useMemo, useState, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Link } from "react-router-dom";
-import { TrendingUp, Upload, Target, Activity, BarChart2, Clock, PackageSearch, MapPin, AlertTriangle, Box, ChevronDown, ChevronUp } from "lucide-react";
+import { TrendingUp, Upload, Clock, PackageSearch, MapPin, AlertTriangle, Box, ChevronDown, ChevronUp, BookmarkPlus, FileText } from "lucide-react";
+import SaveReportDialog from "@/components/iep/SaveReportDialog";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, Legend } from "recharts";
 import IEPConsignmentTable from "@/components/iep/IEPConsignmentTable";
 import IEPLoanerTable from "@/components/iep/IEPLoanerTable";
@@ -181,9 +182,8 @@ export default function IEPDashboard() {
   }, [iepAffectedLoaners]);
 
   const [expandedIepCard, setExpandedIepCard] = useState(null);
-  const [top10Open, setTop10Open] = useState(false);
-  const [bottom10Open, setBottom10Open] = useState(false);
   const [allTableOpen, setAllTableOpen] = useState(false);
+  const [showSaveDialog, setShowSaveDialog] = useState(false);
 
   const top10 = useMemo(() =>
     sorted.slice(0, 10).map(s => ({
@@ -245,10 +245,20 @@ export default function IEPDashboard() {
               )}
             </div>
           </div>
-          <Link to="/IEPImport"
-            className="inline-flex items-center gap-2 px-4 py-2 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 rounded-lg text-sm font-medium transition-colors shadow-sm">
-            <Upload className="w-4 h-4" /> Re-import Data
-          </Link>
+          <div className="flex items-center gap-2 flex-wrap">
+            <Link to="/IEPMonthlyReports"
+              className="inline-flex items-center gap-2 px-4 py-2 border border-purple-200 bg-purple-50 hover:bg-purple-100 text-purple-700 rounded-lg text-sm font-medium transition-colors shadow-sm">
+              <FileText className="w-4 h-4" /> Monthly Reports
+            </Link>
+            <button onClick={() => setShowSaveDialog(true)}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-sm font-medium transition-colors shadow-sm">
+              <BookmarkPlus className="w-4 h-4" /> Save Monthly Report
+            </button>
+            <Link to="/IEPImport"
+              className="inline-flex items-center gap-2 px-4 py-2 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 rounded-lg text-sm font-medium transition-colors shadow-sm">
+              <Upload className="w-4 h-4" /> Re-import Data
+            </Link>
+          </div>
         </div>
 
         {/* Score Banners */}
@@ -520,6 +530,14 @@ export default function IEPDashboard() {
         )}
 
       </div>
+
+      {showSaveDialog && (
+        <SaveReportDialog
+          systems={systems}
+          avgEffPct={avgEffPct}
+          onClose={() => setShowSaveDialog(false)}
+        />
+      )}
     </div>
   );
 }
