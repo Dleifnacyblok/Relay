@@ -110,6 +110,8 @@ export default function IEPDashboard() {
   }, [systems]);
 
   const [tableFilter, setTableFilter] = useState(null);
+  const [sortDir, setSortDir] = useState("desc"); // "asc" | "desc"
+  const [mfrFilter, setMfrFilter] = useState("all"); // "all" | "globus" | "nuvasive"
   const tableRef = useRef(null);
   const [modalFilter, setModalFilter] = useState(null);
   const [selectedSystem, setSelectedSystem] = useState(null); // null | 'above' | 'below'
@@ -125,10 +127,17 @@ export default function IEPDashboard() {
   }, [sorted, modalFilter]);
 
   const filteredSystems = useMemo(() => {
-    if (tableFilter === "above") return sorted.filter(s => s.effPct != null && s.effPct >= 100);
-    if (tableFilter === "below") return sorted.filter(s => s.effPct != null && s.effPct < 70);
-    return sorted;
-  }, [sorted, tableFilter]);
+    let list = [...sorted];
+    // Manufacturer filter
+    if (mfrFilter === "globus") list = list.filter(s => !s.systemName?.toLowerCase().includes("nuvasive"));
+    if (mfrFilter === "nuvasive") list = list.filter(s => s.systemName?.toLowerCase().includes("nuvasive"));
+    // tableFilter
+    if (tableFilter === "above") list = list.filter(s => s.effPct != null && s.effPct >= 100);
+    if (tableFilter === "below") list = list.filter(s => s.effPct != null && s.effPct < 70);
+    // Sort direction (sorted is already desc)
+    if (sortDir === "asc") list = [...list].reverse();
+    return list;
+  }, [sorted, tableFilter, sortDir, mfrFilter]);
 
   const iepSystemNames = useMemo(() =>
     new Set(systems.map(s => s.systemName?.toLowerCase().trim())),
@@ -364,15 +373,26 @@ export default function IEPDashboard() {
           <button onClick={() => setAllTableOpen(o => !o)}
             className="w-full flex items-center justify-between px-6 py-4 hover:bg-slate-50 transition-colors">
             <div className="text-left">
-              <h2 className="text-sm font-semibold text-slate-700">
-                {tableFilter === "above" ? "Above Target Systems (\u2265100%)" : tableFilter === "below" ? "Below Target Systems (<70%)" : "All Systems \u2014 sorted by Eff % (descending)"}
-              </h2>
-              {tableFilter && (
-                <button onClick={(e) => { e.stopPropagation(); setTableFilter(null); }} className="text-xs text-blue-500 hover:underline mt-0.5">Clear filter</button>
-              )}
+              <h2 className="text-sm font-semibold text-slate-700">All Systems</h2>
+              <p className="text-xs text-slate-400 mt-0.5">{filteredSystems.length} systems · Eff % {sortDir === "desc" ? "↓" : "↑"}</p>
             </div>
             {allTableOpen ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
           </button>
+          {allTableOpen && (
+            <div className="px-4 pb-3 border-t border-slate-100 flex flex-wrap gap-2 pt-3" onClick={e => e.stopPropagation()}>
+              {/* Sort direction */}
+              <div className="flex rounded-lg border border-slate-200 overflow-hidden text-xs font-medium">
+                <button onClick={() => setSortDir("desc")} className={`px-3 py-1.5 transition-colors ${sortDir === "desc" ? "bg-slate-800 text-white" : "bg-white text-slate-600 hover:bg-slate-50"}`}>Eff % ↓</button>
+                <button onClick={() => setSortDir("asc")} className={`px-3 py-1.5 transition-colors ${sortDir === "asc" ? "bg-slate-800 text-white" : "bg-white text-slate-600 hover:bg-slate-50"}`}>Eff % ↑</button>
+              </div>
+              {/* Manufacturer filter */}
+              <div className="flex rounded-lg border border-slate-200 overflow-hidden text-xs font-medium">
+                <button onClick={() => setMfrFilter("all")} className={`px-3 py-1.5 transition-colors ${mfrFilter === "all" ? "bg-slate-800 text-white" : "bg-white text-slate-600 hover:bg-slate-50"}`}>All</button>
+                <button onClick={() => setMfrFilter("globus")} className={`px-3 py-1.5 transition-colors ${mfrFilter === "globus" ? "bg-blue-600 text-white" : "bg-white text-slate-600 hover:bg-slate-50"}`}>Globus</button>
+                <button onClick={() => setMfrFilter("nuvasive")} className={`px-3 py-1.5 transition-colors ${mfrFilter === "nuvasive" ? "bg-purple-600 text-white" : "bg-white text-slate-600 hover:bg-slate-50"}`}>Nuvasive</button>
+              </div>
+            </div>
+          )}
           {allTableOpen && (
             <div className="overflow-x-auto border-t border-slate-100">
               <table className="w-full text-sm">
@@ -384,7 +404,6 @@ export default function IEPDashboard() {
                     <th className="px-4 py-3 text-right font-medium">Expected</th>
                     <th className="px-4 py-3 text-center font-medium">Eff %</th>
                     <th className="px-4 py-3 text-center font-medium">Proj Eff %</th>
-
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -396,7 +415,6 @@ export default function IEPDashboard() {
                       <td className="px-4 py-3 text-right text-slate-600">{fmt(s.totalExpUsage)}</td>
                       <td className="px-4 py-3 text-center"><EffBadge val={s.effPct} /></td>
                       <td className="px-4 py-3 text-center"><EffBadge val={s.effPctProj} /></td>
-
                     </tr>
                   ))}
                 </tbody>
