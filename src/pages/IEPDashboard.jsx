@@ -384,7 +384,7 @@ export default function IEPDashboard() {
                     <th className="px-4 py-3 text-right font-medium">Expected</th>
                     <th className="px-4 py-3 text-center font-medium">Eff %</th>
                     <th className="px-4 py-3 text-center font-medium">Proj Eff %</th>
-                    <th className="px-4 py-3 text-right font-medium">Eff Score</th>
+
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -396,7 +396,7 @@ export default function IEPDashboard() {
                       <td className="px-4 py-3 text-right text-slate-600">{fmt(s.totalExpUsage)}</td>
                       <td className="px-4 py-3 text-center"><EffBadge val={s.effPct} /></td>
                       <td className="px-4 py-3 text-center"><EffBadge val={s.effPctProj} /></td>
-                      <td className="px-4 py-3 text-right"><ScoreCell val={s.effScore} /></td>
+
                     </tr>
                   ))}
                 </tbody>
