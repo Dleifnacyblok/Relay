@@ -78,6 +78,22 @@ export default function IEPDashboard() {
     queryFn: () => base44.entities.Loaners.list(),
   });
 
+  const { data: consignedSets = [] } = useQuery({
+    queryKey: ["consignedSets"],
+    queryFn: () => base44.entities.ConsignedSet.list(),
+  });
+
+  // Build lookup: normalized setName → manufacturer ("Globus" | "Nuvasive")
+  const mfrBySetName = useMemo(() => {
+    const map = {};
+    consignedSets.forEach(cs => {
+      if (cs.setName && cs.manufacturer) {
+        map[cs.setName.toLowerCase().trim()] = cs.manufacturer.toLowerCase();
+      }
+    });
+    return map;
+  }, [consignedSets]);
+
   const sorted = useMemo(() =>
     [...systems].sort((a, b) => (b.effPct ?? -999) - (a.effPct ?? -999)),
     [systems]
@@ -128,16 +144,25 @@ export default function IEPDashboard() {
 
   const filteredSystems = useMemo(() => {
     let list = [...sorted];
-    // Manufacturer filter
-    if (mfrFilter === "globus") list = list.filter(s => !s.systemName?.toLowerCase().includes("nuvasive"));
-    if (mfrFilter === "nuvasive") list = list.filter(s => s.systemName?.toLowerCase().includes("nuvasive"));
+    // Manufacturer filter — use ConsignedSet manufacturer lookup
+    if (mfrFilter === "globus") {
+      list = list.filter(s => {
+        const mfr = mfrBySetName[s.systemName?.toLowerCase().trim()];
+        return mfr === "globus";
+      });
+    } else if (mfrFilter === "nuvasive") {
+      list = list.filter(s => {
+        const mfr = mfrBySetName[s.systemName?.toLowerCase().trim()];
+        return mfr === "nuvasive";
+      });
+    }
     // tableFilter
     if (tableFilter === "above") list = list.filter(s => s.effPct != null && s.effPct >= 100);
     if (tableFilter === "below") list = list.filter(s => s.effPct != null && s.effPct < 70);
     // Sort direction (sorted is already desc)
     if (sortDir === "asc") list = [...list].reverse();
     return list;
-  }, [sorted, tableFilter, sortDir, mfrFilter]);
+  }, [sorted, tableFilter, sortDir, mfrFilter, mfrBySetName]);
 
   const iepSystemNames = useMemo(() =>
     new Set(systems.map(s => s.systemName?.toLowerCase().trim())),
