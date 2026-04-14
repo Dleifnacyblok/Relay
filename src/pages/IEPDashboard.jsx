@@ -8,6 +8,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import IEPConsignmentTable from "@/components/iep/IEPConsignmentTable";
 import IEPLoanerTable from "@/components/iep/IEPLoanerTable";
 import IEPReferenceGuide from "@/components/iep/IEPReferenceGuide";
+import TrackedESCConsignments from "@/components/iep/TrackedESCConsignments";
 
 function StatCard({ label, value, sub, icon: Icon, color = "blue", onClick, active }) {
   const colors = {
@@ -272,6 +273,9 @@ export default function IEPDashboard() {
             <p className="text-xs text-slate-400 mt-1">end of period projection</p>
           </div>
         </div>
+
+        {/* Tracked ESC Consignments */}
+        <TrackedESCConsignments />
 
         {/* IEP Reference Guide */}
         <IEPReferenceGuide />
