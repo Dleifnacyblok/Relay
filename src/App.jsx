@@ -9,7 +9,6 @@ import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import IEPDashboard from '@/pages/IEPDashboard';
 import IEPImport from '@/pages/IEPImport';
-import IEPMonthlyReports from '@/pages/IEPMonthlyReports';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -71,11 +70,7 @@ const AuthenticatedApp = () => {
           <IEPImport />
         </LayoutWrapper>
       } />
-      <Route path="/IEPMonthlyReports" element={
-        <LayoutWrapper currentPageName="IEPMonthlyReports">
-          <IEPMonthlyReports />
-        </LayoutWrapper>
-      } />
+
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
