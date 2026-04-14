@@ -34,7 +34,7 @@ export default function IEPMonthlyReports() {
               <FileText className="w-6 h-6 text-purple-600" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-slate-900">Monthly IEP Scorecards</h1>
+              <h1 className="text-2xl font-bold text-slate-900">Monthly Scorecards</h1>
               <p className="text-xs text-slate-400 mt-0.5">{reports.length} saved report{reports.length !== 1 ? "s" : ""}</p>
             </div>
           </div>

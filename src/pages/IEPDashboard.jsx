@@ -59,6 +59,12 @@ function fmt(val) {
 }
 
 export default function IEPDashboard() {
+  const { data: user } = useQuery({
+    queryKey: ["currentUser"],
+    queryFn: () => base44.auth.me(),
+  });
+  const isAdmin = user?.role === "admin" || user?.role === "manager";
+
   const { data: systems = [], isLoading } = useQuery({
     queryKey: ["iepSystemData"],
     queryFn: () => base44.entities.IEPSystemData.list(),
@@ -245,17 +251,7 @@ export default function IEPDashboard() {
               )}
             </div>
           </div>
-          <div className="flex items-center gap-2 flex-wrap">
-            <Link to="/IEPMonthlyReports"
-              className="inline-flex items-center gap-2 px-4 py-2 border border-purple-200 bg-purple-50 hover:bg-purple-100 text-purple-700 rounded-lg text-sm font-medium transition-colors shadow-sm">
-              <FileText className="w-4 h-4" /> Monthly Reports
-            </Link>
-            <button onClick={() => setShowSaveDialog(true)}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-sm font-medium transition-colors shadow-sm">
-              <BookmarkPlus className="w-4 h-4" /> Save Monthly Report
-            </button>
-
-          </div>
+          
         </div>
 
         {/* Score Banners */}
@@ -386,6 +382,20 @@ export default function IEPDashboard() {
             </div>
           </div>
         )}
+
+        {/* Scorecard Actions */}
+        <div className="flex items-center gap-2 flex-wrap mb-4">
+          <Link to="/IEPMonthlyReports"
+            className="inline-flex items-center gap-2 px-4 py-2 border border-purple-200 bg-purple-50 hover:bg-purple-100 text-purple-700 rounded-lg text-sm font-medium transition-colors shadow-sm">
+            <FileText className="w-4 h-4" /> Monthly Scorecards
+          </Link>
+          {isAdmin && (
+            <button onClick={() => setShowSaveDialog(true)}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-sm font-medium transition-colors shadow-sm">
+              <BookmarkPlus className="w-4 h-4" /> Save Monthly Scorecard
+            </button>
+          )}
+        </div>
 
         {/* All Systems Table — first */}
         <div ref={tableRef} className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden mb-6">
