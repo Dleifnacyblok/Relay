@@ -254,10 +254,7 @@ export default function IEPDashboard() {
               className="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-sm font-medium transition-colors shadow-sm">
               <BookmarkPlus className="w-4 h-4" /> Save Monthly Report
             </button>
-            <Link to="/IEPImport"
-              className="inline-flex items-center gap-2 px-4 py-2 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 rounded-lg text-sm font-medium transition-colors shadow-sm">
-              <Upload className="w-4 h-4" /> Re-import Data
-            </Link>
+
           </div>
         </div>
 
