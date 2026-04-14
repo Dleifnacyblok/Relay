@@ -1,5 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
-import { isIEPLoaner } from "@/lib/iepUtils";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Link } from "react-router-dom";
@@ -15,8 +14,7 @@ import {
   DollarSign,
   AlertTriangle,
   FileText,
-  Save,
-  MapPin
+  Save
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -72,8 +70,6 @@ export default function LoanerDetail() {
   });
 
   const isAdmin = user?.role === "admin";
-
-  const isIEPSet = useMemo(() => isIEPLoaner(loaner), [loaner]);
 
   const formatDate = (dateStr) => {
     if (!dateStr) return "—";
@@ -147,11 +143,6 @@ export default function LoanerDetail() {
             <div>
               <div className="flex items-center gap-2 flex-wrap">
                 <h1 className="text-2xl font-bold" style={{color: '#000000'}}>{loaner.setName}</h1>
-                {isIEPSet && (
-                  <span className="inline-flex items-center gap-1 text-sm font-semibold text-purple-700 bg-purple-100 border border-purple-200 px-2 py-0.5 rounded-full">
-                    <MapPin className="w-3.5 h-3.5" /> IEP Impact
-                  </span>
-                )}
               </div>
               <p className="mt-1">
                 <span style={{color: '#777777'}}>Etch ID: </span>
@@ -160,13 +151,6 @@ export default function LoanerDetail() {
             </div>
             <RiskBadge riskStatus={loaner.risk_status} />
           </div>
-          {isIEPSet && (
-            <div className="mb-4 p-3 rounded-lg bg-purple-50 border border-purple-200 flex items-center gap-2">
-              <MapPin className="w-4 h-4 text-purple-600 shrink-0" />
-              <p className="text-sm text-purple-800">This set is part of your territory consignment inventory and impacts your IEP score.</p>
-            </div>
-          )}
-
           <RequestLoanerDialog loaner={loaner} currentUser={user} />
 
           {loaner.risk_status !== "Safe" && (
