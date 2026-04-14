@@ -31,10 +31,7 @@ const StatusBadge = ({ status }) => {
     <span className="inline-flex items-center gap-1 text-xs font-semibold text-green-700 bg-green-50 border border-green-200 px-2 py-0.5 rounded-full">
       <CheckCircle2 className="w-3 h-3" /> Returned
     </span>);
-  return (
-    <span className="text-xs font-medium text-slate-400 bg-slate-50 border border-slate-200 px-2 py-0.5 rounded-full">
-      No Activity
-    </span>);
+  return null;
 };
 
 export default function TrackedESCConsignments() {
