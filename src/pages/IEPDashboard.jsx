@@ -88,6 +88,11 @@ export default function IEPDashboard() {
     return vals.length ? (vals.reduce((a, b) => a + b, 0) / vals.length) : null;
   }, [systems]);
 
+  const avgEffPctProj = useMemo(() => {
+    const vals = systems.filter(s => s.effPctProj != null).map(s => s.effPctProj);
+    return vals.length ? (vals.reduce((a, b) => a + b, 0) / vals.length) : null;
+  }, [systems]);
+
   const aboveTarget = useMemo(() => systems.filter(s => s.effPct != null && s.effPct >= 100).length, [systems]);
   const belowTarget = useMemo(() => systems.filter(s => s.effPct != null && s.effPct < 70).length, [systems]);
 
@@ -225,32 +230,22 @@ export default function IEPDashboard() {
           </Link>
         </div>
 
-        {/* Stat Cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          {/* Territory Avg — centered focal card */}
-          <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5 flex flex-col items-center justify-center text-center">
-            <div className="p-2.5 rounded-lg bg-purple-50 mb-2">
-              <Activity className="w-5 h-5 text-purple-600" />
-            </div>
-            <p className="text-xs text-slate-500 font-medium uppercase tracking-wide mb-1">Territory Avg Eff %</p>
+        {/* Score Banners */}
+        <div className="grid grid-cols-2 gap-4 mb-8">
+          <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6 flex flex-col items-center justify-center text-center">
+            <p className="text-xs text-slate-500 font-medium uppercase tracking-wide mb-2">Current IEP Score</p>
             <p className="text-5xl font-extrabold text-purple-600 leading-none mb-1">
               {avgEffPct != null ? `${avgEffPct.toFixed(1)}%` : "—"}
             </p>
-            <p className="text-xs text-slate-400">across all systems</p>
+            <p className="text-xs text-slate-400 mt-1">avg across all systems</p>
           </div>
-          {/* Loaner-only Eff % card */}
-          <div className="bg-white rounded-xl border border-blue-100 shadow-sm p-5 flex flex-col items-center justify-center text-center">
-            <div className="p-2.5 rounded-lg bg-blue-50 mb-2">
-              <BarChart2 className="w-5 h-5 text-blue-500" />
-            </div>
-            <p className="text-xs text-slate-500 font-medium uppercase tracking-wide mb-1">Loaner Eff %</p>
+          <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6 flex flex-col items-center justify-center text-center">
+            <p className="text-xs text-slate-500 font-medium uppercase tracking-wide mb-2">Projected IEP Score</p>
             <p className="text-5xl font-extrabold text-blue-500 leading-none mb-1">
-              {avgLoanerEffPct != null ? `${avgLoanerEffPct.toFixed(1)}%` : "—"}
+              {avgEffPctProj != null ? `${avgEffPctProj.toFixed(1)}%` : "—"}
             </p>
-            <p className="text-xs text-slate-400">loaner usage only</p>
+            <p className="text-xs text-slate-400 mt-1">end of period projection</p>
           </div>
-          <StatCard label="Above Target (≥100%)" value={aboveTarget} icon={Target} color="green" sub={`${((aboveTarget / systems.length) * 100).toFixed(0)}% of systems`} onClick={() => handleCardClick("above")} active={tableFilter === "above"} />
-          <StatCard label="Below Target (<70%)" value={belowTarget} icon={Target} color="red" sub={`${((belowTarget / systems.length) * 100).toFixed(0)}% of systems`} onClick={() => handleCardClick("below")} active={tableFilter === "below"} />
         </div>
 
         {/* Modal for above/below target set names */}
