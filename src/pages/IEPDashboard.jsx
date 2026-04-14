@@ -430,66 +430,7 @@ export default function IEPDashboard() {
           )}
         </div>
 
-        {/* Top 10 & Bottom 10 Combined */}
-        <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden mb-8">
-          <button onClick={() => setTop10Open(o => !o)}
-            className="w-full flex items-center justify-between px-6 py-4 hover:bg-slate-50 transition-colors">
-            <div className="text-left">
-              <h2 className="text-sm font-semibold text-slate-700">Top 10 &amp; Bottom 10 Systems by Eff %</h2>
-              <p className="text-xs text-slate-400 mt-0.5">Highest and lowest performing systems</p>
-            </div>
-            {top10Open ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
-          </button>
-          {top10Open && (
-            <div className="border-t border-slate-100 grid grid-cols-1 sm:grid-cols-2 divide-y sm:divide-y-0 sm:divide-x divide-slate-100">
-              {/* Top 10 */}
-              <div>
-                <p className="px-4 pt-4 pb-2 text-xs font-semibold text-green-700 uppercase tracking-wide">Top 10</p>
-                <div className="space-y-1 px-3 pb-4">
-                  {sorted.slice(0, 10).map((s, i) => (
-                    <button key={s.id || i} onClick={() => { setSelectedSystem(s); setModalFilter("above"); }}
-                      className="w-full flex items-center justify-between px-3 py-2.5 rounded-lg bg-slate-50 hover:bg-slate-100 transition-colors text-left">
-                      <span className="text-sm text-slate-700 font-medium">{s.systemName}</span>
-                      <div className="flex items-center gap-2">
-                        <span className={`text-xs font-bold px-2 py-0.5 rounded-full shrink-0 ${
-                          s.effPct >= 100 ? "bg-green-100 text-green-700" : s.effPct >= 70 ? "bg-yellow-100 text-yellow-700" : "bg-red-100 text-red-700"
-                        }`}>{s.effPct != null ? `${s.effPct.toFixed(1)}%` : "\u2014"}</span>
-                        <span className="text-slate-300 text-xs">›</span>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              </div>
-              {/* Bottom 10 */}
-              <div>
-                <p className="px-4 pt-4 pb-2 text-xs font-semibold text-red-600 uppercase tracking-wide">Bottom 10</p>
-                <div className="space-y-1 px-3 pb-4">
-                  {[...sorted].reverse().slice(0, 10).map((s, i) => (
-                    <button key={s.id || i} onClick={() => { setSelectedSystem(s); setModalFilter("below"); }}
-                      className="w-full flex items-center justify-between px-3 py-2.5 rounded-lg bg-slate-50 hover:bg-slate-100 transition-colors text-left">
-                      <span className="text-sm text-slate-700 font-medium">{s.systemName}</span>
-                      <div className="flex items-center gap-2">
-                        <span className={`text-xs font-bold px-2 py-0.5 rounded-full shrink-0 ${
-                          s.effPct >= 100 ? "bg-green-100 text-green-700" : s.effPct >= 70 ? "bg-yellow-100 text-yellow-700" : "bg-red-100 text-red-700"
-                        }`}>{s.effPct != null ? `${s.effPct.toFixed(1)}%` : "\u2014"}</span>
-                        <span className="text-slate-300 text-xs">›</span>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
 
-        {/* Consignment & Loaner individual tables */}
-        {consignmentData.length > 0 && (
-          <IEPConsignmentTable data={consignmentData} />
-        )}
-
-        {loanerData.length > 0 && (
-          <IEPLoanerTable data={loanerData} />
-        )}
 
         {/* IEP Impact — Territory Set Loaners */}
         {iepAffectedLoaners.length > 0 && (
