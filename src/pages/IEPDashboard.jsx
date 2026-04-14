@@ -387,20 +387,6 @@ export default function IEPDashboard() {
           </div>
         )}
 
-        {/* Scorecard Actions */}
-        <div className="flex items-center gap-2 flex-wrap mb-4">
-          <Link to="/IEPMonthlyReports"
-            className="inline-flex items-center gap-2 px-4 py-2 border border-purple-200 bg-purple-50 hover:bg-purple-100 text-purple-700 rounded-lg text-sm font-medium transition-colors shadow-sm">
-            <FileText className="w-4 h-4" /> Monthly Scorecards
-          </Link>
-          {isAdmin && (
-            <button onClick={() => setShowSaveDialog(true)}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-sm font-medium transition-colors shadow-sm">
-              <BookmarkPlus className="w-4 h-4" /> Save Monthly Scorecard
-            </button>
-          )}
-        </div>
-
         {/* All Systems Table — first */}
         <div ref={tableRef} className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden mb-6">
           <button onClick={() => setAllTableOpen(o => !o)}
@@ -539,6 +525,20 @@ export default function IEPDashboard() {
             </div>
           </div>
         )}
+
+        {/* Scorecard Actions — bottom */}
+        <div className="flex items-center gap-2 flex-wrap mt-6">
+          <Link to="/IEPMonthlyReports"
+            className="inline-flex items-center gap-2 px-4 py-2 border border-purple-200 bg-purple-50 hover:bg-purple-100 text-purple-700 rounded-lg text-sm font-medium transition-colors shadow-sm">
+            <FileText className="w-4 h-4" /> Monthly Scorecards
+          </Link>
+          {isAdmin && (
+            <button onClick={() => setShowSaveDialog(true)}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-sm font-medium transition-colors shadow-sm">
+              <BookmarkPlus className="w-4 h-4" /> Save Monthly Scorecard
+            </button>
+          )}
+        </div>
 
       </div>
 
