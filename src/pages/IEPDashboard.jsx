@@ -7,6 +7,7 @@ import SaveReportDialog from "@/components/iep/SaveReportDialog";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, Legend } from "recharts";
 import IEPConsignmentTable from "@/components/iep/IEPConsignmentTable";
 import IEPLoanerTable from "@/components/iep/IEPLoanerTable";
+import IEPReferenceGuide from "@/components/iep/IEPReferenceGuide";
 
 function StatCard({ label, value, sub, icon: Icon, color = "blue", onClick, active }) {
   const colors = {
@@ -271,6 +272,9 @@ export default function IEPDashboard() {
             <p className="text-xs text-slate-400 mt-1">end of period projection</p>
           </div>
         </div>
+
+        {/* IEP Reference Guide */}
+        <IEPReferenceGuide />
 
         {/* Modal for above/below target set names */}
         {modalFilter && (
