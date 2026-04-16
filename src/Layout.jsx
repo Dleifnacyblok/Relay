@@ -52,7 +52,6 @@ export default function Layout({ children, currentPageName }) {
 
   const bottomNavItems = [
     { name: "Search", page: "Search", icon: Search },
-    { name: "Track Log", page: "SendBackLog", icon: FileText },
   ];
 
   const moreNavigation = [
@@ -137,8 +136,8 @@ export default function Layout({ children, currentPageName }) {
       className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-100"
       style={{paddingBottom: 'env(safe-area-inset-bottom, 8px)'}}
     >
-      <div className="flex items-end justify-around px-4 pt-2 pb-2">
-        {/* Left item: Search */}
+      <div className="flex items-end justify-between px-8 pt-2 pb-2">
+        {/* Left: Search */}
         {(() => {
           const item = bottomNavItems[0];
           const Icon = item.icon;
@@ -167,22 +166,7 @@ export default function Layout({ children, currentPageName }) {
           <span className="text-[9px] font-medium text-gray-400 mt-0.5">Home</span>
         </Link>
 
-        {/* Right item: Track Log */}
-        {(() => {
-          const item = bottomNavItems[1];
-          const Icon = item.icon;
-          const active = isActive(item.page);
-          return (
-            <Link key={item.page} to={createPageUrl(item.page)}
-              className={cn("flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl transition-colors min-w-0",
-                active ? "text-blue-600" : "text-gray-400")}>
-              <Icon className="w-5 h-5 shrink-0" />
-              <span className="text-[10px] font-medium leading-tight text-center truncate max-w-[52px]">{item.name}</span>
-            </Link>
-          );
-        })()}
-
-        {/* More menu trigger */}
+        {/* Right: More */}
         <div className="relative">
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
