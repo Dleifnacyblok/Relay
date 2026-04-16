@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
-import { Package, Clock, Image as ImageIcon, Share2, Check, ArrowRightLeft, Camera, X, Loader2, Plus } from "lucide-react";
+import { Package, Clock, Image as ImageIcon, Share2, Check, ArrowRightLeft, Camera, X, Loader2, Plus, Undo2 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format, parseISO } from "date-fns";
 import { Card } from "@/components/ui/card";
@@ -21,6 +21,8 @@ export default function SendBackLog() {
   const [editingLogId, setEditingLogId] = useState(null);
   const [copiedLogId, setCopiedLogId] = useState(null);
   const [uploading, setUploading] = useState(false);
+  const [undoingLogId, setUndoingLogId] = useState(null);
+  const [confirmUndoId, setConfirmUndoId] = useState(null);
   const queryClient = useQueryClient();
 
   const { data: user, isLoading: userLoading } = useQuery({
@@ -134,6 +136,31 @@ export default function SendBackLog() {
     updatePhotosMutation.mutate({ logId: editingLogId, photoUrls: selectedPhotos });
     setShowPhotosDialog(false);
     setEditingLogId(null);
+  };
+
+  const handleUndo = async (log) => {
+    setUndoingLogId(log.id);
+    try {
+      // Restore loaners to "not_returned"
+      for (const loanerId of (log.loanerIds || [])) {
+        await base44.entities.Loaners.update(loanerId, { returnStatus: "not_returned" });
+      }
+      // Restore missing parts to "not_returned"
+      for (const partId of (log.missingPartIds || [])) {
+        await base44.entities.MissingPart.update(partId, { returnStatus: "not_returned" });
+      }
+      // Delete the log entry
+      await base44.entities.SendBackLog.delete(log.id);
+      queryClient.invalidateQueries({ queryKey: ["loaners"] });
+      queryClient.invalidateQueries({ queryKey: ["missingParts"] });
+      queryClient.invalidateQueries({ queryKey: ["sendBackLogs", user?.full_name] });
+      toast.success("Action undone — items restored");
+    } catch {
+      toast.error("Failed to undo action");
+    } finally {
+      setUndoingLogId(null);
+      setConfirmUndoId(null);
+    }
   };
 
   const handleShare = async (log) => {
@@ -371,6 +398,40 @@ export default function SendBackLog() {
                       </>
                     )}
                   </Button>
+
+                  {/* Undo */}
+                  {confirmUndoId === log.id ? (
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-slate-500">Are you sure?</span>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => handleUndo(log)}
+                        disabled={undoingLogId === log.id}
+                        className="gap-2"
+                      >
+                        {undoingLogId === log.id ? (
+                          <Loader2 className="w-3 h-3 animate-spin" />
+                        ) : (
+                          <Undo2 className="w-3 h-3" />
+                        )}
+                        Yes, Undo
+                      </Button>
+                      <Button variant="outline" size="sm" onClick={() => setConfirmUndoId(null)}>
+                        Cancel
+                      </Button>
+                    </div>
+                  ) : (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setConfirmUndoId(log.id)}
+                      className="gap-2 text-slate-500 hover:text-red-600 hover:border-red-300"
+                    >
+                      <Undo2 className="w-4 h-4" />
+                      Undo
+                    </Button>
+                  )}
                 </div>
               </Card>
             ))
