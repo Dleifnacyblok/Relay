@@ -3,8 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/base44Client";
-import { Package, User, Send, ArrowRightLeft, Download, CalendarPlus, Search, X, MapPin } from "lucide-react";
-import { isIEPLoaner } from "@/lib/iepUtils";
+import { Package, User, Send, ArrowRightLeft, Download, CalendarPlus, Search, X } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
@@ -302,12 +301,10 @@ export default function MyLoaners() {
               {/* Mobile rows */}
               <div className="lg:hidden divide-y divide-slate-100">
                 {filteredLoaners.map(loaner => {
-                  const iep = isIEPLoaner(loaner);
                   return (
                   <div
                     key={loaner.id}
                     className="flex items-center justify-between px-4 py-4 min-h-14 transition-colors"
-                    style={iep ? { backgroundColor: '#F5F3FF', borderLeft: '3px solid #7C3AED' } : {}}
                   >
                     <div className="flex items-center gap-3 min-w-0 flex-1 pr-3">
                       <Checkbox
@@ -318,14 +315,7 @@ export default function MyLoaners() {
                         to={createPageUrl("LoanerDetail") + `?id=${loaner.id}`}
                         className="min-w-0 flex-1"
                       >
-                        <div className="flex items-center gap-2">
-                          <p className="font-semibold text-slate-900 truncate">{loaner.setName}</p>
-                          {iep && (
-                            <span className="inline-flex items-center gap-1 text-xs font-semibold text-purple-700 bg-purple-100 border border-purple-200 px-1.5 py-0.5 rounded-full shrink-0">
-                              <MapPin className="w-3 h-3" /> IEP
-                            </span>
-                          )}
-                        </div>
+                        <p className="font-semibold text-slate-900 truncate">{loaner.setName}</p>
                         <p className="text-sm text-slate-500 truncate">{loaner.accountName}</p>
                       </Link>
                     </div>
