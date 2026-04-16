@@ -30,11 +30,26 @@ export default function SendBackLog() {
     queryFn: () => base44.auth.me(),
   });
 
-  const { data: logs = [], isLoading: logsLoading } = useQuery({
+  const { data: myLogs = [], isLoading: logsLoading } = useQuery({
     queryKey: ["sendBackLogs", user?.full_name],
     queryFn: () => base44.entities.SendBackLog.filter({ repName: user?.full_name }),
     enabled: !!user?.full_name,
   });
+
+  const { data: transfersToMe = [], isLoading: transfersLoading } = useQuery({
+    queryKey: ["sendBackLogsTransferTo", user?.full_name],
+    queryFn: () => base44.entities.SendBackLog.filter({ transferTo: user?.full_name }),
+    enabled: !!user?.full_name,
+  });
+
+  const logs = useMemo(() => {
+    const seen = new Set();
+    return [...myLogs, ...transfersToMe].filter(log => {
+      if (seen.has(log.id)) return false;
+      seen.add(log.id);
+      return true;
+    });
+  }, [myLogs, transfersToMe]);
 
   const { data: allLoaners = [] } = useQuery({
     queryKey: ["loaners"],
@@ -46,7 +61,7 @@ export default function SendBackLog() {
     queryFn: () => base44.entities.MissingPart.list(),
   });
 
-  const isLoading = userLoading || logsLoading;
+  const isLoading = userLoading || logsLoading || transfersLoading;
 
   const loanerById = useMemo(() =>
     Object.fromEntries(allLoaners.map(l => [l.id, l])),
