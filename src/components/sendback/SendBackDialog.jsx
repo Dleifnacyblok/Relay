@@ -30,6 +30,19 @@ export default function SendBackDialog({ open, onOpenChange, selectedLoaners, se
       const loanerIds = selectedLoaners.map(l => l.id);
       const partIds = selectedParts.map(p => p.id);
 
+      // Snapshot names at time of send-back so they're never "Unknown" later
+      const loanerSnapshots = selectedLoaners.map(l => ({
+        id: l.id,
+        setName: l.setName || "Unknown Loaner",
+        etchId: l.etchId || null,
+      }));
+      const partSnapshots = selectedParts.map(p => ({
+        id: p.id,
+        partName: p.partName || "Unknown Part",
+        partNumber: p.partNumber || null,
+        missingQuantity: p.missingQuantity || 1,
+      }));
+
       // Create send back log
       await base44.entities.SendBackLog.create({
         repName: userName,
@@ -37,6 +50,8 @@ export default function SendBackDialog({ open, onOpenChange, selectedLoaners, se
         sentDate: new Date().toISOString().slice(0, 10),
         loanerIds,
         missingPartIds: partIds,
+        loanerSnapshots,
+        partSnapshots,
         notes,
         photoUrls: photos
       });

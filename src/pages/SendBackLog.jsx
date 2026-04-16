@@ -65,16 +65,21 @@ export default function SendBackLog() {
     }
   };
 
-  const getLoanerInfo = (loanerId) => {
+  const getLoanerInfo = (loanerId, log) => {
+    // Prefer live lookup, fall back to snapshot saved at time of send-back
     const loaner = loanerById[loanerId];
-    if (!loaner) return { name: "Unknown Loaner", etchId: null };
-    return { name: loaner.setName, etchId: loaner.etchId };
+    if (loaner) return { name: loaner.setName, etchId: loaner.etchId };
+    const snapshot = (log?.loanerSnapshots || []).find(s => s.id === loanerId);
+    if (snapshot) return { name: snapshot.setName, etchId: snapshot.etchId };
+    return { name: "Unknown Loaner", etchId: null };
   };
 
-  const getPartInfo = (partId) => {
+  const getPartInfo = (partId, log) => {
     const part = partById[partId];
-    if (!part) return { name: "Unknown Part", quantity: 1 };
-    return { name: part.partName, quantity: part.missingQuantity || 1 };
+    if (part) return { name: part.partName, quantity: part.missingQuantity || 1 };
+    const snapshot = (log?.partSnapshots || []).find(s => s.id === partId);
+    if (snapshot) return { name: snapshot.partName, quantity: snapshot.missingQuantity || 1 };
+    return { name: "Unknown Part", quantity: 1 };
   };
 
   const sortedLogs = [...logs].sort((a, b) => 
@@ -149,7 +154,7 @@ export default function SendBackLog() {
       lines.push(``);
       lines.push(`Loaners being transferred:`);
       (log.loanerIds || []).forEach(loanerId => {
-        const info = getLoanerInfo(loanerId);
+        const info = getLoanerInfo(loanerId, log);
         lines.push(`- ${info.name} (Etch ID: ${info.etchId || "N/A"})`);
       });
       if (log.isOverdue) {
@@ -164,7 +169,7 @@ export default function SendBackLog() {
       lines.push("");
       lines.push("Loaners:");
       log.loanerIds.forEach(loanerId => {
-        const info = getLoanerInfo(loanerId);
+        const info = getLoanerInfo(loanerId, log);
         lines.push(`- ${info.name} (Etch ID: ${info.etchId || "N/A"})`);
       });
     } else if (log.missingPartIds && log.missingPartIds.length > 0) {
@@ -297,7 +302,7 @@ export default function SendBackLog() {
                       </p>
                       <div className="bg-slate-50 rounded-lg p-3 space-y-1">
                         {log.loanerIds.map((loanerId, idx) => {
-                          const loanerInfo = getLoanerInfo(loanerId);
+                          const loanerInfo = getLoanerInfo(loanerId, log);
                           return (
                             <div key={idx} className="text-sm text-slate-600">
                               • {loanerInfo.name} {loanerInfo.etchId && <span className="text-slate-500">(Etch: {loanerInfo.etchId})</span>}
@@ -315,7 +320,7 @@ export default function SendBackLog() {
                       </p>
                       <div className="bg-slate-50 rounded-lg p-3 space-y-1">
                         {log.missingPartIds.map((partId, idx) => {
-                          const partInfo = getPartInfo(partId);
+                          const partInfo = getPartInfo(partId, log);
                           return (
                             <div key={idx} className="text-sm text-slate-600">
                               • {partInfo.name} <span className="text-slate-500">(Qty: {partInfo.quantity})</span>

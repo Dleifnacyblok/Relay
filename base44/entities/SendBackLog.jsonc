@@ -1,0 +1,83 @@
+{
+  "name": "SendBackLog",
+  "type": "object",
+  "properties": {
+    "repName": {
+      "type": "string",
+      "description": "Name of the rep who sent/transferred items"
+    },
+    "trackingNumber": {
+      "type": "string",
+      "description": "Tracking number for the shipment (or 'TRANSFER' for transfers)"
+    },
+    "sentDate": {
+      "type": "string",
+      "format": "date",
+      "description": "Date items were sent back / transferred (YYYY-MM-DD)"
+    },
+    "loanerIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "IDs of loaners sent back or transferred"
+    },
+    "missingPartIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "IDs of missing parts sent back"
+    },
+    "loanerSnapshots": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "description": "Snapshot of loaner names/etchIds at time of send-back"
+    },
+    "partSnapshots": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "description": "Snapshot of part names/numbers at time of send-back"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional notes"
+    },
+    "photoUrls": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "URLs of photos"
+    },
+    "logType": {
+      "type": "string",
+      "enum": [
+        "send_back",
+        "transfer"
+      ],
+      "default": "send_back",
+      "description": "Type of log entry"
+    },
+    "transferTo": {
+      "type": "string",
+      "description": "Who the loaners are being transferred to"
+    },
+    "requestNumber": {
+      "type": "string",
+      "description": "Request number for the transfer"
+    },
+    "isOverdue": {
+      "type": "boolean",
+      "description": "Whether the loaners are overdue at time of transfer"
+    }
+  },
+  "required": [
+    "repName",
+    "sentDate"
+  ]
+}
