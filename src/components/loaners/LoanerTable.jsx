@@ -1,11 +1,10 @@
 import { format, parseISO } from "date-fns";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { ChevronRight, MapPin } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import RiskBadge from "./RiskBadge";
 import { formatCurrency } from "./loanerUtils";
-import { isIEPLoaner } from "@/lib/iepUtils";
 import {
   Table,
   TableBody,
@@ -38,15 +37,14 @@ export default function LoanerTable({ loaners, compact = false, selectable = fal
       {/* Mobile Card View */}
       <div className="md:hidden space-y-3 p-3">
         {loaners.map((loaner) => {
-          const iep = isIEPLoaner(loaner);
           return (
           <div
             key={loaner.id}
             className="rounded-xl py-4 px-4 transition-all cursor-pointer"
             style={{
-              backgroundColor: iep ? '#F5F3FF' : '#FFFFFF',
-              border: selectedIds.includes(loaner.id) ? '1.5px solid #3B82F6' : iep ? '1.5px solid #7C3AED' : '1px solid #E5E7EB',
-              boxShadow: iep ? '0px 2px 8px rgba(124, 58, 237, 0.10)' : '0px 2px 8px rgba(0, 0, 0, 0.04)',
+              backgroundColor: '#FFFFFF',
+              border: selectedIds.includes(loaner.id) ? '1.5px solid #3B82F6' : '1px solid #E5E7EB',
+              boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.04)',
             }}
             onClick={() => selectable && onSelectOne?.(loaner.id)}
           >
@@ -63,11 +61,6 @@ export default function LoanerTable({ loaners, compact = false, selectable = fal
                 <div className="min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
                     <h3 className="font-bold text-sm leading-tight" style={{color: '#000000', wordBreak: 'break-word', whiteSpace: 'normal'}} title={loaner.setName}>{loaner.setName}</h3>
-                    {iep && (
-                      <span className="inline-flex items-center gap-1 text-xs font-semibold text-purple-700 bg-purple-100 border border-purple-200 px-1.5 py-0.5 rounded-full">
-                        <MapPin className="w-3 h-3" /> IEP
-                      </span>
-                    )}
                   </div>
                   <p className="text-xs mt-0.5">
                     <span style={{color: '#777777'}}>Etch ID: </span>
@@ -121,12 +114,10 @@ export default function LoanerTable({ loaners, compact = false, selectable = fal
           </TableHeader>
           <TableBody>
             {loaners.map((loaner) => {
-              const iep = isIEPLoaner(loaner);
               return (
               <TableRow 
                 key={loaner.id} 
                 className="border-gray-200 hover:bg-gray-50 transition-colors cursor-pointer"
-                style={iep ? { borderLeft: '3px solid #7C3AED', backgroundColor: '#FAFAFE' } : {}}
               >
                 {selectable && (
                   <TableCell onClick={(e) => e.stopPropagation()}>
@@ -143,11 +134,6 @@ export default function LoanerTable({ loaners, compact = false, selectable = fal
                     >
                       <div className="flex items-center gap-2">
                         <span className="font-bold" style={{color: '#000000'}}>{loaner.setName}</span>
-                        {iep && (
-                          <span className="inline-flex items-center gap-1 text-xs font-semibold text-purple-700 bg-purple-100 border border-purple-200 px-1.5 py-0.5 rounded-full">
-                            <MapPin className="w-3 h-3" /> IEP
-                          </span>
-                        )}
                       </div>
                       <div className="text-xs mt-0.5">
                         <span style={{color: '#777777'}}>Etch ID: </span>
