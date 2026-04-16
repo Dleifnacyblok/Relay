@@ -50,6 +50,11 @@ export default function Layout({ children, currentPageName }) {
     { name: "Missing ...", page: "MyMissingParts", icon: AlertCircle },
   ];
 
+  const bottomNavItems = [
+    { name: "Search", page: "Search", icon: Search },
+    { name: "Track Log", page: "SendBackLog", icon: FileText },
+  ];
+
   const moreNavigation = [
     { name: "Territory", page: "TerritoryInventory", icon: MapPin },
     { name: "Calendar", page: "Calendar", icon: CalendarDays },
@@ -127,18 +132,15 @@ export default function Layout({ children, currentPageName }) {
     </aside>
   );
 
-  // Split navigation into left 2 and right 2, logo goes in the center
-  const leftNav = navigation.slice(0, 2);
-  const rightNav = navigation.slice(2, 4);
-
   const mobileBottomNav = (
     <nav
       className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-100"
       style={{paddingBottom: 'env(safe-area-inset-bottom, 8px)'}}
     >
-      <div className="flex items-end justify-around px-1 pt-2 pb-2">
-        {/* Left 2 nav items */}
-        {leftNav.map((item) => {
+      <div className="flex items-end justify-around px-4 pt-2 pb-2">
+        {/* Left item: Search */}
+        {(() => {
+          const item = bottomNavItems[0];
           const Icon = item.icon;
           const active = isActive(item.page);
           return (
@@ -149,7 +151,7 @@ export default function Layout({ children, currentPageName }) {
               <span className="text-[10px] font-medium leading-tight text-center truncate max-w-[52px]">{item.name}</span>
             </Link>
           );
-        })}
+        })()}
 
         {/* Center Logo */}
         <Link to={createPageUrl("Dashboard")} className="flex flex-col items-center -mt-7">
@@ -165,8 +167,9 @@ export default function Layout({ children, currentPageName }) {
           <span className="text-[9px] font-medium text-gray-400 mt-0.5">Home</span>
         </Link>
 
-        {/* Right 2 nav items */}
-        {rightNav.map((item) => {
+        {/* Right item: Track Log */}
+        {(() => {
+          const item = bottomNavItems[1];
           const Icon = item.icon;
           const active = isActive(item.page);
           return (
@@ -177,7 +180,7 @@ export default function Layout({ children, currentPageName }) {
               <span className="text-[10px] font-medium leading-tight text-center truncate max-w-[52px]">{item.name}</span>
             </Link>
           );
-        })}
+        })()}
 
         {/* More menu trigger */}
         <div className="relative">
