@@ -62,10 +62,17 @@ export default function MyMissingParts() {
 
   const isLoading = userLoading || partsLoading;
   const userName = user?.full_name || "";
+  // Some users have a username instead of their real name; map known aliases
+  const repNameAliases = user?.email === "grantsellis14@gmail.com" ? ["Grant Ellis"] : [];
+
+  const allRepNames = useMemo(() =>
+    [userName, ...repNameAliases].map(n => n.toLowerCase()).filter(Boolean),
+    [userName, repNameAliases]
+  );
 
   const myParts = useMemo(() => {
     const parts = missingParts.filter(p =>
-      p.repName?.toLowerCase() === userName.toLowerCase() &&
+      allRepNames.includes(p.repName?.toLowerCase()) &&
       p.returnStatus !== "sent_back" && p.returnStatus !== "received"
     );
     // Sort: missing first, then found, then paid

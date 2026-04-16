@@ -76,6 +76,8 @@ export default function MyLoaners() {
 
   const isLoading = userLoading || loanersLoading;
   const userName = user?.full_name || "";
+  // Some users have a username instead of their real name; map known aliases
+  const repNameAliases = user?.email === "grantsellis14@gmail.com" ? ["Grant Ellis"] : [];
 
   const computedLoaners = loaners.map(computeLoanerData);
   
@@ -98,16 +100,21 @@ export default function MyLoaners() {
     [managedAccounts, assignedAccountNames]
   );
 
+  const allRepNames = useMemo(() =>
+    [userName, ...repNameAliases].map(n => n.toLowerCase()).filter(Boolean),
+    [userName, repNameAliases]
+  );
+
   const myLoaners = useMemo(() => sortLoaners(
     computedLoaners.filter(l => 
       l.returnStatus !== "sent_back" && 
       l.returnStatus !== "received" &&
-      (l.repName?.toLowerCase() === userName.toLowerCase() || 
-       l.associateSalesRep?.toLowerCase() === userName.toLowerCase() ||
-       l.fieldSalesRep?.toLowerCase() === userName.toLowerCase() ||
+      (allRepNames.includes(l.repName?.toLowerCase()) || 
+       allRepNames.includes(l.associateSalesRep?.toLowerCase()) ||
+       allRepNames.includes(l.fieldSalesRep?.toLowerCase()) ||
        allUserAccounts.includes(l.accountName))
     )
-  ), [computedLoaners, userName, allUserAccounts]);
+  ), [computedLoaners, allRepNames, allUserAccounts]);
 
   const filteredLoaners = useMemo(() => {
     if (!searchQuery.trim()) return myLoaners;
@@ -150,7 +157,7 @@ export default function MyLoaners() {
   }, 0);
   
   const myParts = missingParts.filter(p => 
-    p.repName?.toLowerCase() === userName.toLowerCase() && 
+    allRepNames.includes(p.repName?.toLowerCase()) && 
     p.status === "missing" &&
     p.returnStatus !== "sent_back" && p.returnStatus !== "received"
   );
