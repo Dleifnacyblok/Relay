@@ -537,8 +537,14 @@ export default function ImportData() {
           return;
         }
 
-        // Create unique key for upsert — do NOT include repName as it can vary between imports
-        const uniqueKey = `${requestNumber || 'none'}__${partSetNumber || 'none'}__${deductionDate || 'none'}__${(partName || 'none').slice(0, 20)}`.toLowerCase();
+        // Robust unique key — combines all stable identifiers to prevent duplicates
+        const uniqueKey = [
+          requestNumber || 'none',
+          partSetNumber || partNumber || 'none',
+          deductionDate || 'none',
+          etchId || 'none',
+          (partName || 'none').slice(0, 30),
+        ].join('__').toLowerCase();
 
         payload.push({
           uniqueKey,
@@ -619,7 +625,17 @@ export default function ImportData() {
         await sleep(500);
       }
 
-      setPartsImportResult({ success: true, created, updated, total: created + updated });
+      // Delete stale parts no longer in the spreadsheet
+      const newKeySet = new Set(payload.map(p => p.uniqueKey));
+      let deleted = 0;
+      for (const [key, id] of existingMap.entries()) {
+        if (!newKeySet.has(key)) {
+          try { await base44.entities.MissingPart.delete(id); deleted++; } catch (_) {}
+          await sleep(200);
+        }
+      }
+
+      setPartsImportResult({ success: true, created, updated, deleted, total: created + updated });
       queryClient.invalidateQueries({ queryKey: ["missingParts"] });
       setPartsFile(null);
 
@@ -994,6 +1010,7 @@ export default function ImportData() {
                 Successfully processed {partsImportResult.total} missing parts
                 {partsImportResult.created > 0 && ` (${partsImportResult.created} created)`}
                 {partsImportResult.updated > 0 && ` (${partsImportResult.updated} updated)`}
+                {partsImportResult.deleted > 0 && ` (${partsImportResult.deleted} removed — no longer in spreadsheet)`}
               </AlertDescription>
             </Alert>
           )}
