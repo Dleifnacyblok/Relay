@@ -72,6 +72,11 @@ async function importGrid4(rows, setProgress) {
 }
 
 const FILE_TYPES = {
+  scorecard: {
+    label: "IEP Efficiency Scorecard (PDF)",
+    color: "orange",
+    hint: "The PDF scorecard with Set ID, Set Name, Cons/Loaner Exp Usage Proj, Proc Cmpl Proj, Eff Proj, and Overall Score.",
+  },
   grid6: {
     label: "Grid 6 — System Efficiency Summary",
     color: "purple",
@@ -99,6 +104,7 @@ function FileImportCard({ typeKey, onSuccess }) {
 
   const info = FILE_TYPES[typeKey];
   const colorMap = {
+    orange: { ring: "border-orange-300", badge: "bg-orange-100 text-orange-700", btn: "bg-orange-600 hover:bg-orange-700" },
     purple: { ring: "border-purple-300", badge: "bg-purple-100 text-purple-700", btn: "bg-purple-600 hover:bg-purple-700" },
     blue: { ring: "border-blue-300", badge: "bg-blue-100 text-blue-700", btn: "bg-blue-600 hover:bg-blue-700" },
     green: { ring: "border-green-300", badge: "bg-green-100 text-green-700", btn: "bg-green-600 hover:bg-green-700" },
@@ -112,6 +118,8 @@ function FileImportCard({ typeKey, onSuccess }) {
     setResult(null);
     setError(null);
     setDetectedType(null);
+
+    if (typeKey === "scorecard") return; // PDF — skip XLSX detection
 
     // Peek at the file to detect type
     const reader = new FileReader();
@@ -135,25 +143,93 @@ function FileImportCard({ typeKey, onSuccess }) {
     setResult(null);
     setProgress("Reading file...");
     try {
-      const ab = await file.arrayBuffer();
-      const wb = XLSX.read(ab, { type: "array", cellDates: true });
-      const ws = wb.Sheets[wb.SheetNames[0]];
-      const rows = XLSX.utils.sheet_to_json(ws, { defval: "", raw: false });
-
-      const detected = detectFileType(rows);
-      if (detected !== typeKey) {
-        throw new Error(`This file looks like ${detected ? FILE_TYPES[detected]?.label : "an unknown format"}, not ${info.label}. Please upload the correct file.`);
-      }
-
       let count = 0;
-      setProgress("Clearing existing data...");
-      if (typeKey === "grid6") {
+
+      if (typeKey === "scorecard") {
+        setProgress("Uploading PDF...");
         const { file_url } = await base44.integrations.Core.UploadFile({ file });
-        count = await importViaBackend(file_url, 'grid6', setProgress);
-      } else if (typeKey === "grid4") count = await importGrid4(rows, setProgress);
-      else if (typeKey === "grid5") {
-        const { file_url } = await base44.integrations.Core.UploadFile({ file });
-        count = await importViaBackend(file_url, 'grid5', setProgress);
+        setProgress("Extracting data from PDF...");
+        const extracted = await base44.integrations.Core.ExtractDataFromUploadedFile({
+          file_url,
+          json_schema: {
+            type: "object",
+            properties: {
+              overallScore: { type: "number", description: "The overall IEP efficiency score shown prominently on the scorecard" },
+              reportDate: { type: "string", description: "The date shown on the scorecard e.g. 'May 8, 2026'" },
+              rows: {
+                type: "array",
+                items: {
+                  type: "object",
+                  properties: {
+                    setId: { type: "string" },
+                    setName: { type: "string" },
+                    consExpUsageProj: { type: "number" },
+                    loanerExpUsageProj: { type: "number" },
+                    totalExpUsageProj: { type: "number" },
+                    procCmplProj: { type: "number" },
+                    effPctProj: { type: "number" },
+                  }
+                }
+              }
+            }
+          }
+        });
+
+        if (!extracted?.output?.rows?.length) throw new Error("Could not extract data from PDF. Make sure it's the IEP Efficiency Scorecard.");
+
+        const { overallScore, rows: scorecardRows } = extracted.output;
+        const importedAt = new Date().toISOString();
+
+        setProgress("Clearing existing data...");
+        const existing = await base44.entities.IEPSystemData.list();
+        for (let i = 0; i < existing.length; i += 5) {
+          const chunk = existing.slice(i, i + 5);
+          await Promise.all(chunk.map(r => base44.entities.IEPSystemData.delete(r.id)));
+        }
+
+        setProgress("Saving records...");
+        const records = scorecardRows.map(row => ({
+          systemName: row.setName || "",
+          sysCnt: null,
+          consExpUsage: null,
+          consExpUsageProj: row.consExpUsageProj ?? null,
+          loanerExpUsage: null,
+          loanerExpUsageProj: row.loanerExpUsageProj ?? null,
+          totalExpUsage: null,
+          totalExpUsageProj: row.totalExpUsageProj ?? null,
+          procCmpl: null,
+          procCmplProj: row.procCmplProj ?? null,
+          effScore: null,
+          effScoreProj: overallScore ?? null,
+          effPct: null,
+          effPctProj: row.effPctProj ?? null,
+          importedAt,
+        }));
+
+        for (let i = 0; i < records.length; i += 50) {
+          await base44.entities.IEPSystemData.bulkCreate(records.slice(i, i + 50));
+        }
+        count = records.length;
+      } else {
+        const ab = await file.arrayBuffer();
+        const wb = XLSX.read(ab, { type: "array", cellDates: true });
+        const ws = wb.Sheets[wb.SheetNames[0]];
+        const rows = XLSX.utils.sheet_to_json(ws, { defval: "", raw: false });
+
+        const detected = detectFileType(rows);
+        if (detected !== typeKey) {
+          throw new Error(`This file looks like ${detected ? FILE_TYPES[detected]?.label : "an unknown format"}, not ${info.label}. Please upload the correct file.`);
+        }
+
+        setProgress("Clearing existing data...");
+        if (typeKey === "grid6") {
+          const { file_url } = await base44.integrations.Core.UploadFile({ file });
+          count = await importViaBackend(file_url, 'grid6', setProgress);
+        } else if (typeKey === "grid4") count = await importGrid4(rows, setProgress);
+        else if (typeKey === "grid5") {
+          const { file_url } = await base44.integrations.Core.UploadFile({ file });
+          count = await importViaBackend(file_url, 'grid5', setProgress);
+        }
       }
 
       setResult(count);
@@ -170,8 +246,8 @@ function FileImportCard({ typeKey, onSuccess }) {
   return (
     <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
       <div className="flex items-start gap-3 mb-4">
-        <div className={`p-2 rounded-lg ${info.color === "purple" ? "bg-purple-50" : info.color === "blue" ? "bg-blue-50" : "bg-green-50"}`}>
-          <FileSpreadsheet className={`w-5 h-5 ${info.color === "purple" ? "text-purple-600" : info.color === "blue" ? "text-blue-600" : "text-green-600"}`} />
+        <div className={`p-2 rounded-lg ${info.color === "orange" ? "bg-orange-50" : info.color === "purple" ? "bg-purple-50" : info.color === "blue" ? "bg-blue-50" : "bg-green-50"}`}>
+          <FileSpreadsheet className={`w-5 h-5 ${info.color === "orange" ? "text-orange-600" : info.color === "purple" ? "text-purple-600" : info.color === "blue" ? "text-blue-600" : "text-green-600"}`} />
         </div>
         <div>
           <h2 className="text-sm font-semibold text-slate-800">{info.label}</h2>
@@ -180,11 +256,11 @@ function FileImportCard({ typeKey, onSuccess }) {
       </div>
 
       <div className={`border-2 border-dashed rounded-lg p-6 text-center hover:${c.ring} transition-colors mb-4 border-slate-200`}>
-        <input type="file" accept=".xlsx" onChange={handleFileChange}
+        <input type="file" accept={typeKey === "scorecard" ? ".pdf" : ".xlsx"} onChange={handleFileChange}
           className="hidden" id={`iep-file-${typeKey}`} />
         <label htmlFor={`iep-file-${typeKey}`}
-          className={`cursor-pointer font-medium text-sm ${info.color === "purple" ? "text-purple-600 hover:text-purple-700" : info.color === "blue" ? "text-blue-600 hover:text-blue-700" : "text-green-600 hover:text-green-700"}`}>
-          Choose Excel file (.xlsx)
+          className={`cursor-pointer font-medium text-sm ${info.color === "orange" ? "text-orange-600 hover:text-orange-700" : info.color === "purple" ? "text-purple-600 hover:text-purple-700" : info.color === "blue" ? "text-blue-600 hover:text-blue-700" : "text-green-600 hover:text-green-700"}`}>
+          {typeKey === "scorecard" ? "Choose PDF file (.pdf)" : "Choose Excel file (.xlsx)"}
         </label>
         <p className="text-xs text-slate-400 mt-1">or drag and drop</p>
         {file && (
@@ -278,6 +354,7 @@ export default function IEPImport() {
         </div>
 
         <div className="grid grid-cols-1 gap-6">
+          <FileImportCard typeKey="scorecard" />
           <FileImportCard typeKey="grid6" />
           <FileImportCard typeKey="grid4" />
           <FileImportCard typeKey="grid5" />
