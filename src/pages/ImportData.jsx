@@ -663,86 +663,29 @@ export default function ImportData() {
       const importedAt = new Date().toISOString();
       let records = [];
 
-      const isPdf = iepFile.name.toLowerCase().endsWith(".pdf");
-
-      if (isPdf) {
-        setIepProgress("Uploading PDF...");
-        const { file_url } = await base44.integrations.Core.UploadFile({ file: iepFile });
-        setIepProgress("Extracting data from PDF (this may take a moment)...");
-        const extracted = await base44.integrations.Core.ExtractDataFromUploadedFile({
-          file_url,
-          json_schema: {
-            type: "object",
-            properties: {
-              overallScore: { type: "number", description: "The large bold OVERALL SCORE number shown in the top-right corner of the scorecard (e.g. 95.3)" },
-              rows: {
-                type: "array",
-                description: "Every data row from the table. Columns are: Set ID, Set Name, Cons Exp Usage Proj, Loaner Exp Usage Proj, Total Exp Usage Proj, Proc Cmpl Proj, Eff Proj",
-                items: {
-                  type: "object",
-                  properties: {
-                    setId: { type: "string", description: "Set ID column" },
-                    setName: { type: "string", description: "Set Name column" },
-                    consExpUsageProj: { type: "number", description: "Cons Exp Usage Proj column" },
-                    loanerExpUsageProj: { type: "number", description: "Loaner Exp Usage Proj column" },
-                    totalExpUsageProj: { type: "number", description: "Total Exp Usage Proj column" },
-                    procCmplProj: { type: "number", description: "Proc Cmpl Proj column" },
-                    effPctProj: { type: "number", description: "Eff Proj column (the efficiency percentage)" },
-                  }
-                }
-              }
-            }
-          }
-        });
-
-        if (!extracted?.output?.rows?.length) {
-          throw new Error("Could not extract rows from PDF. Make sure it is the IEP Efficiency Scorecard.");
-        }
-
-        const overallScore = extracted.output.overallScore ?? null;
-        const scorecardRows = extracted.output.rows;
-        records = scorecardRows.map(row => ({
-          systemName: row.setName || "",
-          sysCnt: null,
-          consExpUsage: null,
-          consExpUsageProj: row.consExpUsageProj ?? null,
-          loanerExpUsage: null,
-          loanerExpUsageProj: row.loanerExpUsageProj ?? null,
-          totalExpUsage: null,
-          totalExpUsageProj: row.totalExpUsageProj ?? null,
-          procCmpl: null,
-          procCmplProj: row.procCmplProj ?? null,
-          effScore: null,
-          effScoreProj: overallScore,
-          effPct: null,
-          effPctProj: row.effPctProj ?? null,
-          importedAt,
-        }));
-      } else {
-        const arrayBuffer = await iepFile.arrayBuffer();
-        const workbook = XLSX.read(arrayBuffer, { type: "array", cellDates: true });
-        const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-        const allRows = XLSX.utils.sheet_to_json(worksheet, { defval: "", raw: false });
-        const validRows = allRows.filter((r) => r["Name"] && String(r["Name"]).trim() !== "");
-        if (!validRows.length) throw new Error("No valid rows found. Make sure the sheet has a 'Name' column.");
-        records = validRows.map(row => ({
-          systemName: String(row["Name"]).trim(),
-          sysCnt: toNum(row["Sys Cnt"]),
-          consExpUsage: toNum(row["Cons Exp Usage"]),
-          consExpUsageProj: toNum(row["Cons Exp Usage Proj"]),
-          loanerExpUsage: toNum(row["Loaner Exp Usage"]),
-          loanerExpUsageProj: toNum(row["Loaner Exp Usage Proj"]),
-          totalExpUsage: toNum(row["Total Exp Usage"]),
-          totalExpUsageProj: toNum(row["Total Exp Usage Proj"]),
-          procCmpl: toNum(row["Proc Cmpl"]),
-          procCmplProj: toNum(row["Proc Cmpl Proj"]),
-          effScore: toNum(row["Eff Score"]),
-          effScoreProj: toNum(row["Eff Score Proj"]),
-          effPct: toNum(row["Eff %"]),
-          effPctProj: toNum(row["Eff % Proj"]),
-          importedAt,
-        }));
-      }
+      const arrayBuffer = await iepFile.arrayBuffer();
+      const workbook = XLSX.read(arrayBuffer, { type: "array", cellDates: true });
+      const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+      const allRows = XLSX.utils.sheet_to_json(worksheet, { defval: "", raw: false });
+      const validRows = allRows.filter((r) => r["Name"] && String(r["Name"]).trim() !== "");
+      if (!validRows.length) throw new Error("No valid rows found. Make sure the sheet has a 'Name' column.");
+      records = validRows.map(row => ({
+        systemName: String(row["Name"]).trim(),
+        sysCnt: toNum(row["Sys Cnt"]),
+        consExpUsage: toNum(row["Cons Exp Usage"]),
+        consExpUsageProj: toNum(row["Cons Exp Usage Proj"]),
+        loanerExpUsage: toNum(row["Loaner Exp Usage"]),
+        loanerExpUsageProj: toNum(row["Loaner Exp Usage Proj"]),
+        totalExpUsage: toNum(row["Total Exp Usage"]),
+        totalExpUsageProj: toNum(row["Total Exp Usage Proj"]),
+        procCmpl: toNum(row["Proc Cmpl"]),
+        procCmplProj: toNum(row["Proc Cmpl Proj"]),
+        effScore: toNum(row["Eff Score"]),
+        effScoreProj: toNum(row["Eff Score Proj"]),
+        effPct: toNum(row["Eff %"]),
+        effPctProj: toNum(row["Eff % Proj"]),
+        importedAt,
+      }));
 
       setIepProgress("Clearing existing IEP data...");
       const existing = await base44.entities.IEPSystemData.list();
@@ -1117,14 +1060,13 @@ export default function ImportData() {
             </div>
             <div>
               <h2 className="font-semibold text-slate-900">Upload IEP Efficiency Report</h2>
-              <p className="text-sm text-slate-500">PDF Scorecard or Globus Grid 6 Excel (.xlsx)</p>
+              <p className="text-sm text-slate-500">Globus Grid 6 Excel (.xlsx)</p>
             </div>
           </div>
 
           <div className="bg-slate-50 rounded-lg p-4 mb-6 text-xs text-slate-600 space-y-1">
-            <p className="font-medium text-slate-700 mb-1">Accepted formats:</p>
-            <p><span className="font-medium">PDF Scorecard</span> — IEP Efficiency Scorecard PDF (Set ID, Set Name, Cons/Loaner Exp Usage Proj, Proc Cmpl Proj, Eff Proj)</p>
-            <p><span className="font-medium">Excel (Grid 6)</span> — Columns: Name, Sys Cnt, Cons/Loaner Exp Usage, Proc Cmpl, Eff %, Eff Score…</p>
+            <p className="font-medium text-slate-700 mb-1">Expected columns (Grid 6):</p>
+            <p>Name, Sys Cnt, Cons/Loaner Exp Usage, Proc Cmpl, Eff %, Eff Score, and Proj variants</p>
             <p className="text-slate-400 italic mt-1">Each import fully replaces all previous IEP system records.</p>
           </div>
 
@@ -1132,13 +1074,13 @@ export default function ImportData() {
             <TrendingUp className="w-10 h-10 text-slate-300 mx-auto mb-3" />
             <Input
               type="file"
-              accept=".xlsx,.pdf"
+              accept=".xlsx,.xls"
               onChange={(e) => { const f = e.target.files?.[0]; if (f) { setIepFile(f); setIepImportResult(null); setIepError(null); } }}
               className="hidden"
               id="iep-file-upload"
             />
             <label htmlFor="iep-file-upload" className="cursor-pointer text-purple-600 hover:text-purple-700 font-medium">
-              Choose file (.xlsx or .pdf)
+              Choose file (.xlsx)
             </label>
             <p className="text-sm text-slate-500 mt-2">or drag and drop</p>
             {iepFile && (
