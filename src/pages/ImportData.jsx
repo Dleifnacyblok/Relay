@@ -674,19 +674,20 @@ export default function ImportData() {
           json_schema: {
             type: "object",
             properties: {
-              overallScore: { type: "number", description: "The overall IEP efficiency score shown prominently on the scorecard" },
+              overallScore: { type: "number", description: "The large bold OVERALL SCORE number shown in the top-right corner of the scorecard (e.g. 95.3)" },
               rows: {
                 type: "array",
+                description: "Every data row from the table. Columns are: Set ID, Set Name, Cons Exp Usage Proj, Loaner Exp Usage Proj, Total Exp Usage Proj, Proc Cmpl Proj, Eff Proj",
                 items: {
                   type: "object",
                   properties: {
-                    setId: { type: "string" },
-                    setName: { type: "string" },
-                    consExpUsageProj: { type: "number" },
-                    loanerExpUsageProj: { type: "number" },
-                    totalExpUsageProj: { type: "number" },
-                    procCmplProj: { type: "number" },
-                    effPctProj: { type: "number" },
+                    setId: { type: "string", description: "Set ID column" },
+                    setName: { type: "string", description: "Set Name column" },
+                    consExpUsageProj: { type: "number", description: "Cons Exp Usage Proj column" },
+                    loanerExpUsageProj: { type: "number", description: "Loaner Exp Usage Proj column" },
+                    totalExpUsageProj: { type: "number", description: "Total Exp Usage Proj column" },
+                    procCmplProj: { type: "number", description: "Proc Cmpl Proj column" },
+                    effPctProj: { type: "number", description: "Eff Proj column (the efficiency percentage)" },
                   }
                 }
               }
@@ -695,10 +696,11 @@ export default function ImportData() {
         });
 
         if (!extracted?.output?.rows?.length) {
-          throw new Error("Could not extract data from PDF. Make sure it is the IEP Efficiency Scorecard.");
+          throw new Error("Could not extract rows from PDF. Make sure it is the IEP Efficiency Scorecard.");
         }
 
-        const { overallScore, rows: scorecardRows } = extracted.output;
+        const overallScore = extracted.output.overallScore ?? null;
+        const scorecardRows = extracted.output.rows;
         records = scorecardRows.map(row => ({
           systemName: row.setName || "",
           sysCnt: null,
@@ -711,7 +713,7 @@ export default function ImportData() {
           procCmpl: null,
           procCmplProj: row.procCmplProj ?? null,
           effScore: null,
-          effScoreProj: overallScore ?? null,
+          effScoreProj: overallScore,
           effPct: null,
           effPctProj: row.effPctProj ?? null,
           importedAt,

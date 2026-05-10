@@ -115,7 +115,10 @@ export default function IEPDashboard() {
     return vals.length ? (vals.reduce((a, b) => a + b, 0) / vals.length) : null;
   }, [systems]);
 
+  // If all records share the same effScoreProj (PDF overall score), use it directly
   const avgEffPctProj = useMemo(() => {
+    const overallScores = [...new Set(systems.map(s => s.effScoreProj).filter(v => v != null))];
+    if (overallScores.length === 1) return overallScores[0]; // PDF overall score stored here
     const vals = systems.filter(s => s.effPctProj != null).map(s => s.effPctProj);
     return vals.length ? (vals.reduce((a, b) => a + b, 0) / vals.length) : null;
   }, [systems]);
