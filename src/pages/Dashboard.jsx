@@ -21,6 +21,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useState, useMemo } from "react";
 import NotificationCenter from "@/components/notifications/NotificationCenter";
 import ESCExportDialog from "@/components/dashboard/ESCExportDialog";
+import RequestedNotificationsCard from "@/components/notifications/RequestedNotificationsCard";
 
 const NavCard = ({ icon: Icon, title, description, page, badge, badgeColor, small }) => (
   <Link
@@ -141,6 +142,9 @@ export default function Dashboard() {
             <NotificationCenter userName={user?.full_name} />
           </div>
         </div>
+
+        {/* Requested Item Notifications */}
+        <RequestedNotificationsCard userName={user?.full_name} />
 
         {/* Navigation Sections */}
         <div className="space-y-6">

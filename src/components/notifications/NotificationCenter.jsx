@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
-import { Bell, X, CheckCheck, AlertCircle, Clock, Package } from "lucide-react";
+import { Bell, X, CheckCheck, AlertCircle, Clock, Package, ShoppingBag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -127,7 +127,10 @@ export default function NotificationCenter({ userName }) {
       case "missing_part":
         return <Package className="w-4 h-4 text-orange-500" />;
       case "loaner_request":
+      case "loaner_request_status":
         return <Bell className="w-4 h-4 text-blue-500" />;
+      case "marketplace_match":
+        return <ShoppingBag className="w-4 h-4 text-emerald-500" />;
       default:
         return <Bell className="w-4 h-4 text-slate-500" />;
     }

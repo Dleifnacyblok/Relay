@@ -1,0 +1,66 @@
+{
+  "name": "Notification",
+  "type": "object",
+  "properties": {
+    "repName": {
+      "type": "string",
+      "description": "Rep this notification is for"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "due_soon",
+        "overdue",
+        "missing_part",
+        "marketplace_match",
+        "loaner_request_status"
+      ],
+      "description": "Type of notification"
+    },
+    "title": {
+      "type": "string",
+      "description": "Notification title"
+    },
+    "message": {
+      "type": "string",
+      "description": "Notification message"
+    },
+    "relatedLoanerId": {
+      "type": "string",
+      "description": "ID of related loaner if applicable"
+    },
+    "relatedPartId": {
+      "type": "string",
+      "description": "ID of related missing part if applicable"
+    },
+    "relatedMarketplaceItemId": {
+      "type": "string",
+      "description": "ID of related marketplace item if applicable"
+    },
+    "relatedLoanerRequestId": {
+      "type": "string",
+      "description": "ID of related loaner request if applicable"
+    },
+    "isRead": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether notification has been read"
+    },
+    "severity": {
+      "type": "string",
+      "enum": [
+        "info",
+        "warning",
+        "critical"
+      ],
+      "default": "info",
+      "description": "Notification severity level"
+    }
+  },
+  "required": [
+    "repName",
+    "type",
+    "title",
+    "message"
+  ]
+}
