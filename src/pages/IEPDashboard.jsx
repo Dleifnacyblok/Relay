@@ -102,13 +102,16 @@ export default function IEPDashboard() {
     return map;
   }, [consignedSets]);
 
+  // Use effPct if available, fall back to effPctProj (PDF scorecard only has proj values)
+  const getEff = (s) => s.effPct ?? s.effPctProj ?? null;
+
   const sorted = useMemo(() =>
-    [...systems].sort((a, b) => (b.effPct ?? -999) - (a.effPct ?? -999)),
+    [...systems].sort((a, b) => (getEff(b) ?? -999) - (getEff(a) ?? -999)),
     [systems]
   );
 
   const avgEffPct = useMemo(() => {
-    const vals = systems.filter(s => s.effPct != null).map(s => s.effPct);
+    const vals = systems.map(s => getEff(s)).filter(v => v != null);
     return vals.length ? (vals.reduce((a, b) => a + b, 0) / vals.length) : null;
   }, [systems]);
 
@@ -117,8 +120,8 @@ export default function IEPDashboard() {
     return vals.length ? (vals.reduce((a, b) => a + b, 0) / vals.length) : null;
   }, [systems]);
 
-  const aboveTarget = useMemo(() => systems.filter(s => s.effPct != null && s.effPct >= 100).length, [systems]);
-  const belowTarget = useMemo(() => systems.filter(s => s.effPct != null && s.effPct < 70).length, [systems]);
+  const aboveTarget = useMemo(() => systems.filter(s => getEff(s) != null && getEff(s) >= 100).length, [systems]);
+  const belowTarget = useMemo(() => systems.filter(s => getEff(s) != null && getEff(s) < 70).length, [systems]);
 
   const avgLoanerEffPct = useMemo(() => {
     const eligible = systems.filter(s => s.loanerExpUsage != null && s.loanerExpUsage > 0 && s.effPct != null);
@@ -144,16 +147,16 @@ export default function IEPDashboard() {
   };
 
   const modalSystems = useMemo(() => {
-    if (modalFilter === "above") return sorted.filter(s => s.effPct != null && s.effPct >= 100);
-    if (modalFilter === "below") return sorted.filter(s => s.effPct != null && s.effPct < 70);
+    if (modalFilter === "above") return sorted.filter(s => getEff(s) != null && getEff(s) >= 100);
+    if (modalFilter === "below") return sorted.filter(s => getEff(s) != null && getEff(s) < 70);
     return [];
   }, [sorted, modalFilter]);
 
   const filteredSystems = useMemo(() => {
     let list = [...sorted];
     // tableFilter
-    if (tableFilter === "above") list = list.filter(s => s.effPct != null && s.effPct >= 100);
-    if (tableFilter === "below") list = list.filter(s => s.effPct != null && s.effPct < 70);
+    if (tableFilter === "above") list = list.filter(s => getEff(s) != null && getEff(s) >= 100);
+    if (tableFilter === "below") list = list.filter(s => getEff(s) != null && getEff(s) < 70);
     // Sort direction (sorted is already desc)
     if (sortDir === "asc") list = [...list].reverse();
     return list;
@@ -331,8 +334,8 @@ export default function IEPDashboard() {
                         <span className="text-sm text-slate-700 font-medium">{s.systemName}</span>
                         <div className="flex items-center gap-2">
                           <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
-                            s.effPct >= 100 ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
-                          }`}>{s.effPct?.toFixed(1)}%</span>
+                            getEff(s) >= 100 ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+                          }`}>{getEff(s)?.toFixed(1)}%</span>
                           <span className="text-slate-300 text-xs">›</span>
                         </div>
                       </button>
@@ -429,7 +432,7 @@ export default function IEPDashboard() {
                       <td className="px-4 py-3 text-right text-slate-600">{fmt(s.sysCnt)}</td>
                       <td className="px-4 py-3 text-right text-slate-600">{fmt(s.procCmpl)}</td>
                       <td className="px-4 py-3 text-right text-slate-600">{fmt(s.totalExpUsage)}</td>
-                      <td className="px-4 py-3 text-center"><EffBadge val={s.effPct} /></td>
+                      <td className="px-4 py-3 text-center"><EffBadge val={getEff(s)} /></td>
                       <td className="px-4 py-3 text-center"><EffBadge val={s.effPctProj} /></td>
                     </tr>
                   ))}
