@@ -248,6 +248,14 @@ export default function Analytics() {
           color={{ bg: "bg-orange-50", border: "border-orange-200", text: "text-orange-700", iconBg: "bg-orange-100", iconText: "text-orange-600" }} />
         </div>
 
+        {/* AI Insights */}
+        <AIInsights analyticsData={{
+            totalLoaners, overdueCount, overdueRate, dueSoonCount, totalFines, activeMissingParts,
+            overdueByRep, durationData, topMissingParts, finesByRep,
+            topOverdueSets: topOverdueSets.slice(0, 5),
+            topOverdueAccounts: accountData.slice(0, 5)
+          }} />
+
         {/* Monthly Fines History — top of page */}
         <MonthlyFinesHistory loaners={computed} missingParts={missingParts} />
 
@@ -479,13 +487,6 @@ export default function Analytics() {
             }
           </Card>
 
-          {/* AI Insights */}
-          <AIInsights analyticsData={{
-            totalLoaners, overdueCount, overdueRate, dueSoonCount, totalFines, activeMissingParts,
-            overdueByRep, durationData, topMissingParts, finesByRep,
-            topOverdueSets: topOverdueSets.slice(0, 5),
-            topOverdueAccounts: accountData.slice(0, 5)
-          }} />
         </div>
 
         <AnalyticsExportDialog
