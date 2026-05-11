@@ -306,10 +306,7 @@ export default function Search() {
                     )}
                     {filteredLoaners.map(loaner => (
                       <div key={loaner.id} className="flex items-center px-4 py-3 min-h-14 hover:bg-slate-50 transition-colors">
-                        <div
-                          className="mr-3 shrink-0"
-                          onClick={(e) => { e.stopPropagation(); handleSelectOne(loaner.id); }}
-                        >
+                        <div className="mr-3 shrink-0" onClick={(e) => e.stopPropagation()}>
                           <Checkbox
                             checked={selectedIds.includes(loaner.id)}
                             onCheckedChange={() => handleSelectOne(loaner.id)}
