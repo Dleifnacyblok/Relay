@@ -40,7 +40,10 @@ export default function Layout({ children, currentPageName }) {
   const showOnboarding = user && !user.onboardingComplete;
 
   useEffect(() => {
-    window.scrollTo(0, 0);
+    // Don't reset scroll when returning to Search (it handles its own scroll restore)
+    if (location.pathname !== "/Search" && location.pathname !== "/search") {
+      window.scrollTo(0, 0);
+    }
   }, [location.pathname]);
 
   const navigation = [

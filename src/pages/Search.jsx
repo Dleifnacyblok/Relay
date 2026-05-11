@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { useQuery } from "@tanstack/react-query";
@@ -28,6 +28,7 @@ import SendBackDialog from "@/components/sendback/SendBackDialog";
 import TransferDialog from "@/components/sendback/TransferDialog";
 
 const SESSION_KEY = "search_page_state";
+const SCROLL_KEY = "search_page_scroll";
 
 function getSessionState() {
   try {
@@ -49,6 +50,19 @@ export default function Search() {
   const [selectedIds, setSelectedIds] = useState([]);
   const [showSendBack, setShowSendBack] = useState(false);
   const [showTransfer, setShowTransfer] = useState(false);
+
+  // Restore scroll position when navigating back
+  useEffect(() => {
+    const savedScroll = sessionStorage.getItem(SCROLL_KEY);
+    if (savedScroll) {
+      setTimeout(() => window.scrollTo(0, parseInt(savedScroll, 10)), 50);
+    }
+    const onScroll = () => {
+      try { sessionStorage.setItem(SCROLL_KEY, String(window.scrollY)); } catch {}
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   const setSearchQuery = (v) => { setSearchQueryRaw(v); saveSessionState({ searchQuery: v, riskFilter, repFilter }); };
   const setRiskFilter = (v) => { setRiskFilterRaw(v); saveSessionState({ searchQuery, riskFilter: v, repFilter }); };
