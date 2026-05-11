@@ -14,7 +14,9 @@ import {
   DollarSign,
   AlertTriangle,
   FileText,
-  Save
+  Save,
+  Send,
+  ArrowRightLeft
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -23,6 +25,8 @@ import RiskBadge from "@/components/loaners/RiskBadge";
 import { computeLoanerData, formatCurrency } from "@/components/loaners/loanerUtils";
 import RequestLoanerDialog from "@/components/loaners/RequestLoanerDialog";
 import LoanerRequests from "@/components/loaners/LoanerRequests";
+import SendBackDialog from "@/components/sendback/SendBackDialog";
+import TransferDialog from "@/components/sendback/TransferDialog";
 
 export default function LoanerDetail() {
   const urlParams = new URLSearchParams(window.location.search);
@@ -31,6 +35,8 @@ export default function LoanerDetail() {
 
   const [notes, setNotes] = useState("");
   const [isEditingNotes, setIsEditingNotes] = useState(false);
+  const [showSendBack, setShowSendBack] = useState(false);
+  const [showTransfer, setShowTransfer] = useState(false);
 
   const { data: user } = useQuery({
     queryKey: ["currentUser"],
@@ -151,7 +157,17 @@ export default function LoanerDetail() {
             </div>
             <RiskBadge riskStatus={loaner.risk_status} />
           </div>
-          <RequestLoanerDialog loaner={loaner} currentUser={user} />
+          <div className="flex flex-wrap gap-2 mt-3">
+            <RequestLoanerDialog loaner={loaner} currentUser={user} />
+            <Button variant="outline" size="sm" className="gap-1.5" onClick={() => setShowSendBack(true)}>
+              <Send className="w-4 h-4" />
+              Send Back
+            </Button>
+            <Button variant="outline" size="sm" className="gap-1.5" onClick={() => setShowTransfer(true)}>
+              <ArrowRightLeft className="w-4 h-4" />
+              Transfer
+            </Button>
+          </div>
 
           {loaner.risk_status !== "Safe" && (
             <div className={`mt-6 p-4 rounded-lg ${
@@ -323,6 +339,26 @@ export default function LoanerDetail() {
           </div>
         </div>
       </div>
+
+      {loaner && (
+        <>
+          <SendBackDialog
+            open={showSendBack}
+            onOpenChange={setShowSendBack}
+            selectedLoaners={[loaner]}
+            selectedParts={[]}
+            userName={user?.full_name || ""}
+            onSuccess={() => {}}
+          />
+          <TransferDialog
+            open={showTransfer}
+            onOpenChange={setShowTransfer}
+            selectedLoaners={[loaner]}
+            userName={user?.full_name || ""}
+            onSuccess={() => {}}
+          />
+        </>
+      )}
     </div>
   );
 }

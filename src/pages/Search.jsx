@@ -305,17 +305,30 @@ export default function Search() {
                       <p className="text-center text-slate-400 py-10 text-sm">No results found</p>
                     )}
                     {filteredLoaners.map(loaner => (
-                      <Link
-                        key={loaner.id}
-                        to={createPageUrl("LoanerDetail") + `?id=${loaner.id}`}
-                        className="flex items-center justify-between px-4 py-3 min-h-14 hover:bg-slate-50 active:bg-slate-100 transition-colors"
-                      >
-                        <div className="min-w-0 flex-1 pr-3">
-                          <p className="font-semibold text-slate-900 truncate">{loaner.setName}</p>
-                          <p className="text-sm text-slate-500 truncate">{loaner.accountName || loaner.repName}</p>
+                      <div key={loaner.id} className="flex items-center px-4 py-3 min-h-14 hover:bg-slate-50 transition-colors">
+                        <div
+                          className="mr-3 shrink-0"
+                          onClick={(e) => { e.stopPropagation(); handleSelectOne(loaner.id); }}
+                        >
+                          <Checkbox
+                            checked={selectedIds.includes(loaner.id)}
+                            onCheckedChange={() => handleSelectOne(loaner.id)}
+                          />
                         </div>
-                        {statusPill(loaner)}
-                      </Link>
+                        <Link
+                          to={createPageUrl("LoanerDetail") + `?id=${loaner.id}`}
+                          className="flex items-center justify-between flex-1 min-w-0"
+                        >
+                          <div className="min-w-0 flex-1 pr-3">
+                            <p className="font-semibold text-slate-900 truncate">{loaner.setName}</p>
+                            <p className="text-sm text-slate-500 truncate">{loaner.accountName || loaner.repName}</p>
+                            {loaner.etchId && (
+                              <p className="text-xs text-slate-400">Etch: {loaner.etchId}</p>
+                            )}
+                          </div>
+                          {statusPill(loaner)}
+                        </Link>
+                      </div>
                     ))}
                   </div>
                   {/* Desktop table */}
