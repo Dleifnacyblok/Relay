@@ -7,7 +7,7 @@ export function createDoc() {
   return { doc, pageWidth, margin };
 }
 
-export function addReportHeader(doc, { pageWidth, margin, title, subtitle, generated, total, totalFines }) {
+export function addReportHeader(doc, { pageWidth, margin, title, subtitle, generated, total, totalFines, overdueCount, dueSoonCount, totalCount }) {
   doc.setFontSize(18);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(30, 41, 59);
@@ -19,13 +19,39 @@ export function addReportHeader(doc, { pageWidth, margin, title, subtitle, gener
   if (subtitle) doc.text(subtitle, margin, 28);
   doc.text(`Generated: ${generated}  |  Total: ${total}`, margin, subtitle ? 34 : 28);
 
-  let y = subtitle ? 44 : 38;
+  let y = subtitle ? 42 : 36;
 
-  if (totalFines > 0) {
-    doc.setFont("helvetica", "bold");
-    doc.setTextColor(220, 38, 38);
-    doc.text(`Total Fines: $${totalFines.toLocaleString()}`, margin, y);
-    y += 10;
+  // Summary stats row
+  const hasStats = overdueCount != null || dueSoonCount != null || totalCount != null || totalFines > 0;
+  if (hasStats) {
+    // Draw stat boxes
+    const stats = [];
+    if (totalCount != null) stats.push({ label: "Total", value: String(totalCount), color: [30, 41, 59] });
+    if (overdueCount != null) stats.push({ label: "Overdue", value: String(overdueCount), color: [220, 38, 38] });
+    if (dueSoonCount != null) stats.push({ label: "Due Soon", value: String(dueSoonCount), color: [180, 83, 9] });
+    if (totalFines > 0) stats.push({ label: "Total Fines", value: `$${totalFines.toLocaleString()}`, color: [220, 38, 38] });
+
+    const boxW = (pageWidth - margin * 2 - (stats.length - 1) * 4) / stats.length;
+    let bx = margin;
+    for (const stat of stats) {
+      doc.setFillColor(248, 250, 252);
+      doc.setDrawColor(226, 232, 240);
+      doc.setLineWidth(0.3);
+      doc.roundedRect(bx, y, boxW, 14, 2, 2, 'FD');
+
+      doc.setFontSize(11);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(...stat.color);
+      doc.text(stat.value, bx + boxW / 2, y + 7, { align: "center" });
+
+      doc.setFontSize(7);
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(100, 116, 139);
+      doc.text(stat.label, bx + boxW / 2, y + 12, { align: "center" });
+
+      bx += boxW + 4;
+    }
+    y += 20;
   }
 
   return y;

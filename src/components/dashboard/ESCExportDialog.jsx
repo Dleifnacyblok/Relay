@@ -41,12 +41,20 @@ function LoanersExport({ loaners, onClose }) {
         const { doc, pageWidth, margin } = createDoc();
         const subtitle = filterType === "rep" && selectedValue ? `Rep: ${selectedValue}` : filterType === "account" && selectedValue ? `Account: ${selectedValue}` : "All Reps";
 
+        const overdueCount = filtered.filter(l => l.isOverdue).length;
+        const dueSoonCount = filtered.filter(l => !l.isOverdue && l.daysUntilDue != null && l.daysUntilDue <= 7).length;
+        const totalFines = filtered.reduce((s, l) => s + (l.fineAmount || 0), 0);
+
         let y = addReportHeader(doc, {
           pageWidth, margin,
           title: "ESC Loaners Report",
           subtitle,
           generated: getNow(),
           total: `${filtered.length} loaner${filtered.length !== 1 ? "s" : ""}`,
+          totalCount: filtered.length,
+          overdueCount,
+          dueSoonCount,
+          totalFines,
         });
 
         for (const loaner of filtered) {
