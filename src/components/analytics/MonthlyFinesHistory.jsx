@@ -33,11 +33,19 @@ export default function MonthlyFinesHistory({ loaners = [], missingParts = [] })
     return true;
   }), [loaners, accountFilter, repFilter]);
 
-  // Filter missing parts (no accountName field, only repName)
+  // Reps associated with the selected account (for cross-filtering missing parts)
+  const repsAtAccount = useMemo(() => {
+    if (accountFilter === "all") return null;
+    const set = new Set(loaners.filter(l => l.accountName === accountFilter).map(l => l.repName).filter(Boolean));
+    return set;
+  }, [loaners, accountFilter]);
+
+  // Filter missing parts — by rep filter, and also by account (via reps at that account)
   const filteredParts = useMemo(() => missingParts.filter(p => {
     if (repFilter !== "all" && p.repName !== repFilter) return false;
+    if (repsAtAccount && !repsAtAccount.has(p.repName)) return false;
     return true;
-  }), [missingParts, repFilter]);
+  }), [missingParts, repFilter, repsAtAccount]);
 
   // Build monthly buckets
   const monthlyData = useMemo(() => {
