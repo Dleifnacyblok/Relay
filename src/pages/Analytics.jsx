@@ -8,10 +8,11 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, Legend, LineChart, Line, ComposedChart, Area } from
 "recharts";
-import { TrendingUp, AlertTriangle, Package, DollarSign, Building2, Layers, MapPin } from "lucide-react";
+import { TrendingUp, AlertTriangle, Package, DollarSign, Building2, Layers, MapPin, Download } from "lucide-react";
 import AIInsights from "@/components/analytics/AIInsights";
 import ConsignmentUtilization from "@/components/analytics/ConsignmentUtilization";
 import MonthlyFinesHistory from "@/components/analytics/MonthlyFinesHistory";
+import AnalyticsExportDialog from "@/components/analytics/AnalyticsExportDialog";
 import { useState, useMemo } from "react";
 import { isIEPLoaner } from "@/lib/iepUtils";
 
@@ -41,6 +42,7 @@ const SectionHeader = ({ label }) =>
 
 export default function Analytics() {
   const [accountSort, setAccountSort] = useState("overdue");
+  const [showExport, setShowExport] = useState(false);
 
   const { data: loaners = [], isLoading: loadingLoaners } = useQuery({
     queryKey: ["loaners"],
@@ -219,7 +221,8 @@ export default function Analytics() {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 pb-24">
       <div className="max-w-5xl mx-auto px-4 py-6 sm:py-8">
         {/* Header */}
-        <div className="mb-6">
+        <div className="flex items-start justify-between mb-6">
+          <div>
           <div className="flex items-center gap-3 mb-1">
             <div className="p-2 rounded-lg bg-indigo-100">
               <TrendingUp className="w-5 h-5 text-indigo-600" />
@@ -227,7 +230,11 @@ export default function Analytics() {
             <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">Analytics</h1>
           </div>
           <p className="text-slate-500 ml-12">Loaner performance, overdue frequency & missing parts insights</p>
-        </div>
+          </div>
+        <button onClick={() => setShowExport(true)}
+          className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg transition-colors shadow-sm">
+          <Download className="w-4 h-4" /> Export
+        </button>
 
         {/* KPIs */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-2">
@@ -476,6 +483,45 @@ export default function Analytics() {
           }} />
         </div>
       </div>
+
+      <AnalyticsExportDialog
+        open={showExport}
+        onClose={() => setShowExport(false)}
+        analyticsData={{
+          monthlyFines: (() => {
+            const buckets = {};
+            computed.forEach(l => {
+              const dateStr = l.expectedReturnDate || l.loanedDate;
+              if (!dateStr || !l.fineAmount || l.fineAmount <= 0) return;
+              try {
+                const month = format(parseISO(dateStr), "MMM yyyy");
+                if (!buckets[month]) buckets[month] = { month, _date: parseISO(dateStr), loanerFines: 0, partFines: 0 };
+                buckets[month].loanerFines += l.feesWaived ? 0 : (l.fineAmount || 0);
+              } catch {}
+            });
+            missingParts.forEach(p => {
+              if (!p.missingDate || !p.fineAmount || p.fineAmount <= 0) return;
+              try {
+                const month = format(parseISO(p.missingDate), "MMM yyyy");
+                if (!buckets[month]) buckets[month] = { month, _date: parseISO(p.missingDate), loanerFines: 0, partFines: 0 };
+                buckets[month].partFines += p.fineAmount || 0;
+              } catch {}
+            });
+            return Object.values(buckets)
+              .sort((a, b) => a._date - b._date)
+              .map(({ _date, ...rest }) => ({ ...rest, total: rest.loanerFines + rest.partFines }));
+          })(),
+          overdueByRep,
+          finesByRep,
+          topOverdueSets,
+          topOverdueAccounts: accountData,
+          totalLoaners,
+          overdueCount,
+          totalFines,
+          activeMissingParts,
+        }}
+      />
+    </div>
     </div>);
 
 }
