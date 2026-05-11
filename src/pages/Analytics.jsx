@@ -11,6 +11,7 @@ import {
 import { TrendingUp, AlertTriangle, Package, DollarSign, Building2, Layers, MapPin } from "lucide-react";
 import AIInsights from "@/components/analytics/AIInsights";
 import ConsignmentUtilization from "@/components/analytics/ConsignmentUtilization";
+import MonthlyFinesHistory from "@/components/analytics/MonthlyFinesHistory";
 import { useState, useMemo } from "react";
 import { isIEPLoaner } from "@/lib/iepUtils";
 
@@ -462,6 +463,9 @@ export default function Analytics() {
               </ResponsiveContainer>
             }
           </Card>
+
+          {/* Monthly Fines History */}
+          <MonthlyFinesHistory loaners={computed} missingParts={missingParts} />
 
           {/* AI Insights */}
           <AIInsights analyticsData={{
