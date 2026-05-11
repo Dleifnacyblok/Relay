@@ -14,6 +14,7 @@ import ConsignmentUtilization from "@/components/analytics/ConsignmentUtilizatio
 import MonthlyFinesHistory from "@/components/analytics/MonthlyFinesHistory";
 import AnalyticsExportDialog from "@/components/analytics/AnalyticsExportDialog";
 import { useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { isIEPLoaner } from "@/lib/iepUtils";
 
 const COLORS = ["#ef4444", "#f59e0b", "#3b82f6", "#10b981", "#8b5cf6", "#ec4899", "#06b6d4", "#f97316"];
@@ -43,6 +44,7 @@ const SectionHeader = ({ label }) =>
 export default function Analytics() {
   const [accountSort, setAccountSort] = useState("overdue");
   const [showExport, setShowExport] = useState(false);
+  const navigate = useNavigate();
 
   const { data: loaners = [], isLoading: loadingLoaners } = useQuery({
     queryKey: ["loaners"],
@@ -141,8 +143,7 @@ export default function Analytics() {
   const topOverdueSets = Object.values(setMap).
   filter((s) => s.overdue > 0).
   sort((a, b) => b.overdue - a.overdue).
-  slice(0, 10).
-  map((s) => ({ ...s, setName: s.setName.length > 22 ? s.setName.slice(0, 22) + "…" : s.setName }));
+  slice(0, 10);
 
   // --- Return Rate Over Time (by expected return month) ---
   const returnRateMap = {};
@@ -395,14 +396,19 @@ export default function Analytics() {
                   </thead>
                   <tbody>
                     {topOverdueSets.map((s, i) =>
-                  <tr key={i} className="border-b border-slate-50 hover:bg-slate-50">
-                        <td className="py-2 text-slate-300 font-mono">{i + 1}</td>
-                        <td className="py-2 font-medium text-slate-800">{s.setName}</td>
-                        <td className="py-2 text-center text-slate-500">{s.total}</td>
-                        <td className="py-2 text-center">
+                  <tr key={i}
+                      className="border-b border-slate-50 hover:bg-indigo-50 cursor-pointer transition-colors"
+                      onClick={() => {
+                        sessionStorage.setItem("search_query", s.setName);
+                        navigate("/Search");
+                      }}>
+                        <td className="py-2.5 text-slate-300 font-mono text-xs pl-1">{i + 1}</td>
+                        <td className="py-2.5 font-medium text-indigo-700 underline decoration-dotted underline-offset-2">{s.setName}</td>
+                        <td className="py-2.5 text-center text-slate-500">{s.total}</td>
+                        <td className="py-2.5 text-center">
                           <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-red-100 text-red-700 text-xs font-bold">{s.overdue}</span>
                         </td>
-                        <td className="py-2 text-right font-medium text-amber-700">{formatCurrency(s.fines)}</td>
+                        <td className="py-2.5 text-right font-medium text-amber-700">{formatCurrency(s.fines)}</td>
                       </tr>
                   )}
                   </tbody>
