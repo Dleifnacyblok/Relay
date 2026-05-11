@@ -27,14 +27,32 @@ import { computeLoanerData, sortLoaners } from "@/components/loaners/loanerUtils
 import SendBackDialog from "@/components/sendback/SendBackDialog";
 import TransferDialog from "@/components/sendback/TransferDialog";
 
+const SESSION_KEY = "search_page_state";
+
+function getSessionState() {
+  try {
+    const saved = sessionStorage.getItem(SESSION_KEY);
+    return saved ? JSON.parse(saved) : null;
+  } catch { return null; }
+}
+
+function saveSessionState(state) {
+  try { sessionStorage.setItem(SESSION_KEY, JSON.stringify(state)); } catch {}
+}
+
 export default function Search() {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [riskFilter, setRiskFilter] = useState("all");
-  const [repFilter, setRepFilter] = useState("all");
+  const saved = getSessionState();
+  const [searchQuery, setSearchQueryRaw] = useState(saved?.searchQuery ?? "");
+  const [riskFilter, setRiskFilterRaw] = useState(saved?.riskFilter ?? "all");
+  const [repFilter, setRepFilterRaw] = useState(saved?.repFilter ?? "all");
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [selectedIds, setSelectedIds] = useState([]);
   const [showSendBack, setShowSendBack] = useState(false);
   const [showTransfer, setShowTransfer] = useState(false);
+
+  const setSearchQuery = (v) => { setSearchQueryRaw(v); saveSessionState({ searchQuery: v, riskFilter, repFilter }); };
+  const setRiskFilter = (v) => { setRiskFilterRaw(v); saveSessionState({ searchQuery, riskFilter: v, repFilter }); };
+  const setRepFilter = (v) => { setRepFilterRaw(v); saveSessionState({ searchQuery, riskFilter, repFilter: v }); };
 
   const { data: user } = useQuery({
     queryKey: ["currentUser"],
@@ -98,8 +116,9 @@ export default function Search() {
     .filter(f => f !== "all").length;
 
   const clearFilters = () => {
-    setRiskFilter("all");
-    setRepFilter("all");
+    setRiskFilterRaw("all");
+    setRepFilterRaw("all");
+    saveSessionState({ searchQuery, riskFilter: "all", repFilter: "all" });
   };
 
   const handleSelectOne = (id) => {
