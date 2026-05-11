@@ -19,22 +19,22 @@ import { isIEPLoaner } from "@/lib/iepUtils";
 const COLORS = ["#ef4444", "#f59e0b", "#3b82f6", "#10b981", "#8b5cf6", "#ec4899", "#06b6d4", "#f97316"];
 
 const KpiCard = ({ title, value, sub, icon: Icon, color }) =>
-<Card className={`p-4 border ${color.border} ${color.bg}`}>
+<Card className={`p-3 border ${color.border} ${color.bg}`}>
     <div className="flex items-start justify-between">
       <div>
-        <p className="text-xs font-medium text-slate-500 mb-1">{title}</p>
-        <p className={`text-2xl font-bold ${color.text}`}>{value}</p>
-        {sub && <p className="text-xs text-slate-400 mt-0.5">{sub}</p>}
+        <p className="text-xs font-medium text-slate-500 mb-0.5">{title}</p>
+        <p className={`text-xl font-bold ${color.text}`}>{value}</p>
+        {sub && <p className="text-xs text-slate-400">{sub}</p>}
       </div>
-      <div className={`p-2 rounded-lg ${color.iconBg}`}>
-        <Icon className={`w-5 h-5 ${color.iconText}`} />
+      <div className={`p-1.5 rounded-lg ${color.iconBg}`}>
+        <Icon className={`w-4 h-4 ${color.iconText}`} />
       </div>
     </div>
   </Card>;
 
 
 const SectionHeader = ({ label }) =>
-<div className="mt-8 mb-3">
+<div className="mt-6 mb-2">
     <h2 className="text-xs font-bold uppercase tracking-widest text-slate-400">{label}</h2>
     <div className="h-px bg-slate-100 mt-1" />
   </div>;
@@ -219,26 +219,23 @@ export default function Analytics() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 pb-24">
-      <div className="max-w-5xl mx-auto px-4 py-6 sm:py-8">
+      <div className="max-w-5xl mx-auto px-4 py-4 sm:py-6">
         {/* Header */}
-        <div className="flex items-start justify-between mb-6">
-          <div>
-          <div className="flex items-center gap-3 mb-1">
-            <div className="p-2 rounded-lg bg-indigo-100">
-              <TrendingUp className="w-5 h-5 text-indigo-600" />
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <div className="p-1.5 rounded-lg bg-indigo-100">
+              <TrendingUp className="w-4 h-4 text-indigo-600" />
             </div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">Analytics</h1>
+            <h1 className="text-xl font-bold text-slate-900 tracking-tight">Analytics</h1>
           </div>
-          <p className="text-slate-500 ml-12">Loaner performance, overdue frequency & missing parts insights</p>
-          </div>
-        <button onClick={() => setShowExport(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg transition-colors shadow-sm">
-          <Download className="w-4 h-4" /> Export
-        </button>
+          <button onClick={() => setShowExport(true)}
+            className="flex items-center gap-2 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-medium rounded-lg transition-colors shadow-sm">
+            <Download className="w-3.5 h-3.5" /> Export
+          </button>
         </div>
 
         {/* KPIs */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-2">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-4">
           <KpiCard title="Total Loaners" value={totalLoaners} icon={Package}
           color={{ bg: "bg-white", border: "border-slate-200", text: "text-slate-900", iconBg: "bg-slate-100", iconText: "text-slate-600" }} />
           <KpiCard title="Overdue Rate" value={`${overdueRate}%`} sub={`${overdueCount} of ${totalLoaners}`} icon={AlertTriangle}
@@ -249,9 +246,12 @@ export default function Analytics() {
           color={{ bg: "bg-orange-50", border: "border-orange-200", text: "text-orange-700", iconBg: "bg-orange-100", iconText: "text-orange-600" }} />
         </div>
 
+        {/* Monthly Fines History — top of page */}
+        <MonthlyFinesHistory loaners={computed} missingParts={missingParts} />
+
         {/* ── RETURN PERFORMANCE OVER TIME ── */}
         <SectionHeader label="Return Performance Over Time" />
-        <div className="grid gap-5 md:grid-cols-2">
+        <div className="grid gap-3 md:grid-cols-2">
 
           {/* Return Rate Over Time */}
           
@@ -334,7 +334,7 @@ export default function Analytics() {
 
         {/* ── HIGHEST OVERDUE FREQUENCY ── */}
         <SectionHeader label="Highest Overdue Frequency" />
-        <div className="grid gap-5 md:grid-cols-2">
+        <div className="grid gap-3 md:grid-cols-2">
 
           {/* Overdue by Account */}
           <Card className="p-5 bg-white border-slate-200 md:col-span-2">
@@ -434,7 +434,7 @@ export default function Analytics() {
 
         {/* ── MISSING PARTS & FINES ── */}
         <SectionHeader label="Missing Parts & Fines" />
-        <div className="grid gap-5 md:grid-cols-2">
+        <div className="grid gap-3 md:grid-cols-2">
 
           {/* Top Missing Parts */}
           <Card className="p-5 bg-white border-slate-200">
@@ -471,9 +471,6 @@ export default function Analytics() {
               </ResponsiveContainer>
             }
           </Card>
-
-          {/* Monthly Fines History */}
-          <MonthlyFinesHistory loaners={computed} missingParts={missingParts} />
 
           {/* AI Insights */}
           <AIInsights analyticsData={{
