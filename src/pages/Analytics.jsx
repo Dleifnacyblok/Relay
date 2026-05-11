@@ -145,6 +145,7 @@ export default function Analytics() {
   sort((a, b) => b.overdue - a.overdue).
   slice(0, 10);
 
+
   // --- Return Rate Over Time (by expected return month) ---
   const returnRateMap = {};
   computed.forEach((l) => {
