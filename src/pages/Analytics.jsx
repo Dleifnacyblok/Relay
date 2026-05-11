@@ -235,6 +235,7 @@ export default function Analytics() {
           className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg transition-colors shadow-sm">
           <Download className="w-4 h-4" /> Export
         </button>
+        </div>
 
         {/* KPIs */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-2">
@@ -482,12 +483,11 @@ export default function Analytics() {
             topOverdueAccounts: accountData.slice(0, 5)
           }} />
         </div>
-      </div>
 
-      <AnalyticsExportDialog
-        open={showExport}
-        onClose={() => setShowExport(false)}
-        analyticsData={{
+        <AnalyticsExportDialog
+          open={showExport}
+          onClose={() => setShowExport(false)}
+          analyticsData={{
           monthlyFines: (() => {
             const buckets = {};
             computed.forEach(l => {
@@ -515,13 +515,15 @@ export default function Analytics() {
           finesByRep,
           topOverdueSets,
           topOverdueAccounts: accountData,
+          overdueLoaners: computed.filter(l => l.risk_status === "Overdue").sort((a, b) => (b.daysOverdue || 0) - (a.daysOverdue || 0)),
           totalLoaners,
           overdueCount,
           totalFines,
           activeMissingParts,
         }}
-      />
+        />
+      </div>
     </div>
-    </div>);
+  );
 
 }
