@@ -1,5 +1,5 @@
 import { format, parseISO } from "date-fns";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { ChevronRight } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -15,6 +15,9 @@ import {
 } from "@/components/ui/table";
 
 export default function LoanerTable({ loaners, compact = false, selectable = false, selectedIds = [], onSelectOne }) {
+  const navigate = useNavigate();
+  const goToDetail = (id) => navigate(createPageUrl("LoanerDetail") + `?id=${id}`);
+
   const formatDate = (dateStr) => {
     if (!dateStr) return "—";
     try {
@@ -46,17 +49,17 @@ export default function LoanerTable({ loaners, compact = false, selectable = fal
               border: selectedIds.includes(loaner.id) ? '1.5px solid #3B82F6' : '1px solid #E5E7EB',
               boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.04)',
             }}
-            onClick={() => selectable && onSelectOne?.(loaner.id)}
+            onClick={() => goToDetail(loaner.id)}
           >
             <div className="flex items-start justify-between mb-3">
               <div className="flex items-start gap-3 flex-1 min-w-0">
                 {selectable && (
-                  <Checkbox
-                    checked={selectedIds.includes(loaner.id)}
-                    onCheckedChange={() => onSelectOne?.(loaner.id)}
-                    onClick={(e) => e.stopPropagation()}
-                    className="mt-1 shrink-0"
-                  />
+                  <div onClick={(e) => { e.stopPropagation(); onSelectOne?.(loaner.id); }} className="mt-1 shrink-0">
+                    <Checkbox
+                      checked={selectedIds.includes(loaner.id)}
+                      onCheckedChange={() => onSelectOne?.(loaner.id)}
+                    />
+                  </div>
                 )}
                 <div className="min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
@@ -118,6 +121,7 @@ export default function LoanerTable({ loaners, compact = false, selectable = fal
               <TableRow 
                 key={loaner.id} 
                 className="border-gray-200 hover:bg-gray-50 transition-colors cursor-pointer"
+                onClick={() => goToDetail(loaner.id)}
               >
                 {selectable && (
                   <TableCell onClick={(e) => e.stopPropagation()}>
