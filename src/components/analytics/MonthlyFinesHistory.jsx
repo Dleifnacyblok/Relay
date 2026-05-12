@@ -179,7 +179,7 @@ export default function MonthlyFinesHistory({ loaners = [], missingParts = [] })
                   <tr key={i} className="border-b border-slate-50 hover:bg-slate-50">
                     <td className="py-2 font-medium text-slate-700">{row.month}</td>
                     <td className="py-2 text-right text-red-600">{formatCurrency(row.loanerFines)}</td>
-                    <td className="py-2 text-right text-orange-600">{formatCurrency(row.partFines)}</td>
+                    <td className="py-2 text-right text-orange-600">$0</td>
                     <td className="py-2 text-right font-bold text-amber-700">{formatCurrency(row.total)}</td>
                   </tr>
                 ))}
