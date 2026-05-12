@@ -209,7 +209,7 @@ export default function Dashboard() {
               <div className="flex gap-2">
                 <div className="flex-1 bg-indigo-50 rounded-lg px-2 py-1.5 text-center">
                   <p className="text-sm font-bold text-indigo-600">
-                    {avgEffPct != null ? `${avgEffPct.toFixed(1)}%` : "95.7%"}
+                    {avgEffPct != null ? `${avgEffPct.toFixed(1)}%` : "95.3%"}
                   </p>
                   <p className="text-[10px] text-gray-500">Avg Eff %</p>
                 </div>
