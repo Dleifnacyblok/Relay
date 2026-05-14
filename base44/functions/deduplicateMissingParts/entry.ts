@@ -25,13 +25,18 @@ Deno.serve(async (req) => {
 
     console.log(`Fetched ${allParts.length} total MissingPart records`);
 
-    // Dedup key: requestNumber + partNumber + etchId (WITHOUT date — the date changes each import month)
-    // This catches cases where April import left records and May import added the same parts with new dates
-    const makeKey = (p) => [
-      (p.requestNumber || '').trim().toLowerCase(),
-      (p.partNumber || p.partSetNumber || '').trim().toLowerCase(),
-      (p.etchId || '').trim().toLowerCase(),
-    ].join('|');
+    // Dedup key: requestNumber + partSetNumber only
+    // etchId and deductionDate change across monthly re-imports of the same incident, so exclude them
+    // Two records with the same requestNumber + partSetNumber = same missing part billed again
+    const makeKey = (p) => {
+      const reqNum = (p.requestNumber || '').trim().toLowerCase();
+      const partNum = (p.partSetNumber || p.partNumber || '').trim().toLowerCase();
+      // If no requestNumber, fall back to partNumber + etchId + loanerSetName to avoid over-merging manual entries
+      if (!reqNum) {
+        return ['no-req', partNum, (p.etchId || '').trim().toLowerCase(), (p.loanerSetName || '').trim().toLowerCase()].join('|');
+      }
+      return [reqNum, partNum].join('|');
+    };
 
     // Group records by key; keep the oldest (first created) as canonical
     const keyMap = new Map();
