@@ -1,12 +1,13 @@
 import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
-import { Package, Clock, Image as ImageIcon, Share2, Check, ArrowRightLeft, Camera, X, Loader2, Plus, Undo2 } from "lucide-react";
+import { Package, Clock, Image as ImageIcon, Share2, Check, ArrowRightLeft, Camera, X, Loader2, Plus, Undo2, Mail } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format, parseISO } from "date-fns";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -23,6 +24,7 @@ export default function SendBackLog() {
   const [uploading, setUploading] = useState(false);
   const [undoingLogId, setUndoingLogId] = useState(null);
   const [confirmUndoId, setConfirmUndoId] = useState(null);
+  const [selectedLogIds, setSelectedLogIds] = useState(new Set());
   const queryClient = useQueryClient();
 
   const { data: user, isLoading: userLoading } = useQuery({
@@ -178,6 +180,95 @@ export default function SendBackLog() {
     }
   };
 
+  const toggleSelectLog = (logId) => {
+    setSelectedLogIds(prev => {
+      const next = new Set(prev);
+      if (next.has(logId)) next.delete(logId);
+      else next.add(logId);
+      return next;
+    });
+  };
+
+  const handleShareSelected = () => {
+    const selected = sortedLogs.filter(l => selectedLogIds.has(l.id));
+    if (!selected.length) return;
+
+    const hasLoaners = selected.some(l => l.loanerIds && l.loanerIds.length > 0);
+    const hasParts = selected.some(l => l.missingPartIds && l.missingPartIds.length > 0);
+
+    // Determine subject
+    const repName = selected[0]?.repName || user?.full_name || "";
+    let accountName = "";
+    for (const log of selected) {
+      if (log.loanerIds && log.loanerIds.length > 0) {
+        const firstLoaner = allLoaners.find(l => l.id === log.loanerIds[0]);
+        if (firstLoaner?.accountName) { accountName = firstLoaner.accountName; break; }
+        const snap = (log.loanerSnapshots || [])[0];
+        if (snap?.accountName) { accountName = snap.accountName; break; }
+      }
+    }
+
+    let subject = "";
+    if (hasLoaners && !hasParts) {
+      subject = `Loaner Return${accountName ? ` - ${accountName}` : ""} - ${repName}`;
+    } else if (hasParts && !hasLoaners) {
+      subject = `Missing Parts Return - ${repName}`;
+    } else {
+      subject = `Return Summary - ${repName}`;
+    }
+
+    // Build body — one section per log, separated by tracking number
+    const bodyLines = [];
+    bodyLines.push(`Hi team,`);
+    bodyLines.push(``);
+    bodyLines.push(`Please see the return details below.`);
+    bodyLines.push(``);
+
+    selected.forEach((log, idx) => {
+      if (idx > 0) bodyLines.push(`---`);
+
+      const sectionLabel = log.logType === "transfer"
+        ? `Transfer → ${log.transferTo}`
+        : `Tracking #: ${log.trackingNumber || "N/A"}`;
+
+      bodyLines.push(sectionLabel);
+      bodyLines.push(`Date: ${formatDate(log.sentDate)}`);
+      bodyLines.push(`Rep: ${log.repName}`);
+
+      if (log.loanerIds && log.loanerIds.length > 0) {
+        const firstLoaner = allLoaners.find(l => l.id === log.loanerIds[0]);
+        const acct = firstLoaner?.accountName || (log.loanerSnapshots || [])[0]?.accountName;
+        if (acct) bodyLines.push(`Account: ${acct}`);
+        bodyLines.push(``);
+        bodyLines.push(`Loaners:`);
+        log.loanerIds.forEach(id => {
+          const info = getLoanerInfo(id, log);
+          bodyLines.push(`  - ${info.name} (Etch ID: ${info.etchId || "N/A"})`);
+        });
+      }
+
+      if (log.missingPartIds && log.missingPartIds.length > 0) {
+        bodyLines.push(``);
+        bodyLines.push(`Missing Parts:`);
+        log.missingPartIds.forEach(id => {
+          const info = getPartInfo(id, log);
+          bodyLines.push(`  - ${info.name} (Part #: ${allParts.find(p => p.id === id)?.partNumber || "N/A"}, Qty: ${info.quantity})`);
+        });
+      }
+
+      if (log.notes) {
+        bodyLines.push(``);
+        bodyLines.push(`Notes: ${log.notes}`);
+      }
+
+      bodyLines.push(``);
+    });
+
+    const body = bodyLines.join("\n");
+    const mailtoUrl = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    window.location.href = mailtoUrl;
+  };
+
   const handleShare = async (log) => {
     let accountName = "";
     if (log.loanerIds && log.loanerIds.length > 0) {
@@ -272,13 +363,33 @@ export default function SendBackLog() {
           </p>
         </div>
 
-        {/* Stats */}
+        {/* Stats + Share Selected */}
         {!isLoading && sortedLogs.length > 0 && (
-          <div className="flex flex-wrap gap-3 mb-6">
+          <div className="flex flex-wrap items-center gap-3 mb-6">
             <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-white border border-slate-200 rounded-full text-sm">
               <span className="text-slate-500">Total Shipments:</span>
               <span className="font-semibold text-slate-900">{sortedLogs.length}</span>
             </div>
+            {selectedLogIds.size > 0 && (
+              <Button
+                size="sm"
+                onClick={handleShareSelected}
+                className="gap-2 bg-blue-600 hover:bg-blue-700 text-white"
+              >
+                <Mail className="w-4 h-4" />
+                Email {selectedLogIds.size} Selected
+              </Button>
+            )}
+            {selectedLogIds.size > 0 && (
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => setSelectedLogIds(new Set())}
+                className="text-slate-500"
+              >
+                Clear Selection
+              </Button>
+            )}
           </div>
         )}
 
@@ -302,9 +413,15 @@ export default function SendBackLog() {
             </Card>
           ) : (
             sortedLogs.map((log) => (
-              <Card key={log.id} className="p-6">
+              <Card key={log.id} className={`p-6 transition-colors ${selectedLogIds.has(log.id) ? "ring-2 ring-blue-400 bg-blue-50/30" : ""}`}>
                 <div className="flex items-start justify-between mb-4">
-                      <div>
+                      <div className="flex items-start gap-3">
+                        <Checkbox
+                          checked={selectedLogIds.has(log.id)}
+                          onCheckedChange={() => toggleSelectLog(log.id)}
+                          className="mt-1"
+                        />
+                        <div>
                         <div className="flex items-center gap-2 mb-1">
                           {log.logType === "transfer" ? (
                             <h3 className="text-lg font-semibold text-slate-900 flex items-center gap-2">
@@ -334,6 +451,7 @@ export default function SendBackLog() {
                         </Badge>
                       )}
                     </div>
+                        </div>
 
                 {/* Items */}
                 <div className="space-y-3">
