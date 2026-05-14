@@ -25,6 +25,7 @@ export default function SendBackLog() {
   const [undoingLogId, setUndoingLogId] = useState(null);
   const [confirmUndoId, setConfirmUndoId] = useState(null);
   const [selectedLogIds, setSelectedLogIds] = useState(new Set());
+  const [copiedSelected, setCopiedSelected] = useState(false);
   const queryClient = useQueryClient();
 
   const { data: user, isLoading: userLoading } = useQuery({
@@ -189,7 +190,7 @@ export default function SendBackLog() {
     });
   };
 
-  const handleShareSelected = () => {
+  const handleShareSelected = async () => {
     const selected = sortedLogs.filter(l => selectedLogIds.has(l.id));
     if (!selected.length) return;
 
@@ -264,9 +265,24 @@ export default function SendBackLog() {
       bodyLines.push(``);
     });
 
-    const body = bodyLines.join("\n");
-    const mailtoUrl = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-    window.location.href = mailtoUrl;
+    const fullText = `Subject: ${subject}\n\n${bodyLines.join("\n")}`;
+
+    try {
+      await navigator.clipboard.writeText(fullText);
+    } catch {
+      const el = document.createElement("textarea");
+      el.value = fullText;
+      el.style.position = "fixed";
+      el.style.opacity = "0";
+      document.body.appendChild(el);
+      el.focus();
+      el.select();
+      document.execCommand("copy");
+      document.body.removeChild(el);
+    }
+
+    setCopiedSelected(true);
+    setTimeout(() => setCopiedSelected(false), 3000);
   };
 
   const handleShare = async (log) => {
@@ -374,10 +390,13 @@ export default function SendBackLog() {
               <Button
                 size="sm"
                 onClick={handleShareSelected}
-                className="gap-2 bg-blue-600 hover:bg-blue-700 text-white"
+                className={`gap-2 text-white transition-colors ${copiedSelected ? "bg-green-600 hover:bg-green-700" : "bg-blue-600 hover:bg-blue-700"}`}
               >
-                <Mail className="w-4 h-4" />
-                Email {selectedLogIds.size} Selected
+                {copiedSelected ? (
+                  <><Check className="w-4 h-4" />Copied to Clipboard!</>
+                ) : (
+                  <><Mail className="w-4 h-4" />Copy {selectedLogIds.size} Selected</>
+                )}
               </Button>
             )}
             {selectedLogIds.size > 0 && (
