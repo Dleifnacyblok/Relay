@@ -267,19 +267,17 @@ export default function SendBackLog() {
 
     const fullText = `Subject: ${subject}\n\n${bodyLines.join("\n")}`;
 
-    try {
-      await navigator.clipboard.writeText(fullText);
-    } catch {
-      const el = document.createElement("textarea");
-      el.value = fullText;
-      el.style.position = "fixed";
-      el.style.opacity = "0";
-      document.body.appendChild(el);
-      el.focus();
-      el.select();
-      document.execCommand("copy");
-      document.body.removeChild(el);
-    }
+    const el = document.createElement("textarea");
+    el.value = fullText;
+    el.style.position = "fixed";
+    el.style.top = "0";
+    el.style.left = "0";
+    el.style.opacity = "0";
+    document.body.appendChild(el);
+    el.focus();
+    el.select();
+    document.execCommand("copy");
+    document.body.removeChild(el);
 
     setCopiedSelected(true);
     setTimeout(() => setCopiedSelected(false), 3000);
