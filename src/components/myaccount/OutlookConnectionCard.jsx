@@ -5,8 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Mail, CheckCircle2, XCircle, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
-// Replace with the connector ID from registered_app_user_connectors after setup
-const CONNECTOR_ID = "__OUTLOOK_CONNECTOR_ID__";
+const CONNECTOR_ID = "6a0648de4330cb0974dee775";
 
 export default function OutlookConnectionCard() {
   const [connected, setConnected] = useState(false);

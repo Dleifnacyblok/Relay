@@ -29,8 +29,7 @@ Deno.serve(async (req) => {
     }
 
     // Get the app user's Outlook connection
-    const CONNECTOR_ID = Deno.env.get("OUTLOOK_CONNECTOR_ID");
-    const { accessToken } = await base44.asServiceRole.connectors.getCurrentAppUserConnection(CONNECTOR_ID);
+    const { accessToken } = await base44.asServiceRole.connectors.getCurrentAppUserConnection("6a0648de4330cb0974dee775");
 
     const message = {
       subject,
