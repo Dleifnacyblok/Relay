@@ -218,30 +218,23 @@ export default function SendBackLog() {
       subject = `Return Summary - ${repName}`;
     }
 
-    // Build body — one section per log, separated by tracking number
+    // Build body
     const bodyLines = [];
-    bodyLines.push(`Hi team,`);
-    bodyLines.push(``);
-    bodyLines.push(`Please see the return details below.`);
+    bodyLines.push(`Date: ${formatDate(selected[0]?.sentDate)}`);
+    bodyLines.push(`Account: ${accountName || "N/A"}`);
+    bodyLines.push(`Rep: ${repName}`);
     bodyLines.push(``);
 
     selected.forEach((log, idx) => {
-      if (idx > 0) bodyLines.push(`---`);
+      if (idx > 0) bodyLines.push(``);
 
-      const sectionLabel = log.logType === "transfer"
-        ? `Transfer → ${log.transferTo}`
-        : `Tracking #: ${log.trackingNumber || "N/A"}`;
-
-      bodyLines.push(sectionLabel);
-      bodyLines.push(`Date: ${formatDate(log.sentDate)}`);
-      bodyLines.push(`Rep: ${log.repName}`);
+      if (log.logType === "transfer") {
+        bodyLines.push(`Transfer → ${log.transferTo}`);
+      } else {
+        bodyLines.push(`Tracking #: ${log.trackingNumber || "N/A"}`);
+      }
 
       if (log.loanerIds && log.loanerIds.length > 0) {
-        const firstLoaner = allLoaners.find(l => l.id === log.loanerIds[0]);
-        const acct = firstLoaner?.accountName || (log.loanerSnapshots || [])[0]?.accountName;
-        if (acct) bodyLines.push(`Account: ${acct}`);
-        bodyLines.push(``);
-        bodyLines.push(`Loaners:`);
         log.loanerIds.forEach(id => {
           const info = getLoanerInfo(id, log);
           bodyLines.push(`  - ${info.name} (Etch ID: ${info.etchId || "N/A"})`);
@@ -249,8 +242,6 @@ export default function SendBackLog() {
       }
 
       if (log.missingPartIds && log.missingPartIds.length > 0) {
-        bodyLines.push(``);
-        bodyLines.push(`Missing Parts:`);
         log.missingPartIds.forEach(id => {
           const info = getPartInfo(id, log);
           bodyLines.push(`  - ${info.name} (Part #: ${allParts.find(p => p.id === id)?.partNumber || "N/A"}, Qty: ${info.quantity})`);
@@ -258,14 +249,11 @@ export default function SendBackLog() {
       }
 
       if (log.notes) {
-        bodyLines.push(``);
-        bodyLines.push(`Notes: ${log.notes}`);
+        bodyLines.push(`  Notes: ${log.notes}`);
       }
-
-      bodyLines.push(``);
     });
 
-    const fullText = `Subject: ${subject}\n\n${bodyLines.join("\n")}`;
+    const fullText = bodyLines.join("\n");
 
     const el = document.createElement("textarea");
     el.value = fullText;
