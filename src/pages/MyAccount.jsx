@@ -12,7 +12,6 @@ import ProfileSettingsTab from "@/components/myaccount/ProfileSettingsTab";
 import NotificationPrefsTab from "@/components/myaccount/NotificationPrefsTab";
 import LoanerCalendarTab from "@/components/myaccount/LoanerCalendarTab";
 import ExportDataTab from "@/components/myaccount/ExportDataTab";
-import OutlookConnectionCard from "@/components/myaccount/OutlookConnectionCard";
 
 const TABS = [
   { key: "profile", label: "Profile", icon: User },
@@ -157,17 +156,14 @@ export default function MyAccount() {
 
         {/* Tab Content */}
         {activeTab === "profile" && (
-          <div className="space-y-4">
-            <ProfileSettingsTab
-              user={user}
-              managedAccounts={managedAccounts}
-              assignedAccountNames={assignedAccountNames}
-              allAssignments={allAssignments}
-              loaners={loaners}
-              onAccountClick={(account) => { setSelectedAccount(account); setShowAccountDialog(true); }}
-            />
-            <OutlookConnectionCard />
-          </div>
+          <ProfileSettingsTab
+            user={user}
+            managedAccounts={managedAccounts}
+            assignedAccountNames={assignedAccountNames}
+            allAssignments={allAssignments}
+            loaners={loaners}
+            onAccountClick={(account) => { setSelectedAccount(account); setShowAccountDialog(true); }}
+          />
         )}
         {activeTab === "calendar" && (
           <LoanerCalendarTab loaners={loaners} />

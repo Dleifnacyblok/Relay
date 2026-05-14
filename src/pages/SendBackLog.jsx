@@ -25,7 +25,6 @@ export default function SendBackLog() {
   const [undoingLogId, setUndoingLogId] = useState(null);
   const [confirmUndoId, setConfirmUndoId] = useState(null);
   const [selectedLogIds, setSelectedLogIds] = useState(new Set());
-  const [sendingEmail, setSendingEmail] = useState(false);
   const queryClient = useQueryClient();
 
   const { data: user, isLoading: userLoading } = useQuery({
@@ -190,10 +189,14 @@ export default function SendBackLog() {
     });
   };
 
-  const buildEmailContent = (selected) => {
+  const handleShareSelected = () => {
+    const selected = sortedLogs.filter(l => selectedLogIds.has(l.id));
+    if (!selected.length) return;
+
     const hasLoaners = selected.some(l => l.loanerIds && l.loanerIds.length > 0);
     const hasParts = selected.some(l => l.missingPartIds && l.missingPartIds.length > 0);
 
+    // Determine subject
     const repName = selected[0]?.repName || user?.full_name || "";
     let accountName = "";
     for (const log of selected) {
@@ -214,6 +217,7 @@ export default function SendBackLog() {
       subject = `Return Summary - ${repName}`;
     }
 
+    // Build body — one section per log, separated by tracking number
     const bodyLines = [];
     bodyLines.push(`Hi team,`);
     bodyLines.push(``);
@@ -260,26 +264,9 @@ export default function SendBackLog() {
       bodyLines.push(``);
     });
 
-    return { subject, body: bodyLines.join("\n") };
-  };
-
-  const handleShareSelected = async () => {
-    const selected = sortedLogs.filter(l => selectedLogIds.has(l.id));
-    if (!selected.length) return;
-
-    const { subject, body } = buildEmailContent(selected);
-    setSendingEmail(true);
-    try {
-      await base44.functions.invoke("sendOutlookEmail", { subject, body });
-      toast.success("Email sent via Outlook!");
-      setSelectedLogIds(new Set());
-    } catch {
-      // Outlook not connected — fall back to mailto
-      const mailtoUrl = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-      window.location.href = mailtoUrl;
-    } finally {
-      setSendingEmail(false);
-    }
+    const body = bodyLines.join("\n");
+    const mailtoUrl = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    window.location.href = mailtoUrl;
   };
 
   const handleShare = async (log) => {
@@ -387,14 +374,10 @@ export default function SendBackLog() {
               <Button
                 size="sm"
                 onClick={handleShareSelected}
-                disabled={sendingEmail}
                 className="gap-2 bg-blue-600 hover:bg-blue-700 text-white"
               >
-                {sendingEmail ? (
-                  <><Loader2 className="w-4 h-4 animate-spin" />Sending...</>
-                ) : (
-                  <><Mail className="w-4 h-4" />Email {selectedLogIds.size} Selected</>
-                )}
+                <Mail className="w-4 h-4" />
+                Email {selectedLogIds.size} Selected
               </Button>
             )}
             {selectedLogIds.size > 0 && (
