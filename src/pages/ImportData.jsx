@@ -249,10 +249,13 @@ export default function ImportData() {
 
         // Look up assigned rep from RepAccountAssignment if no associate rep
         if (!assocRaw) {
-          const lowerAccount = accountName.toLowerCase();
-          const match = repAssignments.find(a =>
-            a.accountName && lowerAccount.includes(a.accountName.toLowerCase().trim())
-          );
+          const normalize = (s) => s.toLowerCase().replace(/[.\-,]/g, ' ').replace(/\s+/g, ' ').trim();
+          const normalizedAccount = normalize(accountName);
+          const match = repAssignments.find(a => {
+            if (!a.accountName) return false;
+            const normalizedAssignment = normalize(a.accountName);
+            return normalizedAccount.includes(normalizedAssignment) || normalizedAssignment.includes(normalizedAccount);
+          });
           if (match) {
             const reps = match.assignedReps?.length ? match.assignedReps : (match.assignedRep ? [match.assignedRep] : []);
             repName = reps.join(" / ") || fieldSalesRep || "None";
