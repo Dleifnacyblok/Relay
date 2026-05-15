@@ -12,6 +12,7 @@ import LookForSection from "@/components/marketplace/LookForSection";
 
 export default function Marketplace() {
   const [search, setSearch] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("all");
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [showLookForDialog, setShowLookForDialog] = useState(false);
 
@@ -36,13 +37,26 @@ export default function Marketplace() {
   });
 
   const filtered = items.filter(item => {
-    if (!search.trim()) return true;
-    const q = search.toLowerCase();
-    return (
+    const q = search.toLowerCase().trim();
+    const matchesSearch = !q || (
       (item.partNumber || "").toLowerCase().includes(q) ||
-      (item.partName || "").toLowerCase().includes(q)
+      (item.partName || "").toLowerCase().includes(q) ||
+      (item.notes || "").toLowerCase().includes(q)
     );
+    const matchesCategory =
+      categoryFilter === "all" ||
+      (categoryFilter === "available" && (item.status === "available" || !item.status)) ||
+      (categoryFilter === "pending" && item.status === "pending") ||
+      (categoryFilter === "sold" && item.status === "sold");
+    return matchesSearch && matchesCategory;
   });
+
+  const categoryCounts = {
+    all: items.length,
+    available: items.filter(i => i.status === "available" || !i.status).length,
+    pending: items.filter(i => i.status === "pending").length,
+    sold: items.filter(i => i.status === "sold").length,
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
@@ -81,15 +95,40 @@ export default function Marketplace() {
           </div>
         </div>
 
-        {/* Search */}
-        <div className="relative mb-6">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-          <Input
-            placeholder="Search by part name or number..."
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            className="pl-9 bg-white"
-          />
+        {/* Search + Filters */}
+        <div className="flex flex-col sm:flex-row gap-3 mb-6">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <Input
+              placeholder="Search by part name, number, or notes..."
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              className="pl-9 bg-white"
+            />
+          </div>
+          <div className="flex gap-2 shrink-0">
+            {[
+              { key: "all", label: "All" },
+              { key: "available", label: "Available" },
+              { key: "pending", label: "Pending" },
+              { key: "sold", label: "Sold" },
+            ].map(({ key, label }) => (
+              <button
+                key={key}
+                onClick={() => setCategoryFilter(key)}
+                className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-colors whitespace-nowrap ${
+                  categoryFilter === key
+                    ? "bg-indigo-600 text-white border-indigo-600"
+                    : "bg-white text-slate-600 border-slate-200 hover:border-indigo-300 hover:text-indigo-600"
+                }`}
+              >
+                {label}
+                <span className={`ml-1.5 text-xs ${categoryFilter === key ? "opacity-80" : "text-slate-400"}`}>
+                  {categoryCounts[key]}
+                </span>
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Look For Section */}
