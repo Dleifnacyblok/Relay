@@ -1,0 +1,38 @@
+{
+  "name": "LoanerImportSnapshot",
+  "type": "object",
+  "properties": {
+    "importBatchId": {
+      "type": "string",
+      "description": "Unique ID for this import batch (ISO timestamp)"
+    },
+    "importedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When this snapshot was taken"
+    },
+    "totalRecords": {
+      "type": "integer",
+      "description": "Total number of loaner records in this snapshot"
+    },
+    "totalOverdue": {
+      "type": "integer",
+      "description": "Number of overdue loaners at time of import"
+    },
+    "totalFines": {
+      "type": "number",
+      "description": "Total fine amount across all loaners"
+    },
+    "records": {
+      "type": "array",
+      "description": "Snapshot of all loaner records at time of import",
+      "items": {
+        "type": "object"
+      }
+    }
+  },
+  "required": [
+    "importBatchId",
+    "importedAt"
+  ]
+}

@@ -81,6 +81,19 @@ Deno.serve(async (req) => {
         importedAt,
       }));
       await bulkCreate(base44.asServiceRole.entities.IEPSystemData, records);
+
+      // Archive snapshot
+      const effValues = records.map(r => r.effPct).filter(v => v != null);
+      const overallEffPct = effValues.length > 0 ? effValues.reduce((a, b) => a + b, 0) / effValues.length : null;
+      await base44.asServiceRole.entities.IEPImportSnapshot.create({
+        importBatchId: importedAt,
+        importedAt,
+        fileType: 'grid6',
+        totalRecords: records.length,
+        overallEffPct,
+        records,
+      });
+
       return Response.json({ imported: records.length, type: 'grid6' });
     }
 
@@ -120,6 +133,16 @@ Deno.serve(async (req) => {
         };
       });
       await bulkCreate(base44.asServiceRole.entities.IEPLoanerData, records);
+
+      // Archive snapshot
+      await base44.asServiceRole.entities.IEPImportSnapshot.create({
+        importBatchId: importedAt,
+        importedAt,
+        fileType: 'grid5',
+        totalRecords: records.length,
+        records,
+      });
+
       return Response.json({ imported: records.length, type: 'grid5' });
     }
 

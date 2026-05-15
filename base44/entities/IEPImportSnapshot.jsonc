@@ -1,0 +1,43 @@
+{
+  "name": "IEPImportSnapshot",
+  "type": "object",
+  "properties": {
+    "importBatchId": {
+      "type": "string",
+      "description": "Unique ID for this import batch (ISO timestamp)"
+    },
+    "importedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When this snapshot was taken"
+    },
+    "fileType": {
+      "type": "string",
+      "enum": [
+        "grid5",
+        "grid6"
+      ],
+      "description": "Which IEP file type was imported"
+    },
+    "totalRecords": {
+      "type": "integer",
+      "description": "Total number of records in this snapshot"
+    },
+    "overallEffPct": {
+      "type": "number",
+      "description": "Average efficiency % across all records (grid6 only)"
+    },
+    "records": {
+      "type": "array",
+      "description": "Snapshot of all IEP records at time of import",
+      "items": {
+        "type": "object"
+      }
+    }
+  },
+  "required": [
+    "importBatchId",
+    "importedAt",
+    "fileType"
+  ]
+}

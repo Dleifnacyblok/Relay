@@ -405,6 +405,9 @@ export default function ImportData() {
       queryClient.invalidateQueries({ queryKey: ["appSetting"] });
       setFile(null);
 
+      // Archive snapshot for historical analysis
+      base44.functions.invoke('archiveImportSnapshot', { type: 'loaners' }).catch(() => {});
+
     } catch (err) {
       setError(err.message || "Failed to import data");
     } finally {
@@ -639,6 +642,9 @@ export default function ImportData() {
       queryClient.invalidateQueries({ queryKey: ["missingParts"] });
       setPartsFile(null);
 
+      // Archive snapshot for historical analysis
+      base44.functions.invoke('archiveImportSnapshot', { type: 'missing_parts' }).catch(() => {});
+
     } catch (err) {
       setPartsError(err.message || "Failed to import parts data");
     } finally {
@@ -699,6 +705,19 @@ export default function ImportData() {
         await base44.entities.IEPSystemData.bulkCreate(records.slice(i, i + 50));
         if (i + 50 < records.length) await sleep(300);
       }
+
+      // Archive IEP snapshot for historical analysis
+      const importedAtSnap = new Date().toISOString();
+      const effVals = records.map(r => r.effPct).filter(v => v != null);
+      const overallEffPct = effVals.length > 0 ? effVals.reduce((a, b) => a + b, 0) / effVals.length : null;
+      base44.entities.IEPImportSnapshot.create({
+        importBatchId: importedAtSnap,
+        importedAt: importedAtSnap,
+        fileType: 'grid6',
+        totalRecords: records.length,
+        overallEffPct,
+        records,
+      }).catch(() => {});
 
       setIepImportResult(records.length);
       setIepFile(null);

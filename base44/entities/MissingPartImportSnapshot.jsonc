@@ -1,0 +1,34 @@
+{
+  "name": "MissingPartImportSnapshot",
+  "type": "object",
+  "properties": {
+    "importBatchId": {
+      "type": "string",
+      "description": "Unique ID for this import batch (ISO timestamp)"
+    },
+    "importedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When this snapshot was taken"
+    },
+    "totalRecords": {
+      "type": "integer",
+      "description": "Total number of missing part records in this snapshot"
+    },
+    "totalFines": {
+      "type": "number",
+      "description": "Total fine amount across all missing parts"
+    },
+    "records": {
+      "type": "array",
+      "description": "Snapshot of all missing part records at time of import",
+      "items": {
+        "type": "object"
+      }
+    }
+  },
+  "required": [
+    "importBatchId",
+    "importedAt"
+  ]
+}
