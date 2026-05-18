@@ -1,0 +1,79 @@
+{
+  "name": "AnalyticsSnapshot",
+  "type": "object",
+  "properties": {
+    "snapshotDate": {
+      "type": "string",
+      "format": "date",
+      "description": "Date of the snapshot (YYYY-MM-DD)"
+    },
+    "importedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Timestamp when snapshot was saved"
+    },
+    "trigger": {
+      "type": "string",
+      "enum": [
+        "loaners",
+        "missing_parts",
+        "iep"
+      ],
+      "description": "Which import triggered this snapshot"
+    },
+    "totalLoaners": {
+      "type": "integer"
+    },
+    "overdueCount": {
+      "type": "integer"
+    },
+    "overdueRate": {
+      "type": "number"
+    },
+    "dueSoonCount": {
+      "type": "integer"
+    },
+    "totalFines": {
+      "type": "number"
+    },
+    "activeMissingParts": {
+      "type": "integer"
+    },
+    "totalMissingPartFines": {
+      "type": "number"
+    },
+    "overdueByRep": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "description": "Top reps with overdue loaners [{rep, overdue, total, fines}]"
+    },
+    "finesByRep": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "description": "Fines per rep [{rep, fines}]"
+    },
+    "topOverdueSets": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "description": "Top overdue loaner sets [{setName, overdue, total, fines}]"
+    },
+    "topMissingParts": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "description": "Most common missing parts [{name, count}]"
+    }
+  },
+  "required": [
+    "snapshotDate",
+    "importedAt",
+    "trigger"
+  ]
+}

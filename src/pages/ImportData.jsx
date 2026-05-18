@@ -201,6 +201,71 @@ export default function ImportData() {
     return `${setId}__${etchId}__${safeAccount}__${loanedISO}`.toLowerCase();
   };
 
+  const saveAnalyticsSnapshot = async (trigger) => {
+    const [allLoaners, allParts] = await Promise.all([
+      fetchAllPages(base44.entities.Loaners),
+      fetchAllPages(base44.entities.MissingPart),
+    ]);
+
+    const now = new Date();
+    const overdueCount = allLoaners.filter(l => l.isOverdue).length;
+    const dueSoonCount = allLoaners.filter(l => {
+      if (l.isOverdue) return false;
+      return (l.daysUntilDue != null) && l.daysUntilDue <= 7;
+    }).length;
+    const totalFines = allLoaners.reduce((s, l) => s + (l.fineAmount || 0), 0);
+    const activeMissingParts = allParts.filter(p => p.status === "missing").length;
+    const totalMissingPartFines = allParts.reduce((s, p) => s + (p.fineAmount || 0), 0);
+
+    // Overdue by rep
+    const repMap = {};
+    allLoaners.forEach(l => {
+      const rep = l.repName || "Unknown";
+      if (!repMap[rep]) repMap[rep] = { rep, overdue: 0, total: 0, fines: 0 };
+      repMap[rep].total++;
+      if (l.isOverdue) repMap[rep].overdue++;
+      repMap[rep].fines += l.fineAmount || 0;
+    });
+    const overdueByRep = Object.values(repMap).sort((a, b) => b.overdue - a.overdue).slice(0, 10);
+    const finesByRep = Object.values(repMap).filter(r => r.fines > 0).sort((a, b) => b.fines - a.fines).slice(0, 8).map(r => ({ rep: r.rep, fines: r.fines }));
+
+    // Top overdue sets
+    const setMap = {};
+    allLoaners.forEach(l => {
+      const s = l.setName || "Unknown";
+      if (!setMap[s]) setMap[s] = { setName: s, overdue: 0, total: 0, fines: 0 };
+      setMap[s].total++;
+      if (l.isOverdue) setMap[s].overdue++;
+      setMap[s].fines += l.fineAmount || 0;
+    });
+    const topOverdueSets = Object.values(setMap).filter(s => s.overdue > 0).sort((a, b) => b.overdue - a.overdue).slice(0, 10);
+
+    // Top missing parts
+    const partCounts = {};
+    allParts.filter(p => p.status === "missing").forEach(p => {
+      const name = p.partName || "Unknown";
+      partCounts[name] = (partCounts[name] || 0) + (p.missingQuantity || 1);
+    });
+    const topMissingParts = Object.entries(partCounts).map(([name, count]) => ({ name, count })).sort((a, b) => b.count - a.count).slice(0, 8);
+
+    await base44.entities.AnalyticsSnapshot.create({
+      snapshotDate: now.toISOString().slice(0, 10),
+      importedAt: now.toISOString(),
+      trigger,
+      totalLoaners: allLoaners.length,
+      overdueCount,
+      overdueRate: allLoaners.length > 0 ? Math.round(overdueCount / allLoaners.length * 100) : 0,
+      dueSoonCount,
+      totalFines,
+      activeMissingParts,
+      totalMissingPartFines,
+      overdueByRep,
+      finesByRep,
+      topOverdueSets,
+      topMissingParts,
+    });
+  };
+
   const handleImport = async () => {
     if (!file || isUploading) return;
 
@@ -427,6 +492,9 @@ export default function ImportData() {
 
       // Archive snapshot for historical analysis
       base44.functions.invoke('archiveImportSnapshot', { type: 'loaners' }).catch(() => {});
+
+      // Save analytics snapshot
+      saveAnalyticsSnapshot('loaners').catch(() => {});
 
     } catch (err) {
       setError(err.message || "Failed to import data");
@@ -666,6 +734,9 @@ export default function ImportData() {
       // Archive snapshot for historical analysis
       base44.functions.invoke('archiveImportSnapshot', { type: 'missing_parts' }).catch(() => {});
 
+      // Save analytics snapshot
+      saveAnalyticsSnapshot('missing_parts').catch(() => {});
+
     } catch (err) {
       setPartsError(err.message || "Failed to import parts data");
     } finally {
@@ -742,6 +813,9 @@ export default function ImportData() {
 
       setIepImportResult(records.length);
       setIepFile(null);
+
+      // Save analytics snapshot
+      saveAnalyticsSnapshot('iep').catch(() => {});
     } catch (err) {
       setIepError(err.message || "Import failed.");
     } finally {

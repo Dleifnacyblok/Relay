@@ -13,7 +13,7 @@ import AIInsights from "@/components/analytics/AIInsights";
 import ConsignmentUtilization from "@/components/analytics/ConsignmentUtilization";
 import MonthlyFinesHistory from "@/components/analytics/MonthlyFinesHistory";
 import AnalyticsExportDialog from "@/components/analytics/AnalyticsExportDialog";
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { isIEPLoaner } from "@/lib/iepUtils";
 
@@ -46,14 +46,32 @@ export default function Analytics() {
   const [showExport, setShowExport] = useState(false);
   const navigate = useNavigate();
 
+  const fetchAll = async (entity) => {
+    const all = [];
+    let skip = 0;
+    const pageSize = 100;
+    while (true) {
+      const page = await entity.list(undefined, pageSize, skip);
+      all.push(...page);
+      if (page.length < pageSize) break;
+      skip += pageSize;
+    }
+    return all;
+  };
+
   const { data: loaners = [], isLoading: loadingLoaners } = useQuery({
     queryKey: ["loaners"],
-    queryFn: () => base44.entities.Loaners.list()
+    queryFn: () => fetchAll(base44.entities.Loaners)
   });
 
   const { data: missingParts = [], isLoading: loadingParts } = useQuery({
     queryKey: ["missingParts"],
-    queryFn: () => base44.entities.MissingPart.list()
+    queryFn: () => fetchAll(base44.entities.MissingPart)
+  });
+
+  const { data: snapshots = [] } = useQuery({
+    queryKey: ["analyticsSnapshots"],
+    queryFn: () => base44.entities.AnalyticsSnapshot.list("-importedAt", 30)
   });
 
   const isLoading = loadingLoaners || loadingParts;
@@ -488,6 +506,37 @@ export default function Analytics() {
           </Card>
 
         </div>
+
+        {/* ── HISTORICAL TREND (from import snapshots) ── */}
+        {snapshots.length >= 2 && (() => {
+          const trendData = [...snapshots].reverse().map(s => ({
+            date: s.snapshotDate,
+            overdue: s.overdueCount || 0,
+            fines: s.totalFines || 0,
+            parts: s.activeMissingParts || 0,
+          }));
+          return (
+            <>
+              <SectionHeader label="Historical Trend (Import Snapshots)" />
+              <Card className="p-5 bg-white border-slate-200">
+                <h2 className="text-sm font-semibold text-slate-700 mb-1">Overdue Count &amp; Fines Over Time</h2>
+                <p className="text-xs text-slate-400 mb-4">Saved automatically after each import</p>
+                <ResponsiveContainer width="100%" height={220}>
+                  <ComposedChart data={trendData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                    <XAxis dataKey="date" tick={{ fontSize: 10 }} />
+                    <YAxis yAxisId="left" tick={{ fontSize: 11 }} allowDecimals={false} />
+                    <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 11 }} tickFormatter={v => `$${(v/1000).toFixed(0)}k`} />
+                    <Tooltip formatter={(v, name) => name === "fines" ? formatCurrency(v) : v} />
+                    <Legend />
+                    <Bar yAxisId="left" dataKey="overdue" fill="#ef4444" radius={[4,4,0,0]} name="Overdue" barSize={18} />
+                    <Line yAxisId="right" type="monotone" dataKey="fines" stroke="#8b5cf6" strokeWidth={2} dot={false} name="fines" />
+                  </ComposedChart>
+                </ResponsiveContainer>
+              </Card>
+            </>
+          );
+        })()}
 
         <AnalyticsExportDialog
           open={showExport}
