@@ -48,19 +48,32 @@ export default function ImportData() {
     queryFn: () => base44.auth.me(),
   });
 
+  const fetchAllPages = async (entity) => {
+    const all = [];
+    let skip = 0;
+    const pageSize = 100;
+    while (true) {
+      const page = await entity.list(undefined, pageSize, skip);
+      all.push(...page);
+      if (page.length < pageSize) break;
+      skip += pageSize;
+    }
+    return all;
+  };
+
   const { data: existingLoaners = [] } = useQuery({
     queryKey: ["loaners"],
-    queryFn: () => base44.entities.Loaners.list(),
+    queryFn: () => fetchAllPages(base44.entities.Loaners),
   });
 
   const { data: existingParts = [] } = useQuery({
     queryKey: ["missingParts"],
-    queryFn: () => base44.entities.MissingPart.list(),
+    queryFn: () => fetchAllPages(base44.entities.MissingPart),
   });
 
   const { data: repAssignments = [] } = useQuery({
     queryKey: ["repAccountAssignments"],
-    queryFn: () => base44.entities.RepAccountAssignment.list(),
+    queryFn: () => fetchAllPages(base44.entities.RepAccountAssignment),
   });
 
   const isAdmin = user?.role === "admin";
@@ -308,11 +321,15 @@ export default function ImportData() {
 
       if (errors.length > 0) {
         setFailedRows(errors);
-        throw new Error(`${errors.length} rows have errors`);
+        // Don't block — warn and continue with valid rows
+      }
+
+      if (payload.length === 0) {
+        throw new Error("No valid rows to import after validation.");
       }
 
       // Fetch ALL existing records once and build multiple lookup maps
-      const allExisting = await base44.entities.Loaners.list();
+      const allExisting = await fetchAllPages(base44.entities.Loaners);
       const existingMap = new Map();
       const existingBySetAccount = new Map();
       
@@ -423,11 +440,11 @@ export default function ImportData() {
   const handleClearAll = async () => {
     setIsClearing(true);
     try {
-      // Delete all existing loaners
-      for (const loaner of existingLoaners) {
+      const all = await fetchAllPages(base44.entities.Loaners);
+      for (const loaner of all) {
         await base44.entities.Loaners.delete(loaner.id);
       }
-      queryClient.invalidateQueries(["loaners"]);
+      queryClient.invalidateQueries({ queryKey: ["loaners"] });
       setShowClearDialog(false);
     } catch (err) {
       setError("Failed to clear existing data");
@@ -439,10 +456,11 @@ export default function ImportData() {
   const handleClearParts = async () => {
     setIsClearingParts(true);
     try {
-      for (const part of existingParts) {
+      const all = await fetchAllPages(base44.entities.MissingPart);
+      for (const part of all) {
         await base44.entities.MissingPart.delete(part.id);
       }
-      queryClient.invalidateQueries(["missingParts"]);
+      queryClient.invalidateQueries({ queryKey: ["missingParts"] });
       setShowClearPartsDialog(false);
     } catch (err) {
       setPartsError("Failed to clear parts data");
@@ -493,7 +511,7 @@ export default function ImportData() {
       const errors = [];
 
       // First, fetch all loaners to lookup field sales reps
-      const allLoaners = await base44.entities.Loaners.list();
+      const allLoaners = await fetchAllPages(base44.entities.Loaners);
 
       normalizedRows.forEach((r, idx) => {
         const rowNum = idx + 2;
@@ -574,7 +592,7 @@ export default function ImportData() {
       }
 
       // Fetch all existing parts and build lookup map, deduplicating in the process
-      const allExisting = await base44.entities.MissingPart.list();
+      const allExisting = await fetchAllPages(base44.entities.MissingPart);
       const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
       // Group all existing records by their computed key
@@ -697,7 +715,7 @@ export default function ImportData() {
       }));
 
       setIepProgress("Clearing existing IEP data...");
-      const existing = await base44.entities.IEPSystemData.list();
+      const existing = await fetchAllPages(base44.entities.IEPSystemData);
       for (let i = 0; i < existing.length; i += 5) {
         await Promise.all(existing.slice(i, i + 5).map(r => base44.entities.IEPSystemData.delete(r.id)));
         await sleep(300);
