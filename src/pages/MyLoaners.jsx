@@ -56,8 +56,16 @@ export default function MyLoaners() {
   const { data: loaners = [], isLoading: loanersLoading } = useQuery({
     queryKey: ["loaners"],
     queryFn: async () => {
-      const result = await base44.entities.Loaners.list();
-      return result;
+      const allLoaners = [];
+      let skip = 0;
+      const pageSize = 100;
+      while (true) {
+        const page = await base44.entities.Loaners.list(undefined, pageSize, skip);
+        allLoaners.push(...page);
+        if (page.length < pageSize) break;
+        skip += pageSize;
+      }
+      return allLoaners;
     }
   });
 
