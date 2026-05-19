@@ -459,62 +459,63 @@ export default function ImportData() {
       let skipped = 0;
       const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
-      // Process one at a time with delays to avoid rate limits
-      for (let i = 0; i < payload.length; i++) {
-        const rec = payload[i];
+      // Split payload into new records (bulk create) and existing (batch update)
+      const toCreate = [];
+      const toUpdate = [];
+      for (const rec of payload) {
         let existingId = existingMap.get(rec.importKey);
-        
-        // Fallback check to prevent duplicates
         if (!existingId) {
           const fallbackKey = `${rec.setId}__${rec.accountName}`.toLowerCase();
           existingId = existingBySetAccount.get(fallbackKey);
         }
-        
-        let success = false;
-        let retries = 0;
-        const maxRetries = 3;
-        
-        while (!success && retries < maxRetries) {
-          try {
-            if (existingId) {
-              await base44.entities.Loaners.update(existingId, rec);
-              updated++;
-            } else {
-              const newRecord = await base44.entities.Loaners.create(rec);
+        if (existingId) {
+          toUpdate.push({ id: existingId, data: rec });
+        } else {
+          toCreate.push(rec);
+        }
+      }
+
+      // Bulk create new records in batches of 50
+      const CREATE_BATCH = 50;
+      for (let i = 0; i < toCreate.length; i += CREATE_BATCH) {
+        const batch = toCreate.slice(i, i + CREATE_BATCH);
+        try {
+          await base44.entities.Loaners.bulkCreate(batch);
+          created += batch.length;
+        } catch (err) {
+          // Fall back to individual creates for this batch
+          for (const rec of batch) {
+            try {
+              await base44.entities.Loaners.create(rec);
               created++;
-              existingMap.set(rec.importKey, newRecord.id);
-              const fallbackKey = `${rec.setId}__${rec.accountName}`.toLowerCase();
-              existingBySetAccount.set(fallbackKey, newRecord.id);
-            }
-            success = true;
-          } catch (err) {
-            retries++;
-            if (retries < maxRetries) {
-              await sleep(2000 * retries);
-            } else {
+            } catch (e) {
               skipped++;
-              console.error(`Failed to process record ${i + 1}:`, err);
             }
           }
         }
-        
-        await sleep(100);
-        setUploadProgress({ current: i + 1, total: payload.length });
+        setUploadProgress({ current: Math.min(i + CREATE_BATCH, toCreate.length), total: payload.length });
+        if (i + CREATE_BATCH < toCreate.length) await sleep(300);
+      }
+
+      // Batch updates — run 10 in parallel, then next 10
+      const UPDATE_BATCH = 10;
+      for (let i = 0; i < toUpdate.length; i += UPDATE_BATCH) {
+        const batch = toUpdate.slice(i, i + UPDATE_BATCH);
+        await Promise.all(batch.map(({ id, data }) =>
+          base44.entities.Loaners.update(id, data).then(() => { updated++; }).catch(() => { skipped++; })
+        ));
+        setUploadProgress({ current: toCreate.length + Math.min(i + UPDATE_BATCH, toUpdate.length), total: payload.length });
+        if (i + UPDATE_BATCH < toUpdate.length) await sleep(200);
       }
 
       // --- CLEANUP: Delete loaners no longer in the spreadsheet ---
       const newImportKeySet = new Set(payload.map(p => p.importKey));
       let deleted = 0;
-      for (const loaner of allExisting) {
-        if (loaner.importKey && !newImportKeySet.has(loaner.importKey)) {
-          try {
-            await base44.entities.Loaners.delete(loaner.id);
-            deleted++;
-            await sleep(300);
-          } catch (e) {
-            console.error("Failed to delete stale loaner:", loaner.id, e);
-          }
-        }
+      const toDelete = allExisting.filter(l => l.importKey && !newImportKeySet.has(l.importKey));
+      for (let i = 0; i < toDelete.length; i += 10) {
+        const batch = toDelete.slice(i, i + 10);
+        await Promise.all(batch.map(l => base44.entities.Loaners.delete(l.id).then(() => { deleted++; }).catch(() => {})));
+        if (i + 10 < toDelete.length) await sleep(200);
       }
 
       // Update AppSetting with import timestamp
