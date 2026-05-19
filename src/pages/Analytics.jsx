@@ -119,61 +119,84 @@ export default function Analytics() {
   const activeMissingParts = missingParts.filter((p) => p.status === "missing").length;
   const dueSoonCount = computed.filter((l) => l.risk_status === "Due Soon").length;
 
-  // --- Overdue by Rep ---
+  // --- Single-pass aggregations over `computed` ---
+  // Consolidates 7 separate forEach loops; output is identical to the prior version.
   const repMap = {};
+  const accountMap = {};
+  const setMap = {};
+  const returnRateMap = {};
+  const monthMap = {};
+  const durationBuckets = { "0-7d": 0, "8-14d": 0, "15-30d": 0, "31-60d": 0, "60d+": 0 };
+  const riskCounts = { Safe: 0, "Due Soon": 0, Overdue: 0 };
+  const now = new Date();
+
   computed.forEach((l) => {
     const rep = l.repName || "Unknown";
+    const acct = l.accountName || "Unknown";
+    const setName = l.setName || "Unknown";
+    const fine = l.fineAmount || 0;
+    const isOverdue = l.risk_status === "Overdue";
+    const isDueSoon = l.risk_status === "Due Soon";
+
     if (!repMap[rep]) repMap[rep] = { rep, overdue: 0, total: 0, fines: 0 };
     repMap[rep].total++;
-    if (l.risk_status === "Overdue") repMap[rep].overdue++;
-    repMap[rep].fines += l.fineAmount || 0;
+    if (isOverdue) repMap[rep].overdue++;
+    repMap[rep].fines += fine;
+
+    if (!accountMap[acct]) accountMap[acct] = { account: acct, overdue: 0, dueSoon: 0, total: 0, fines: 0 };
+    accountMap[acct].total++;
+    if (isOverdue) accountMap[acct].overdue++;
+    if (isDueSoon) accountMap[acct].dueSoon++;
+    accountMap[acct].fines += fine;
+
+    if (!setMap[setName]) setMap[setName] = { setName, overdue: 0, total: 0, fines: 0 };
+    setMap[setName].total++;
+    if (isOverdue) setMap[setName].overdue++;
+    setMap[setName].fines += fine;
+
+    if (l.expectedReturnDate) {
+      const _date = parseISO(l.expectedReturnDate);
+      const month = format(_date, "MMM yy");
+      if (!returnRateMap[month]) returnRateMap[month] = { month, total: 0, returned: 0, _date };
+      returnRateMap[month].total++;
+      if (l.returnStatus === "sent_back" || l.returnStatus === "received") returnRateMap[month].returned++;
+    }
+
+    if (l.loanedDate) {
+      const loanedDate = parseISO(l.loanedDate);
+      const month = format(loanedDate, "MMM yy");
+      if (!monthMap[month]) monthMap[month] = { month, total: 0, overdue: 0, dueSoon: 0, _date: loanedDate };
+      monthMap[month].total++;
+      if (isOverdue) monthMap[month].overdue++;
+      if (isDueSoon) monthMap[month].dueSoon++;
+
+      const days = differenceInDays(now, loanedDate);
+      if (days <= 7) durationBuckets["0-7d"]++;
+      else if (days <= 14) durationBuckets["8-14d"]++;
+      else if (days <= 30) durationBuckets["15-30d"]++;
+      else if (days <= 60) durationBuckets["31-60d"]++;
+      else durationBuckets["60d+"]++;
+    }
+
+    if (riskCounts[l.risk_status] !== undefined) riskCounts[l.risk_status]++;
   });
+
   const overdueByRep = Object.values(repMap).
   filter((r) => r.total > 0).
   sort((a, b) => b.overdue - a.overdue).
   slice(0, 10);
 
-  // --- Overdue by Account ---
-  const accountMap = {};
-  computed.forEach((l) => {
-    const acct = l.accountName || "Unknown";
-    if (!accountMap[acct]) accountMap[acct] = { account: acct, overdue: 0, dueSoon: 0, total: 0, fines: 0 };
-    accountMap[acct].total++;
-    if (l.risk_status === "Overdue") accountMap[acct].overdue++;
-    if (l.risk_status === "Due Soon") accountMap[acct].dueSoon++;
-    accountMap[acct].fines += l.fineAmount || 0;
-  });
   const accountData = Object.values(accountMap).
   filter((a) => a.total > 0).
   sort((a, b) => accountSort === "fines" ? b.fines - a.fines : b.overdue - a.overdue).
   slice(0, 10).
   map((a) => ({ ...a, account: a.account.length > 20 ? a.account.slice(0, 20) + "…" : a.account }));
 
-  // --- Overdue by Set Name ---
-  const setMap = {};
-  computed.forEach((l) => {
-    const setName = l.setName || "Unknown";
-    if (!setMap[setName]) setMap[setName] = { setName, overdue: 0, total: 0, fines: 0 };
-    setMap[setName].total++;
-    if (l.risk_status === "Overdue") setMap[setName].overdue++;
-    setMap[setName].fines += l.fineAmount || 0;
-  });
   const topOverdueSets = Object.values(setMap).
   filter((s) => s.overdue > 0).
   sort((a, b) => b.overdue - a.overdue).
   slice(0, 10);
 
-
-  // --- Return Rate Over Time (by expected return month) ---
-  const returnRateMap = {};
-  computed.forEach((l) => {
-    if (!l.expectedReturnDate) return;
-    const month = format(parseISO(l.expectedReturnDate), "MMM yy");
-    const _date = parseISO(l.expectedReturnDate);
-    if (!returnRateMap[month]) returnRateMap[month] = { month, total: 0, returned: 0, _date };
-    returnRateMap[month].total++;
-    if (l.returnStatus === "sent_back" || l.returnStatus === "received") returnRateMap[month].returned++;
-  });
   const returnRateData = Object.values(returnRateMap).
   sort((a, b) => a._date - b._date).
   slice(-12).
@@ -182,37 +205,13 @@ export default function Analytics() {
     rate: rest.total > 0 ? Math.round(rest.returned / rest.total * 100) : 0
   }));
 
-  // --- Monthly loan volume by loanedDate ---
-  const monthMap = {};
-  computed.forEach((l) => {
-    if (!l.loanedDate) return;
-    const month = format(parseISO(l.loanedDate), "MMM yy");
-    if (!monthMap[month]) monthMap[month] = { month, total: 0, overdue: 0, dueSoon: 0, _date: parseISO(l.loanedDate) };
-    monthMap[month].total++;
-    if (l.risk_status === "Overdue") monthMap[month].overdue++;
-    if (l.risk_status === "Due Soon") monthMap[month].dueSoon++;
-  });
   const monthlyData = Object.values(monthMap).
   sort((a, b) => a._date - b._date).
   slice(-12).
   map(({ _date, ...rest }) => rest);
 
-  // --- Loan Duration Distribution ---
-  const durationBuckets = { "0-7d": 0, "8-14d": 0, "15-30d": 0, "31-60d": 0, "60d+": 0 };
-  computed.forEach((l) => {
-    if (!l.loanedDate) return;
-    const days = differenceInDays(new Date(), parseISO(l.loanedDate));
-    if (days <= 7) durationBuckets["0-7d"]++;else
-    if (days <= 14) durationBuckets["8-14d"]++;else
-    if (days <= 30) durationBuckets["15-30d"]++;else
-    if (days <= 60) durationBuckets["31-60d"]++;else
-    durationBuckets["60d+"]++;
-  });
   const durationData = Object.entries(durationBuckets).map(([range, count]) => ({ range, count }));
 
-  // --- Risk Status Pie ---
-  const riskCounts = { Safe: 0, "Due Soon": 0, Overdue: 0 };
-  computed.forEach((l) => {if (riskCounts[l.risk_status] !== undefined) riskCounts[l.risk_status]++;});
   const riskPieData = [
   { name: "Safe", value: riskCounts["Safe"], color: "#10b981" },
   { name: "Due Soon", value: riskCounts["Due Soon"], color: "#f59e0b" },
