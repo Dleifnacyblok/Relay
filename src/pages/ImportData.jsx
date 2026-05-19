@@ -460,7 +460,23 @@ export default function ImportData() {
       let skipped = 0;
       const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
-      // Split payload into new records (bulk create) and existing (batch update)
+      // Retry wrapper: on 429, wait and retry up to maxRetries times
+      const withRetry = async (fn, maxRetries = 5) => {
+        for (let attempt = 0; attempt <= maxRetries; attempt++) {
+          try {
+            return await fn();
+          } catch (err) {
+            const is429 = err?.message?.includes('429') || err?.message?.includes('Rate limit');
+            if (is429 && attempt < maxRetries) {
+              await sleep(2000 * (attempt + 1)); // 2s, 4s, 6s, 8s, 10s
+            } else {
+              throw err;
+            }
+          }
+        }
+      };
+
+      // Split payload into new records (bulk create) and existing (sequential update)
       const toCreate = [];
       const toUpdate = [];
       for (const rec of payload) {
@@ -476,37 +492,40 @@ export default function ImportData() {
         }
       }
 
-      // Bulk create new records in batches of 50
+      // Bulk create new records in batches of 50, one batch at a time
       const CREATE_BATCH = 50;
       for (let i = 0; i < toCreate.length; i += CREATE_BATCH) {
         const batch = toCreate.slice(i, i + CREATE_BATCH);
         try {
-          await base44.entities.Loaners.bulkCreate(batch);
+          await withRetry(() => base44.entities.Loaners.bulkCreate(batch));
           created += batch.length;
         } catch (err) {
-          // Fall back to individual creates for this batch
+          // Fall back to sequential individual creates
           for (const rec of batch) {
             try {
-              await base44.entities.Loaners.create(rec);
+              await withRetry(() => base44.entities.Loaners.create(rec));
               created++;
             } catch (e) {
               skipped++;
             }
+            await sleep(300);
           }
         }
         setUploadProgress({ current: Math.min(i + CREATE_BATCH, toCreate.length), total: payload.length });
-        if (i + CREATE_BATCH < toCreate.length) await sleep(600);
+        await sleep(1000);
       }
 
-      // Updates — run 5 in parallel, wait 500ms between batches
-      const UPDATE_BATCH = 5;
-      for (let i = 0; i < toUpdate.length; i += UPDATE_BATCH) {
-        const batch = toUpdate.slice(i, i + UPDATE_BATCH);
-        await Promise.all(batch.map(({ id, data }) =>
-          base44.entities.Loaners.update(id, data).then(() => { updated++; }).catch(() => { skipped++; })
-        ));
-        setUploadProgress({ current: toCreate.length + Math.min(i + UPDATE_BATCH, toUpdate.length), total: payload.length });
-        if (i + UPDATE_BATCH < toUpdate.length) await sleep(500);
+      // Updates — fully sequential, one at a time with delay + retry
+      for (let i = 0; i < toUpdate.length; i++) {
+        const { id, data } = toUpdate[i];
+        try {
+          await withRetry(() => base44.entities.Loaners.update(id, data));
+          updated++;
+        } catch (e) {
+          skipped++;
+        }
+        setUploadProgress({ current: toCreate.length + i + 1, total: payload.length });
+        await sleep(300);
       }
 
       // --- CLEANUP: Delete loaners no longer in the spreadsheet ---
@@ -515,10 +534,10 @@ export default function ImportData() {
       const toDelete = allExisting.filter(l => l.importKey && !newImportKeySet.has(l.importKey));
       for (let i = 0; i < toDelete.length; i++) {
         try {
-          await base44.entities.Loaners.delete(toDelete[i].id);
+          await withRetry(() => base44.entities.Loaners.delete(toDelete[i].id));
           deleted++;
         } catch (e) {
-          // skip stale delete failures silently
+          // skip
         }
         await sleep(300);
       }
