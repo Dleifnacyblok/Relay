@@ -2,7 +2,7 @@ import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Input } from "@/components/ui/input";
-import { X, ChevronDown, ChevronUp, Trash2, UserPlus, Pencil, Check } from "lucide-react";
+import { X, ChevronDown, ChevronUp, Trash2, UserPlus, Pencil, Check, Mail, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 // ── SUFFIX → REP AUTO-MATCH ──────────────────────────────────
@@ -81,6 +81,114 @@ export default function AdminSettings() {
     mutationFn: (id) => base44.entities.RepAccountAssignment.delete(id),
     onSuccess: invalidate,
   });
+
+  // ── Invitations (P2-12 manager-driven onboarding) ──────────────
+  const [invName, setInvName] = useState("");
+  const [invEmail, setInvEmail] = useState("");
+  const [invSelectedAccounts, setInvSelectedAccounts] = useState([]);
+  const [invAccountSearch, setInvAccountSearch] = useState("");
+  const [invError, setInvError] = useState("");
+
+  const { data: currentUser } = useQuery({
+    queryKey: ["currentUser"],
+    queryFn: () => base44.auth.me(),
+  });
+
+  const { data: invitations = [] } = useQuery({
+    queryKey: ["repInvitations"],
+    queryFn: () => base44.entities.RepInvitation.list("-createdAt", 100),
+  });
+
+  const createInvitationMutation = useMutation({
+    mutationFn: async ({ name, email, accounts }) => {
+      const now = new Date().toISOString();
+      const invitation = await base44.entities.RepInvitation.create({
+        name,
+        email,
+        accounts,
+        createdBy: currentUser?.email || "",
+        createdByName: currentUser?.full_name || "",
+        createdAt: now,
+        status: "pending",
+      });
+      await base44.entities.AuditLog.create({
+        action: "invitation_created",
+        actorEmail: currentUser?.email || "",
+        actorName: currentUser?.full_name || "",
+        targetEmail: email,
+        targetName: name,
+        details: { accounts, invitationId: invitation.id },
+        timestamp: now,
+      });
+      return invitation;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["repInvitations"] });
+    },
+  });
+
+  const accountOptions = useMemo(
+    () =>
+      [...new Set(
+        assignments
+          .filter((a) => !a.accountName?.startsWith("__rep_placeholder__"))
+          .map((a) => a.accountName)
+          .filter(Boolean)
+      )].sort(),
+    [assignments]
+  );
+
+  const filteredAccountOptions = useMemo(
+    () =>
+      accountOptions.filter((a) =>
+        a.toLowerCase().includes(invAccountSearch.toLowerCase())
+      ),
+    [accountOptions, invAccountSearch]
+  );
+
+  const duplicateInvitationWarning = useMemo(() => {
+    const normalized = invEmail.toLowerCase().trim();
+    if (!normalized) return false;
+    return invitations.some(
+      (inv) => inv.email === normalized && inv.status === "pending"
+    );
+  }, [invEmail, invitations]);
+
+  const sortedInvitations = useMemo(() => {
+    return [...invitations].sort((a, b) => {
+      if (a.status !== b.status) return a.status === "pending" ? -1 : 1;
+      return (b.createdAt || "").localeCompare(a.createdAt || "");
+    });
+  }, [invitations]);
+
+  function toggleInvSelectedAccount(acc) {
+    setInvSelectedAccounts((prev) =>
+      prev.includes(acc) ? prev.filter((a) => a !== acc) : [...prev, acc]
+    );
+  }
+
+  async function handleCreateInvitation() {
+    setInvError("");
+    const name = invName.trim();
+    const email = invEmail.toLowerCase().trim();
+    if (!name || !email) {
+      setInvError("Name and email are required.");
+      return;
+    }
+    try {
+      await createInvitationMutation.mutateAsync({
+        name,
+        email,
+        accounts: invSelectedAccounts,
+      });
+      setInvName("");
+      setInvEmail("");
+      setInvSelectedAccounts([]);
+      setInvAccountSearch("");
+    } catch (e) {
+      setInvError(e?.message || "Failed to create invitation. Please try again.");
+    }
+  }
 
   function saveRow(row, updatedFields) {
     setSavingRows(p => ({ ...p, [row.id]: true }));
@@ -175,6 +283,7 @@ export default function AdminSettings() {
         {[
           { key: "assignments", label: "Rep–Account Assignments" },
           { key: "reps", label: "Rep Management" },
+          { key: "invitations", label: "Invitations" },
         ].map(tab => (
           <button
             key={tab.key}
@@ -433,6 +542,140 @@ export default function AdminSettings() {
                 </div>
               );
             })}
+          </div>
+        </div>
+      )}
+
+      {/* ══ TAB 3 — INVITATIONS ══ */}
+      {activeTab === "invitations" && (
+        <div>
+          {/* Create form */}
+          <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 mb-6">
+            <h2 className="font-semibold text-base mb-1">Invite a New Rep</h2>
+            <p className="text-xs text-gray-500 mb-4">
+              Set the rep's name, email, and accounts. When they log in for the first time, they'll see a read-only confirmation screen and accept the invitation.
+            </p>
+
+            <div className="space-y-3">
+              <div>
+                <label className="text-xs font-semibold text-gray-600 mb-1 block">Full Name</label>
+                <Input
+                  value={invName}
+                  onChange={e => setInvName(e.target.value)}
+                  placeholder="e.g. Graham Brown"
+                  className="text-base"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold text-gray-600 mb-1 block">Email</label>
+                <Input
+                  value={invEmail}
+                  onChange={e => setInvEmail(e.target.value)}
+                  placeholder="rep@example.com"
+                  type="email"
+                  className="text-base"
+                />
+                {duplicateInvitationWarning && (
+                  <p className="text-xs text-amber-600 mt-1">
+                    ⚠ A pending invitation already exists for this email.
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold text-gray-600 mb-1 block">
+                  Accounts ({invSelectedAccounts.length} selected)
+                </label>
+                <Input
+                  placeholder="🔍 Search accounts..."
+                  value={invAccountSearch}
+                  onChange={e => setInvAccountSearch(e.target.value)}
+                  className="mb-2 text-sm"
+                />
+                <div className="border border-gray-200 rounded-lg max-h-48 overflow-y-auto bg-white">
+                  {filteredAccountOptions.length === 0 ? (
+                    <p className="text-center text-gray-400 text-sm py-4">No matching accounts</p>
+                  ) : (
+                    filteredAccountOptions.map(acc => {
+                      const checked = invSelectedAccounts.includes(acc);
+                      return (
+                        <label
+                          key={acc}
+                          className="flex items-center gap-2 px-3 py-2 hover:bg-gray-50 cursor-pointer border-b last:border-b-0"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={checked}
+                            onChange={() => toggleInvSelectedAccount(acc)}
+                            className="w-4 h-4"
+                          />
+                          <span className="text-sm">{acc}</span>
+                        </label>
+                      );
+                    })
+                  )}
+                </div>
+              </div>
+
+              <Button
+                onClick={handleCreateInvitation}
+                disabled={!invName.trim() || !invEmail.trim() || createInvitationMutation.isPending}
+                className="w-full min-h-[44px]"
+              >
+                {createInvitationMutation.isPending ? (
+                  <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Creating...</>
+                ) : (
+                  <><Mail className="w-4 h-4 mr-2" /> Create Invitation</>
+                )}
+              </Button>
+              {invError && (
+                <p className="text-red-600 text-sm bg-red-50 rounded-lg px-3 py-2">{invError}</p>
+              )}
+            </div>
+          </div>
+
+          {/* Invitations list */}
+          <div className="bg-white rounded-xl shadow border border-gray-100 overflow-hidden">
+            <div className="grid grid-cols-12 bg-gray-50 px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide border-b">
+              <div className="col-span-3">Name</div>
+              <div className="col-span-3">Email</div>
+              <div className="col-span-1 text-center">Accts</div>
+              <div className="col-span-2">Status</div>
+              <div className="col-span-3 text-right">Created</div>
+            </div>
+
+            {sortedInvitations.length === 0 ? (
+              <div className="px-4 py-8 text-center text-gray-400 text-sm">No invitations yet.</div>
+            ) : (
+              sortedInvitations.map(inv => (
+                <div
+                  key={inv.id}
+                  className="grid grid-cols-12 px-4 py-3 items-center border-b last:border-0 hover:bg-gray-50"
+                >
+                  <div className="col-span-3 text-sm font-medium text-gray-800 truncate">{inv.name}</div>
+                  <div className="col-span-3 text-sm text-gray-600 truncate">{inv.email}</div>
+                  <div className="col-span-1 text-sm text-gray-600 text-center">
+                    {Array.isArray(inv.accounts) ? inv.accounts.length : 0}
+                  </div>
+                  <div className="col-span-2">
+                    <span className={`inline-block text-xs font-semibold px-2 py-0.5 rounded-full ${
+                      inv.status === "accepted"
+                        ? "bg-green-100 text-green-700"
+                        : "bg-amber-100 text-amber-700"
+                    }`}>
+                      {inv.status}
+                    </span>
+                  </div>
+                  <div className="col-span-3 text-xs text-gray-400 text-right">
+                    {inv.createdAt ? new Date(inv.createdAt).toLocaleDateString() : "—"}
+                    {inv.createdByName && (
+                      <div className="text-[10px]">by {inv.createdByName}</div>
+                    )}
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
       )}

@@ -1,0 +1,43 @@
+{
+  "name": "AuditLog",
+  "type": "object",
+  "properties": {
+    "action": {
+      "type": "string",
+      "enum": [
+        "invitation_created",
+        "invitation_accepted"
+      ],
+      "description": "Type of audit event"
+    },
+    "actorEmail": {
+      "type": "string",
+      "description": "Email of the user who performed the action"
+    },
+    "actorName": {
+      "type": "string",
+      "description": "Full name of the user who performed the action"
+    },
+    "targetEmail": {
+      "type": "string",
+      "description": "Email of the user affected by the action"
+    },
+    "targetName": {
+      "type": "string",
+      "description": "Full name of the user affected by the action"
+    },
+    "details": {
+      "type": "object",
+      "description": "Action-specific structured payload (e.g. account list, invitationId)"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the action occurred"
+    }
+  },
+  "required": [
+    "action",
+    "timestamp"
+  ]
+}
