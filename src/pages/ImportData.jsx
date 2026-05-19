@@ -495,28 +495,32 @@ export default function ImportData() {
           }
         }
         setUploadProgress({ current: Math.min(i + CREATE_BATCH, toCreate.length), total: payload.length });
-        if (i + CREATE_BATCH < toCreate.length) await sleep(300);
+        if (i + CREATE_BATCH < toCreate.length) await sleep(600);
       }
 
-      // Batch updates — run 10 in parallel, then next 10
-      const UPDATE_BATCH = 10;
+      // Updates — run 5 in parallel, wait 500ms between batches
+      const UPDATE_BATCH = 5;
       for (let i = 0; i < toUpdate.length; i += UPDATE_BATCH) {
         const batch = toUpdate.slice(i, i + UPDATE_BATCH);
         await Promise.all(batch.map(({ id, data }) =>
           base44.entities.Loaners.update(id, data).then(() => { updated++; }).catch(() => { skipped++; })
         ));
         setUploadProgress({ current: toCreate.length + Math.min(i + UPDATE_BATCH, toUpdate.length), total: payload.length });
-        if (i + UPDATE_BATCH < toUpdate.length) await sleep(200);
+        if (i + UPDATE_BATCH < toUpdate.length) await sleep(500);
       }
 
       // --- CLEANUP: Delete loaners no longer in the spreadsheet ---
       const newImportKeySet = new Set(payload.map(p => p.importKey));
       let deleted = 0;
       const toDelete = allExisting.filter(l => l.importKey && !newImportKeySet.has(l.importKey));
-      for (let i = 0; i < toDelete.length; i += 10) {
-        const batch = toDelete.slice(i, i + 10);
-        await Promise.all(batch.map(l => base44.entities.Loaners.delete(l.id).then(() => { deleted++; }).catch(() => {})));
-        if (i + 10 < toDelete.length) await sleep(200);
+      for (let i = 0; i < toDelete.length; i++) {
+        try {
+          await base44.entities.Loaners.delete(toDelete[i].id);
+          deleted++;
+        } catch (e) {
+          // skip stale delete failures silently
+        }
+        await sleep(300);
       }
 
       // Update AppSetting with import timestamp
