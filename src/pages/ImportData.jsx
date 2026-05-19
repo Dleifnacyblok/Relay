@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import * as XLSX from "xlsx";
-import { Upload, FileSpreadsheet, AlertCircle, CheckCircle, Loader2, Trash2, Download, TrendingUp } from "lucide-react";
+import { Upload, FileSpreadsheet, AlertCircle, CheckCircle, Loader2, Trash2, Download, TrendingUp, Clock, Mail, RefreshCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -40,7 +40,12 @@ export default function ImportData() {
   const [showClearPartsDialog, setShowClearPartsDialog] = useState(false);
   const [isClearingParts, setIsClearingParts] = useState(false);
   const [partsProgress, setPartsProgress] = useState(null);
-  
+
+  // Auto-import and drag-zone state
+  const [isAutoImporting, setIsAutoImporting] = useState(false);
+  const [autoImportResult, setAutoImportResult] = useState(null);
+  const [dragZone, setDragZone] = useState(null); // 'loaners' | 'parts' | 'iep' | null
+
   const queryClient = useQueryClient();
 
   const { data: user } = useQuery({
@@ -75,6 +80,46 @@ export default function ImportData() {
     queryKey: ["repAccountAssignments"],
     queryFn: () => fetchAllPages(base44.entities.RepAccountAssignment),
   });
+
+  const { data: appSettings = [] } = useQuery({
+    queryKey: ["appSetting", "import_metadata"],
+    queryFn: () => base44.entities.AppSetting.filter({ key: "import_metadata" }),
+  });
+  const lastImportedAt = appSettings[0]?.last_imported_at || null;
+
+  const handleAutoImport = async () => {
+    if (isAutoImporting) return;
+    setIsAutoImporting(true);
+    setAutoImportResult(null);
+    try {
+      const result = await base44.functions.invoke("autoImportFromGmail");
+      setAutoImportResult({ success: true, ...(result || {}) });
+      queryClient.invalidateQueries({ queryKey: ["loaners"] });
+      queryClient.invalidateQueries({ queryKey: ["appSetting", "import_metadata"] });
+    } catch (err) {
+      setAutoImportResult({ success: false, error: err?.message || "Auto-import failed." });
+    } finally {
+      setIsAutoImporting(false);
+    }
+  };
+
+  // Shared drag-and-drop handlers. Each zone shares a single dragZone state
+  // so visual feedback is exclusive (only one zone highlights at a time).
+  const handleDragOver = (e) => e.preventDefault();
+  const handleDragEnter = (zone) => (e) => {
+    e.preventDefault();
+    setDragZone(zone);
+  };
+  const handleDragLeave = () => setDragZone(null);
+  const handleDrop = (zone, setSelectedFile, clearResults) => (e) => {
+    e.preventDefault();
+    setDragZone(null);
+    const dropped = e.dataTransfer?.files?.[0];
+    if (dropped) {
+      setSelectedFile(dropped);
+      if (clearResults) clearResults();
+    }
+  };
 
   const isAdmin = user?.role === "admin";
 
@@ -453,7 +498,7 @@ export default function ImportData() {
           }
         }
         
-        await sleep(500);
+        await sleep(100);
         setUploadProgress({ current: i + 1, total: payload.length });
       }
 
@@ -578,8 +623,9 @@ export default function ImportData() {
       const payload = [];
       const errors = [];
 
-      // First, fetch all loaners to lookup field sales reps
-      const allLoaners = await fetchAllPages(base44.entities.Loaners);
+      // Reuse the loaners we already fetched at page mount for rep-name lookup.
+      // Staleness is acceptable here — rep names don't change between renders.
+      const allLoaners = existingLoaners;
 
       normalizedRows.forEach((r, idx) => {
         const rowNum = idx + 2;
@@ -714,7 +760,7 @@ export default function ImportData() {
         }
 
         setPartsProgress({ current: i + 1, total: payload.length });
-        await sleep(500);
+        await sleep(100);
       }
 
       // Delete stale parts no longer in the spreadsheet
@@ -839,13 +885,69 @@ export default function ImportData() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
       <div className="max-w-2xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
-        <div className="mb-8">
+        <div className="mb-6">
           <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
             Import Data
           </h1>
           <p className="text-slate-500 mt-1">
             Upload the daily loaner spreadsheet to update records
           </p>
+          <div className="mt-2 flex items-center gap-2 text-xs text-slate-500">
+            <Clock className="w-3.5 h-3.5" />
+            <span>
+              Last imported:{" "}
+              <span className="font-medium text-slate-700">
+                {lastImportedAt ? new Date(lastImportedAt).toLocaleString() : "Never"}
+              </span>
+            </span>
+          </div>
+        </div>
+
+        {/* Auto-import (server-side Gmail pull) */}
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5 mb-6">
+          <div className="flex items-start gap-4">
+            <div className="p-2.5 rounded-lg bg-blue-100 flex-shrink-0">
+              <Mail className="w-5 h-5 text-blue-600" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <h2 className="font-semibold text-slate-900">Run Auto-Import Now</h2>
+              <p className="text-sm text-slate-500 mt-0.5">
+                Pulls the most recent loaner spreadsheet attachment from the connected Gmail inbox. Runs on the server — no browser tab needed.
+              </p>
+              {autoImportResult?.success && (
+                <Alert className="mt-3 border-green-200 bg-green-50">
+                  <CheckCircle className="h-4 w-4 text-green-600" />
+                  <AlertDescription className="text-green-800">
+                    {autoImportResult.message ||
+                      `Imported ${autoImportResult.total ?? 0} records (${autoImportResult.created ?? 0} created, ${autoImportResult.updated ?? 0} updated).`}
+                  </AlertDescription>
+                </Alert>
+              )}
+              {autoImportResult && !autoImportResult.success && (
+                <Alert variant="destructive" className="mt-3">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>{autoImportResult.error}</AlertDescription>
+                </Alert>
+              )}
+            </div>
+            <Button
+              onClick={handleAutoImport}
+              disabled={isAutoImporting}
+              className="flex-shrink-0 bg-blue-600 hover:bg-blue-700 h-10"
+            >
+              {isAutoImporting ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Running...
+                </>
+              ) : (
+                <>
+                  <RefreshCcw className="w-4 h-4 mr-2" />
+                  Run Now
+                </>
+              )}
+            </Button>
+          </div>
         </div>
 
         {/* Current Data Status */}
@@ -933,7 +1035,21 @@ export default function ImportData() {
           </div>
 
           {/* File Input */}
-          <div className="border-2 border-dashed border-slate-200 rounded-lg p-8 text-center hover:border-indigo-300 transition-colors">
+          <div
+            onDragOver={handleDragOver}
+            onDragEnter={handleDragEnter("loaners")}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop("loaners", setFile, () => {
+              setImportResult(null);
+              setError(null);
+              setFailedRows([]);
+            })}
+            className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
+              dragZone === "loaners"
+                ? "border-indigo-500 bg-indigo-50"
+                : "border-slate-200 hover:border-indigo-300"
+            }`}
+          >
             <Upload className="w-10 h-10 text-slate-400 mx-auto mb-4" />
             <Input
               type="file"
@@ -942,8 +1058,8 @@ export default function ImportData() {
               className="hidden"
               id="file-upload"
             />
-            <label 
-              htmlFor="file-upload" 
+            <label
+              htmlFor="file-upload"
               className="cursor-pointer text-indigo-600 hover:text-indigo-700 font-medium"
             >
               Choose a file
@@ -1088,7 +1204,20 @@ export default function ImportData() {
             </div>
           </div>
 
-          <div className="border-2 border-dashed border-slate-200 rounded-lg p-8 text-center hover:border-orange-300 transition-colors">
+          <div
+            onDragOver={handleDragOver}
+            onDragEnter={handleDragEnter("parts")}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop("parts", setPartsFile, () => {
+              setPartsImportResult(null);
+              setPartsError(null);
+            })}
+            className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
+              dragZone === "parts"
+                ? "border-orange-500 bg-orange-50"
+                : "border-slate-200 hover:border-orange-300"
+            }`}
+          >
             <Upload className="w-10 h-10 text-slate-400 mx-auto mb-4" />
             <Input
               type="file"
@@ -1097,8 +1226,8 @@ export default function ImportData() {
               className="hidden"
               id="parts-file-upload"
             />
-            <label 
-              htmlFor="parts-file-upload" 
+            <label
+              htmlFor="parts-file-upload"
               className="cursor-pointer text-orange-600 hover:text-orange-700 font-medium"
             >
               Choose a file
@@ -1184,7 +1313,20 @@ export default function ImportData() {
             <p className="text-slate-400 italic mt-1">Each import fully replaces all previous IEP system records.</p>
           </div>
 
-          <div className="border-2 border-dashed border-slate-200 rounded-lg p-8 text-center hover:border-purple-300 transition-colors">
+          <div
+            onDragOver={handleDragOver}
+            onDragEnter={handleDragEnter("iep")}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop("iep", setIepFile, () => {
+              setIepImportResult(null);
+              setIepError(null);
+            })}
+            className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
+              dragZone === "iep"
+                ? "border-purple-500 bg-purple-50"
+                : "border-slate-200 hover:border-purple-300"
+            }`}
+          >
             <TrendingUp className="w-10 h-10 text-slate-300 mx-auto mb-3" />
             <Input
               type="file"
