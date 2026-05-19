@@ -8,7 +8,6 @@ import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import IEPDashboard from '@/pages/IEPDashboard';
-import IEPImport from '@/pages/IEPImport';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -63,11 +62,6 @@ const AuthenticatedApp = () => {
       <Route path="/IEPDashboard" element={
         <LayoutWrapper currentPageName="IEPDashboard">
           <IEPDashboard />
-        </LayoutWrapper>
-      } />
-      <Route path="/IEPImport" element={
-        <LayoutWrapper currentPageName="IEPImport">
-          <IEPImport />
         </LayoutWrapper>
       } />
 
