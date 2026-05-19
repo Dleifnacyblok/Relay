@@ -347,9 +347,9 @@ export default function ImportData() {
         return out;
       });
 
-      const requiredHeaders = ["set id", "set name", "current field sales name", "associate sales rep name", "account name", "etch id", "loaned date", "expected return date"];
+      const requiredHeaders = ["set id", "set name", "current field sales name", "account name", "etch id", "loaned date", "expected return date"];
       const keyUnion = new Set();
-      for (const r of normalizedRows.slice(0, 5)) {
+      for (const r of normalizedRows) {
         for (const k of Object.keys(r)) keyUnion.add(k);
       }
       const missingHeaders = requiredHeaders.filter((h) => !keyUnion.has(h));
@@ -367,7 +367,8 @@ export default function ImportData() {
         const setName = (r["set name"] || "").toString().trim();
         const fieldSalesRep = (r["current field sales name"] || "").toString().trim();
         const accountName = (r["account name"] || "").toString().trim();
-        const assocRaw = (r["associate sales rep name"] || "").toString().trim();
+        const assocRawVal = r["associate sales rep name"];
+        const assocRaw = (assocRawVal == null || assocRawVal === "None") ? "" : assocRawVal.toString().trim();
         let repName = assocRaw || "None";
 
         // Look up assigned rep from RepAccountAssignment if no associate rep
