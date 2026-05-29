@@ -4,50 +4,45 @@
   "properties": {
     "name": {
       "type": "string",
-      "description": "Full name of the rep being invited, as set by the manager"
+      "description": "Full name of the invited rep"
     },
     "email": {
       "type": "string",
-      "description": "Email address (lowercased, trimmed) of the rep being invited"
+      "description": "Email address of the invited rep"
     },
     "accounts": {
       "type": "array",
       "items": {
         "type": "string"
       },
-      "description": "Account names this rep should be assigned to"
+      "description": "Account names the rep is assigned to"
     },
     "createdBy": {
       "type": "string",
-      "description": "Email of the manager who created this invitation"
+      "description": "Email of the admin who created this invitation"
     },
     "createdByName": {
       "type": "string",
-      "description": "Full name of the manager who created this invitation"
+      "description": "Name of the admin who created this invitation"
     },
     "createdAt": {
       "type": "string",
       "format": "date-time",
       "description": "When the invitation was created"
     },
-    "acceptedAt": {
-      "type": "string",
-      "format": "date-time",
-      "description": "When the rep accepted the invitation; null while pending"
-    },
     "status": {
       "type": "string",
       "enum": [
         "pending",
-        "accepted"
+        "accepted",
+        "expired"
       ],
       "default": "pending",
-      "description": "Invitation lifecycle status"
+      "description": "Current status of the invitation"
     }
   },
   "required": [
     "name",
-    "email",
-    "status"
+    "email"
   ]
 }

@@ -4,11 +4,7 @@
   "properties": {
     "action": {
       "type": "string",
-      "enum": [
-        "invitation_created",
-        "invitation_accepted"
-      ],
-      "description": "Type of audit event"
+      "description": "Action that was performed (e.g. invitation_created)"
     },
     "actorEmail": {
       "type": "string",
@@ -16,19 +12,19 @@
     },
     "actorName": {
       "type": "string",
-      "description": "Full name of the user who performed the action"
+      "description": "Name of the user who performed the action"
     },
     "targetEmail": {
       "type": "string",
-      "description": "Email of the user affected by the action"
+      "description": "Email of the target user"
     },
     "targetName": {
       "type": "string",
-      "description": "Full name of the user affected by the action"
+      "description": "Name of the target user"
     },
     "details": {
       "type": "object",
-      "description": "Action-specific structured payload (e.g. account list, invitationId)"
+      "description": "Additional details about the action"
     },
     "timestamp": {
       "type": "string",
