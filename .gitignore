@@ -31,3 +31,4 @@ dist-ssr
 .claude/
 
 .env
+base44/.app.jsonc
