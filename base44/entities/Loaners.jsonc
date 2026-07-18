@@ -1,0 +1,100 @@
+{
+  "name": "Loaners",
+  "type": "object",
+  "properties": {
+    "importKey": {
+      "type": "string",
+      "description": "Unique key for upsert: setId__etchId__account__loanedDate"
+    },
+    "setName": {
+      "type": "string",
+      "description": "Name of the loaner set"
+    },
+    "etchId": {
+      "type": "string",
+      "description": "Etch ID"
+    },
+    "accountName": {
+      "type": "string",
+      "description": "Account name"
+    },
+    "repName": {
+      "type": "string",
+      "description": "Associate sales rep or 'None'"
+    },
+    "expectedReturnDate": {
+      "type": "string",
+      "format": "date",
+      "description": "Expected return date (YYYY-MM-DD)"
+    },
+    "fineAmount": {
+      "type": "number",
+      "description": "Total fine amount ($50/day overdue)"
+    },
+    "setId": {
+      "type": "string",
+      "description": "Set identifier"
+    },
+    "fieldSalesRep": {
+      "type": "string",
+      "description": "Current field sales representative"
+    },
+    "associateSalesRep": {
+      "type": "string",
+      "description": "Associate sales rep name"
+    },
+    "loanedDate": {
+      "type": "string",
+      "format": "date",
+      "description": "Date the item was loaned (YYYY-MM-DD)"
+    },
+    "daysUntilDue": {
+      "type": "integer",
+      "description": "Days until due (negative if overdue)"
+    },
+    "daysOverdue": {
+      "type": "integer",
+      "description": "Number of days overdue"
+    },
+    "isOverdue": {
+      "type": "boolean",
+      "description": "Whether the loaner is overdue"
+    },
+    "finePerDay": {
+      "type": "number",
+      "description": "Fine per day rate ($50)"
+    },
+    "lastImportedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Last import timestamp"
+    },
+    "feesWaived": {
+      "type": "boolean",
+      "description": "Whether fees have been waived",
+      "default": false
+    },
+    "notes": {
+      "type": "string",
+      "description": "Notes about the loaner"
+    },
+    "returnStatus": {
+      "type": "string",
+      "enum": [
+        "not_returned",
+        "sent_back",
+        "received"
+      ],
+      "default": "not_returned",
+      "description": "Return status of the loaner"
+    }
+  },
+  "required": [
+    "importKey",
+    "setName",
+    "etchId",
+    "accountName",
+    "repName",
+    "expectedReturnDate"
+  ]
+}

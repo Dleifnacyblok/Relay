@@ -1,0 +1,34 @@
+{
+  "name": "User",
+  "type": "object",
+  "properties": {
+    "role": {
+      "type": "string",
+      "enum": [
+        "admin",
+        "manager",
+        "user"
+      ],
+      "default": "user",
+      "description": "User's role in the application"
+    },
+    "displayName": {
+      "type": "string",
+      "description": "Rep's preferred display name used to match loaners"
+    },
+    "managedAccounts": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "List of account names this rep is responsible for",
+      "default": []
+    },
+    "onboardingComplete": {
+      "type": "boolean",
+      "description": "Whether the rep has completed the onboarding setup",
+      "default": false
+    }
+  },
+  "required": []
+}

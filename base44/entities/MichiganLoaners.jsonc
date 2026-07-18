@@ -1,0 +1,83 @@
+{
+  "name": "MichiganLoaners",
+  "type": "object",
+  "properties": {
+    "bucket": {
+      "type": "string",
+      "enum": [
+        "DUE_SOON",
+        "OVERDUE",
+        "ALL_PENDING"
+      ],
+      "description": "Categorization of the loaner status"
+    },
+    "area": {
+      "type": "string",
+      "description": "Geographic area"
+    },
+    "setId": {
+      "type": "string",
+      "description": "Set identifier"
+    },
+    "setName": {
+      "type": "string",
+      "description": "Name of the loaner set"
+    },
+    "currentFieldSalesName": {
+      "type": "string",
+      "description": "Current field sales representative name"
+    },
+    "associateSalesRepName": {
+      "type": "string",
+      "description": "Associate sales representative name"
+    },
+    "accountName": {
+      "type": "string",
+      "description": "Account name"
+    },
+    "etchId": {
+      "type": "string",
+      "description": "Etch ID"
+    },
+    "loanerId": {
+      "type": "string",
+      "description": "Loaner ID"
+    },
+    "consignmentId": {
+      "type": "string",
+      "description": "Consignment ID"
+    },
+    "status": {
+      "type": "string",
+      "description": "Current status of the loaner"
+    },
+    "loanedDate": {
+      "type": "string",
+      "format": "date",
+      "description": "Date the item was loaned (YYYY-MM-DD)"
+    },
+    "expectedReturnDate": {
+      "type": "string",
+      "format": "date",
+      "description": "Expected return date (YYYY-MM-DD)"
+    },
+    "daysOverdue": {
+      "type": "integer",
+      "description": "Number of days overdue (only on Overdue sheet)"
+    },
+    "reportDate": {
+      "type": "string",
+      "format": "date",
+      "description": "Date of the report (YYYY-MM-DD)"
+    },
+    "upsertKey": {
+      "type": "string",
+      "description": "Unique key for upsert logic: loanerId|etchId|expectedReturnDate|bucket"
+    }
+  },
+  "required": [
+    "bucket",
+    "reportDate",
+    "upsertKey"
+  ]
+}

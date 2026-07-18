@@ -1,0 +1,21 @@
+{
+  "name": "RepAccountAssignment",
+  "type": "object",
+  "properties": {
+    "accountName": {
+      "type": "string",
+      "description": "Hospital / account name"
+    },
+    "assignedReps": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "List of assigned rep full names",
+      "default": []
+    }
+  },
+  "required": [
+    "accountName"
+  ]
+}

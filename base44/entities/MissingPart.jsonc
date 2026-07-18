@@ -1,0 +1,79 @@
+{
+  "name": "MissingPart",
+  "type": "object",
+  "properties": {
+    "repName": {
+      "type": "string",
+      "description": "Name of the associate rep responsible"
+    },
+    "partName": {
+      "type": "string",
+      "description": "Name/description of the missing part"
+    },
+    "partNumber": {
+      "type": "string",
+      "description": "Part number identifier"
+    },
+    "loanerSetName": {
+      "type": "string",
+      "description": "Name of the loaner set the part came from"
+    },
+    "etchId": {
+      "type": "string",
+      "description": "Etch ID"
+    },
+    "missingDate": {
+      "type": "string",
+      "format": "date",
+      "description": "Date the part was reported missing (YYYY-MM-DD)"
+    },
+    "fineAmount": {
+      "type": "number",
+      "description": "Fine amount for missing part",
+      "default": 0
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "missing",
+        "found",
+        "paid"
+      ],
+      "default": "missing",
+      "description": "Current status of the missing part"
+    },
+    "requestNumber": {
+      "type": "string",
+      "description": "Request # - used for unique identifier"
+    },
+    "partSetNumber": {
+      "type": "string",
+      "description": "Part/Set # - used for unique identifier"
+    },
+    "deductionDate": {
+      "type": "string",
+      "format": "date",
+      "description": "Deduction Date (YYYY-MM-DD) - used for unique identifier"
+    },
+    "missingQuantity": {
+      "type": "integer",
+      "description": "Quantity of missing parts",
+      "default": 1
+    },
+    "returnStatus": {
+      "type": "string",
+      "enum": [
+        "not_returned",
+        "sent_back",
+        "received"
+      ],
+      "default": "not_returned",
+      "description": "Return status of the missing part"
+    }
+  },
+  "required": [
+    "repName",
+    "partName",
+    "missingDate"
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "name": "ConsignedSet",
+  "type": "object",
+  "properties": {
+    "setName": {
+      "type": "string",
+      "description": "Name of the consigned set (e.g. CREO MIS IMPLANT SET)"
+    },
+    "setId": {
+      "type": "string",
+      "description": "Set ID / product number (e.g. 9134.9001)"
+    },
+    "tagNumbers": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "List of etch/tag numbers for this set"
+    },
+    "homeAccounts": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Home account labels for each tag (parallel to tagNumbers)"
+    },
+    "manufacturer": {
+      "type": "string",
+      "enum": [
+        "Globus",
+        "Nuvasive"
+      ],
+      "description": "Manufacturer / program"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Any special notes (e.g. Use Loaner Tag)"
+    }
+  },
+  "required": [
+    "setName"
+  ]
+}

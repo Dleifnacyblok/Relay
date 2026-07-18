@@ -1,0 +1,38 @@
+{
+  "name": "LookForItem",
+  "type": "object",
+  "properties": {
+    "partNumber": {
+      "type": "string",
+      "description": "Part number they are looking for"
+    },
+    "partName": {
+      "type": "string",
+      "description": "Part name/description they are looking for"
+    },
+    "repName": {
+      "type": "string",
+      "description": "Name of the rep looking for this item"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional notes"
+    },
+    "photoUrl": {
+      "type": "string",
+      "description": "Photo used for AI identification"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "fulfilled"
+      ],
+      "default": "active",
+      "description": "Whether this request is still active"
+    }
+  },
+  "required": [
+    "partNumber"
+  ]
+}

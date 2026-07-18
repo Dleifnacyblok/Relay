@@ -4,6 +4,7 @@ import { base44 } from "@/api/base44Client";
 import { Input } from "@/components/ui/input";
 import { X, ChevronDown, ChevronUp, Trash2, UserPlus, Pencil, Check, Mail, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import ConsignmentInventoryManager from "@/components/admin/ConsignmentInventoryManager";
 
 // ── SUFFIX → REP AUTO-MATCH ──────────────────────────────────
 const SUFFIX_MAP = {
@@ -284,6 +285,7 @@ export default function AdminSettings() {
           { key: "assignments", label: "Rep–Account Assignments" },
           { key: "reps", label: "Rep Management" },
           { key: "invitations", label: "Invitations" },
+          { key: "consignment", label: "Consignment Inventory" },
         ].map(tab => (
           <button
             key={tab.key}
@@ -678,6 +680,11 @@ export default function AdminSettings() {
             )}
           </div>
         </div>
+      )}
+
+      {/* ══ TAB 4 — CONSIGNMENT INVENTORY ══ */}
+      {activeTab === "consignment" && (
+        <ConsignmentInventoryManager />
       )}
 
       {/* CONFIRM REMOVE DIALOG */}

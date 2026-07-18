@@ -1,0 +1,22 @@
+{
+  "name": "AppSetting",
+  "type": "object",
+  "properties": {
+    "key": {
+      "type": "string",
+      "description": "Setting key (e.g., 'import_metadata')"
+    },
+    "last_imported_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Timestamp of last successful import"
+    },
+    "last_import_batch_id": {
+      "type": "string",
+      "description": "ID of the last successful import batch"
+    }
+  },
+  "required": [
+    "key"
+  ]
+}

@@ -1,0 +1,52 @@
+{
+  "name": "LoanerRequest",
+  "type": "object",
+  "properties": {
+    "loanerId": {
+      "type": "string",
+      "description": "ID of the loaner being requested"
+    },
+    "requesterName": {
+      "type": "string",
+      "description": "Name of the rep requesting the loaner"
+    },
+    "currentHolderName": {
+      "type": "string",
+      "description": "Name of the rep currently holding the loaner"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "approved",
+        "declined",
+        "cancelled"
+      ],
+      "default": "pending",
+      "description": "Status of the request"
+    },
+    "reason": {
+      "type": "string",
+      "description": "Reason for requesting the loaner"
+    },
+    "accountName": {
+      "type": "string",
+      "description": "Account name where loaner will be used"
+    },
+    "urgency": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high"
+      ],
+      "default": "medium",
+      "description": "Urgency level of the request"
+    }
+  },
+  "required": [
+    "loanerId",
+    "requesterName",
+    "currentHolderName"
+  ]
+}

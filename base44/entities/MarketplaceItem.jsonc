@@ -1,0 +1,71 @@
+{
+  "name": "MarketplaceItem",
+  "type": "object",
+  "properties": {
+    "partNumber": {
+      "type": "string",
+      "description": "Part number identifier"
+    },
+    "partName": {
+      "type": "string",
+      "description": "Name/description of the part"
+    },
+    "quantity": {
+      "type": "integer",
+      "description": "Available quantity",
+      "default": 1
+    },
+    "repName": {
+      "type": "string",
+      "description": "Rep listing the item (optional)"
+    },
+    "location": {
+      "type": "string",
+      "description": "Location/territory of the item (optional)"
+    },
+    "photoUrl": {
+      "type": "string",
+      "description": "Photo of the item"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional notes"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "available",
+        "pending",
+        "sold"
+      ],
+      "default": "available",
+      "description": "Availability status"
+    },
+    "bids": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "bidderName": {
+            "type": "string"
+          },
+          "bidderEmail": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "timestamp": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "List of bids/requests on this item",
+      "default": []
+    }
+  },
+  "required": [
+    "partNumber",
+    "quantity"
+  ]
+}
