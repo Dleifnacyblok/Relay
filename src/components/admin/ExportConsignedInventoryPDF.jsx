@@ -63,7 +63,7 @@ export default function ExportConsignedInventoryPDF({ consignedSets }) {
           y += 5;
 
           for (const cs of sets) {
-            y = checkPageBreak(doc, y, 30);
+            y = checkPageBreak(doc, y, 270);
 
             // Set name + Set ID on one line
             doc.setFontSize(9);
@@ -113,7 +113,7 @@ export default function ExportConsignedInventoryPDF({ consignedSets }) {
               doc.setFont("helvetica", "normal");
               doc.setFontSize(8);
               for (let i = 0; i < tags.length; i++) {
-                y = checkPageBreak(doc, y, 10);
+                y = checkPageBreak(doc, y, 270);
                 const rowBg = i % 2 === 0 ? [255, 255, 255] : [248, 250, 252];
                 doc.setFillColor(...rowBg);
                 doc.rect(colTagX, y - 2.5, tableWidth, 4.5, "F");
