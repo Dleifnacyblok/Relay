@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import ExportConsignedInventoryPDF from "@/components/admin/ExportConsignedInventoryPDF";
 import {
   X,
   Trash2,
@@ -151,9 +152,12 @@ export default function ConsignmentInventoryManager() {
           onChange={(e) => setSearch(e.target.value)}
           className="text-base flex-1"
         />
-        <Button onClick={() => setAddingSet(true)} className="min-h-[44px] whitespace-nowrap">
-          <Plus size={16} className="mr-1" /> Add Set
-        </Button>
+        <div className="flex gap-2">
+          <ExportConsignedInventoryPDF consignedSets={filteredSets} />
+          <Button onClick={() => setAddingSet(true)} className="min-h-[44px] whitespace-nowrap">
+            <Plus size={16} className="mr-1" /> Add Set
+          </Button>
+        </div>
       </div>
 
       {/* Add Set Form */}
