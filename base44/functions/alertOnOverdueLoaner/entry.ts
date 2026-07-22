@@ -13,14 +13,6 @@ Deno.serve(async (req) => {
       return Response.json({ message: 'Not a new overdue transition, skipping' });
     }
 
-    // Get all admin users to notify
-    const allUsers = await base44.asServiceRole.entities.User.list();
-    const admins = allUsers.filter(u => u.role === 'admin' || u.role === 'manager');
-
-    if (admins.length === 0) {
-      return Response.json({ message: 'No admins found to notify' });
-    }
-
     const setName = loaner.setName || 'Unknown Set';
     const repName = loaner.repName || 'Unknown Rep';
     const accountName = loaner.accountName || 'Unknown Account';
@@ -29,31 +21,7 @@ Deno.serve(async (req) => {
     const daysOverdue = loaner.daysOverdue || 0;
     const fineAmount = loaner.fineAmount ? `$${loaner.fineAmount.toFixed(2)}` : '$0.00';
 
-    const subject = `🚨 Relay Alert: Loaner Now Overdue — ${setName}`;
-    const body = `A loaner has just become overdue in the Relay system.
-
-Set Name: ${setName}
-Etch ID: ${etchId}
-Account: ${accountName}
-Rep: ${repName}
-Expected Return: ${expectedReturnDate}
-Days Overdue: ${daysOverdue}
-Current Fine: ${fineAmount}
-
-Log in to Relay to take action.
-
-— Relay Automated Alerts`;
-
-    // Send email to all admins
-    await Promise.all(admins.map(admin =>
-      base44.asServiceRole.integrations.Core.SendEmail({
-        to: admin.email,
-        subject,
-        body,
-      })
-    ));
-
-    // Also create an in-app notification for the rep
+    // Create an in-app notification for the rep
     if (repName && repName !== 'Unknown Rep') {
       await base44.asServiceRole.entities.Notification.create({
         repName,

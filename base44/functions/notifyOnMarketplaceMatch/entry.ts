@@ -21,9 +21,6 @@ Deno.serve(async (req) => {
       return Response.json({ message: 'No matching look-for requests' });
     }
 
-    // Get all users to match rep names to emails
-    const allUsers = await base44.asServiceRole.entities.User.list();
-
     let notified = 0;
     for (const lfi of matches) {
       // Skip if the lister is the one looking (same repName)
@@ -40,15 +37,6 @@ Deno.serve(async (req) => {
         severity: 'info',
       });
 
-      // Send email if we can find the user's email
-      const user = allUsers.find(u => u.full_name?.toLowerCase() === lfi.repName?.toLowerCase());
-      if (user?.email) {
-        await base44.asServiceRole.integrations.Core.SendEmail({
-          to: user.email,
-          subject: `Relay: Item you're looking for is available — ${item.partName || item.partNumber}`,
-          body: `Hi ${lfi.repName},\n\nGreat news! A part you were looking for is now available on the Relay Marketplace:\n\nPart: ${item.partName || 'N/A'}\nPart #: ${item.partNumber}\n${item.repName ? `Listed by: ${item.repName}` : ''}\n\nOpen the Relay app to view the listing and reach out.\n\n— The Relay Team`,
-        });
-      }
 
       notified++;
     }
