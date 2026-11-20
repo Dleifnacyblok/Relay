@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import * as XLSX from "xlsx";
 import { TrendingUp, Upload, CheckCircle, AlertCircle, Loader2, FileSpreadsheet } from "lucide-react";
@@ -113,6 +113,7 @@ const FILE_TYPES = {
 };
 
 function FileImportCard({ typeKey, onSuccess }) {
+  const queryClient = useQueryClient();
   const [file, setFile] = useState(null);
   const [isImporting, setIsImporting] = useState(false);
   const [progress, setProgress] = useState(null);
@@ -251,6 +252,9 @@ function FileImportCard({ typeKey, onSuccess }) {
 
       setResult(count);
       setFile(null);
+      queryClient.invalidateQueries({ queryKey: ["iepSystemData"] });
+      queryClient.invalidateQueries({ queryKey: ["iepLoanerData"] });
+      queryClient.invalidateQueries({ queryKey: ["iepConsignmentData"] });
       if (onSuccess) onSuccess(typeKey, count);
     } catch (err) {
       setError(err.message || "Import failed. Please try again.");
