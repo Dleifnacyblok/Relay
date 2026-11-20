@@ -16,6 +16,58 @@ const cleanStr = (v) => {
 
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
+// Normalize a header label so column names match regardless of case/spacing/punctuation
+const normKey = (v) =>
+  String(v ?? "")
+    .replace(/\u00a0/g, " ")
+    .toUpperCase()
+    .replace(/%/g, " PCT ")
+    .replace(/[^A-Z0-9]+/g, " ")
+    .trim();
+
+// IEP exports often start with title/banner rows above the real header row
+function findHeaderRow(aoa) {
+  for (let i = 0; i < Math.min(aoa.length, 20); i++) {
+    const keys = (aoa[i] || []).map(normKey);
+    if (keys.includes("NAME") || keys.includes("SET NAME") || keys.includes("TAG ID")) return i;
+  }
+  return -1;
+}
+
+// Parse a grid sheet into rows keyed by normalized header names
+function parseSheet(ws) {
+  const aoa = XLSX.utils.sheet_to_json(ws, { header: 1, defval: "", raw: false, blankrows: false });
+  const headerIdx = findHeaderRow(aoa);
+  if (headerIdx < 0) return [];
+  const headers = (aoa[headerIdx] || []).map(normKey);
+  return aoa.slice(headerIdx + 1).map((cells) => {
+    const row = {};
+    headers.forEach((h, i) => {
+      if (h) row[h] = cells?.[i] ?? "";
+    });
+    return row;
+  });
+}
+
+// Read a field by any of its known header spellings
+const f = (row, ...aliases) => {
+  for (const alias of aliases) {
+    const v = row[normKey(alias)];
+    if (v !== undefined && v !== null && String(v).trim() !== "") return v;
+  }
+  return "";
+};
+
+// Skip total/footer rows that are not real systems or sets
+const isJunkName = (name) => {
+  const s = cleanStr(name).toLowerCase();
+  if (!s) return true;
+  if (s === "name" || s === "set name") return true;
+  if (s.startsWith("grand total")) return true;
+  if (/^\d+\s+rows?$/.test(s)) return true;
+  return false;
+};
+
 // Delete all records in chunks to avoid rate limit
 async function deleteAll(entity) {
   const existing = await entity.list('created_date', 200);
@@ -57,27 +109,27 @@ Deno.serve(async (req) => {
     const ab = await res.arrayBuffer();
     const wb = XLSX.read(new Uint8Array(ab), { type: 'array' });
     const ws = wb.Sheets[wb.SheetNames[0]];
-    const rows = XLSX.utils.sheet_to_json(ws, { defval: "", raw: false });
+    const rows = parseSheet(ws);
     const importedAt = new Date().toISOString();
 
     if (fileType === 'grid6') {
-      const valid = rows.filter(r => cleanStr(r["Name"]));
+      const valid = rows.filter(r => !isJunkName(f(r, "NAME")));
       await deleteAll(base44.asServiceRole.entities.IEPSystemData);
       const records = valid.map(row => ({
-        systemName: cleanStr(row["Name"]),
-        sysCnt: toNum(row["Sys Cnt"]),
-        consExpUsage: toNum(row["Cons Exp Usage"]),
-        consExpUsageProj: toNum(row["Cons Exp Usage Proj"]),
-        loanerExpUsage: toNum(row["Loaner Exp Usage"]),
-        loanerExpUsageProj: toNum(row["Loaner Exp Usage Proj"]),
-        totalExpUsage: toNum(row["Total Exp Usage"]),
-        totalExpUsageProj: toNum(row["Total Exp Usage Proj"]),
-        procCmpl: toNum(row["Proc Cmpl"]),
-        procCmplProj: toNum(row["Proc Cmpl Proj"]),
-        effScore: toNum(row["Eff Score"]),
-        effScoreProj: toNum(row["Eff Score Proj"]),
-        effPct: toNum(row["Eff %"]),
-        effPctProj: toNum(row["Eff % Proj"]),
+        systemName: cleanStr(f(row, "NAME")),
+        sysCnt: toNum(f(row, "SYS CNT")),
+        consExpUsage: toNum(f(row, "CONS USAGE", "CONS EXP USAGE")),
+        consExpUsageProj: toNum(f(row, "CONS USAGE PROJ", "CONS EXP USAGE PROJ")),
+        loanerExpUsage: toNum(f(row, "LOAN USAGE", "LOANER EXP USAGE")),
+        loanerExpUsageProj: toNum(f(row, "LOAN USAGE PROJ", "LOANER EXP USAGE PROJ")),
+        totalExpUsage: toNum(f(row, "TOT USAGE", "TOTAL EXP USAGE")),
+        totalExpUsageProj: toNum(f(row, "TOT USAGE PROJ", "TOTAL EXP USAGE PROJ")),
+        procCmpl: toNum(f(row, "PROC CMPL")),
+        procCmplProj: toNum(f(row, "PROC CMPL PROJ")),
+        effScore: toNum(f(row, "EFF SCORE")),
+        effScoreProj: toNum(f(row, "EFF SCORE PROJ")),
+        effPct: toNum(f(row, "EFF %", "EFF PCT")),
+        effPctProj: toNum(f(row, "EFF % PROJ", "EFF PCT PROJ")),
         importedAt,
       }));
       await bulkCreate(base44.asServiceRole.entities.IEPSystemData, records);
@@ -98,34 +150,34 @@ Deno.serve(async (req) => {
     }
 
     if (fileType === 'grid5') {
-      const valid = rows.filter(r => cleanStr(r["Set Name"]));
+      const valid = rows.filter(r => !isJunkName(f(r, "SET NAME")));
       await deleteAll(base44.asServiceRole.entities.IEPLoanerData);
       const records = valid.map(row => {
-        const loanerCmpl = toNum(row["Loaner Cmpl"]);
-        const loanerTotProj = toNum(row["Loaner Tot Proj"]);
-        const statusRaw = cleanStr(row["Status"]);
+        const loanerCmpl = toNum(f(row, "LOANER CMPL"));
+        const loanerTotProj = toNum(f(row, "LOANER TOT PROJ"));
+        const statusRaw = cleanStr(f(row, "STATUS"));
         const isMissing = statusRaw.toLowerCase() === "missing";
         const effPct = (loanerCmpl != null && loanerTotProj != null && loanerTotProj > 0)
           ? (loanerCmpl / loanerTotProj) * 100
           : null;
         return {
-          ad: cleanStr(row["AD"]),
-          fieldSales: cleanStr(row["Field Sales"]),
-          system: cleanStr(row["System"]),
-          type: cleanStr(row["Type"]),
-          setId: cleanStr(row["Set Id"]),
-          setName: cleanStr(row["Set Name"]),
-          loanerId: cleanStr(row["Loaner Id"]),
-          etchId: cleanStr(row["Etch Id"]),
-          consignmentId: cleanStr(row["Consignment ID"]),
-          rep: cleanStr(row["Rep"]),
-          assocRep: cleanStr(row["Assoc. Rep"]),
+          ad: cleanStr(f(row, "AD")),
+          fieldSales: cleanStr(f(row, "FIELD SALES")),
+          system: cleanStr(f(row, "SYSTEM")),
+          type: cleanStr(f(row, "TYPE")),
+          setId: cleanStr(f(row, "SET ID")),
+          setName: cleanStr(f(row, "SET NAME")),
+          loanerId: cleanStr(f(row, "LOANER ID")),
+          etchId: cleanStr(f(row, "ETCH ID")),
+          consignmentId: cleanStr(f(row, "CONSIGNMENT ID")),
+          rep: cleanStr(f(row, "REP")),
+          assocRep: cleanStr(f(row, "ASSOC REP", "ASSOC. REP")),
           status: statusRaw,
-          placementDate: cleanStr(row["Placement Date"]),
-          returnDate: cleanStr(row["Return Date"]),
+          placementDate: cleanStr(f(row, "PLACEMENT DATE")),
+          returnDate: cleanStr(f(row, "RETURN DATE")),
           loanerCmpl,
-          loanerLast2Mo: toNum(row["Loaner Last 2 Mo."]),
-          loanerProj: toNum(row["Loaner Proj"]),
+          loanerLast2Mo: toNum(f(row, "LOANER LAST 2 MO", "LOANER LAST 2 MO.")),
+          loanerProj: toNum(f(row, "LOANER PROJ")),
           loanerTotProj,
           effPct,
           isMissing,

@@ -18,13 +18,31 @@ const cleanStr = (v) => {
   return String(v).replace(/\u00a0/g, "").trim();
 };
 
+// Normalize a header label so column names match regardless of case/spacing/punctuation
+const normKey = (v) =>
+  String(v ?? "")
+    .replace(/\u00a0/g, " ")
+    .toUpperCase()
+    .replace(/%/g, " PCT ")
+    .replace(/[^A-Z0-9]+/g, " ")
+    .trim();
+
+// Find the real header row — IEP exports often start with title/banner rows
+function getHeaderKeys(ws) {
+  const aoa = XLSX.utils.sheet_to_json(ws, { header: 1, defval: "", raw: false, blankrows: false });
+  for (let i = 0; i < Math.min(aoa.length, 20); i++) {
+    const keys = (aoa[i] || []).map(normKey);
+    if (keys.includes("NAME") || keys.includes("SET NAME") || keys.includes("TAG ID")) return keys;
+  }
+  return [];
+}
+
 // Detect which grid file this is based on columns present
-function detectFileType(rows) {
-  if (!rows.length) return null;
-  const keys = Object.keys(rows[0]);
-  if (keys.includes("Name") && keys.includes("Eff %") && keys.includes("Sys Cnt")) return "grid6";
-  if (keys.includes("Tag Id") && keys.includes("Cons Compl")) return "grid4";
-  if (keys.includes("Loaner Id") && keys.includes("Loaner Cmpl")) return "grid5";
+function detectFileType(ws) {
+  const keys = getHeaderKeys(ws);
+  if (keys.includes("NAME") && (keys.includes("EFF PCT") || keys.includes("SYS CNT"))) return "grid6";
+  if (keys.includes("TAG ID") && keys.includes("CONS COMPL")) return "grid4";
+  if (keys.includes("LOANER ID") && keys.includes("LOANER CMPL")) return "grid5";
   return null;
 }
 
@@ -78,9 +96,9 @@ const FILE_TYPES = {
     hint: "The PDF scorecard with Set ID, Set Name, Cons/Loaner Exp Usage Proj, Proc Cmpl Proj, Eff Proj, and Overall Score.",
   },
   grid6: {
-    label: "Grid 6 — System Efficiency Summary",
+    label: "IEP Efficiency Scorecard (Excel)",
     color: "purple",
-    hint: "Columns: Name, Sys Cnt, Cons/Loaner Exp Usage, Proc Cmpl, Eff %, Eff Score…",
+    hint: "Columns: NAME, SYS CNT, CONS USAGE, LOAN USAGE, TOT USAGE, PROC CMPL, EFF SCORE, EFF %. Older Name / Cons Exp Usage exports also work.",
   },
   grid4: {
     label: "Grid 4 — Consignment Sets",
@@ -127,8 +145,7 @@ function FileImportCard({ typeKey, onSuccess }) {
       try {
         const wb = XLSX.read(ev.target.result, { type: "array" });
         const ws = wb.Sheets[wb.SheetNames[0]];
-        const rows = XLSX.utils.sheet_to_json(ws, { defval: "", raw: false });
-        setDetectedType(detectFileType(rows));
+        setDetectedType(detectFileType(ws));
       } catch {
         setDetectedType(null);
       }
@@ -216,7 +233,7 @@ function FileImportCard({ typeKey, onSuccess }) {
         const ws = wb.Sheets[wb.SheetNames[0]];
         const rows = XLSX.utils.sheet_to_json(ws, { defval: "", raw: false });
 
-        const detected = detectFileType(rows);
+        const detected = detectFileType(ws);
         if (detected !== typeKey) {
           throw new Error(`This file looks like ${detected ? FILE_TYPES[detected]?.label : "an unknown format"}, not ${info.label}. Please upload the correct file.`);
         }
