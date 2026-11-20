@@ -91,7 +91,13 @@ export default function Dashboard() {
      l.fieldSalesRep?.toLowerCase() === userName.toLowerCase())
   ).length;
 
+  // Matches the IEP Dashboard and the spreadsheet's Grand Total: total procedures / total usage
   const avgEffPct = useMemo(() => {
+    const withTotals = iepSystems.filter(s => s.procCmpl != null && s.totalExpUsage != null);
+    const totalUsage = withTotals.reduce((a, s) => a + s.totalExpUsage, 0);
+    if (totalUsage > 0) {
+      return (withTotals.reduce((a, s) => a + s.procCmpl, 0) / totalUsage) * 100;
+    }
     const vals = iepSystems.filter(s => s.effPct != null).map(s => s.effPct);
     return vals.length ? (vals.reduce((a, b) => a + b, 0) / vals.length) : null;
   }, [iepSystems]);
@@ -209,7 +215,7 @@ export default function Dashboard() {
               <div className="flex gap-2">
                 <div className="flex-1 bg-indigo-50 rounded-lg px-2 py-1.5 text-center">
                   <p className="text-sm font-bold text-indigo-600">
-                    {avgEffPct != null ? `${avgEffPct.toFixed(1)}%` : "95.3%"}
+                    {avgEffPct != null ? `${avgEffPct.toFixed(1)}%` : "—"}
                   </p>
                   <p className="text-[10px] text-gray-500">Avg Eff %</p>
                 </div>
