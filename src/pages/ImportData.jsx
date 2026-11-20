@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import * as XLSX from "xlsx";
+import { buildIepSystemRecords } from "@/lib/iepSheet";
 import { Upload, FileSpreadsheet, AlertCircle, CheckCircle, Loader2, Trash2, Download, TrendingUp, Clock, Mail, RefreshCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -835,26 +836,8 @@ export default function ImportData() {
       const arrayBuffer = await iepFile.arrayBuffer();
       const workbook = XLSX.read(arrayBuffer, { type: "array", cellDates: true });
       const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-      const allRows = XLSX.utils.sheet_to_json(worksheet, { defval: "", raw: false });
-      const validRows = allRows.filter((r) => r["Name"] && String(r["Name"]).trim() !== "");
-      if (!validRows.length) throw new Error("No valid rows found. Make sure the sheet has a 'Name' column.");
-      records = validRows.map(row => ({
-        systemName: String(row["Name"]).trim(),
-        sysCnt: toNum(row["Sys Cnt"]),
-        consExpUsage: toNum(row["Cons Exp Usage"]),
-        consExpUsageProj: toNum(row["Cons Exp Usage Proj"]),
-        loanerExpUsage: toNum(row["Loaner Exp Usage"]),
-        loanerExpUsageProj: toNum(row["Loaner Exp Usage Proj"]),
-        totalExpUsage: toNum(row["Total Exp Usage"]),
-        totalExpUsageProj: toNum(row["Total Exp Usage Proj"]),
-        procCmpl: toNum(row["Proc Cmpl"]),
-        procCmplProj: toNum(row["Proc Cmpl Proj"]),
-        effScore: toNum(row["Eff Score"]),
-        effScoreProj: toNum(row["Eff Score Proj"]),
-        effPct: toNum(row["Eff %"]),
-        effPctProj: toNum(row["Eff % Proj"]),
-        importedAt,
-      }));
+      records = buildIepSystemRecords(worksheet, importedAt);
+      if (!records.length) throw new Error("No valid rows found. Make sure the sheet has a NAME column.");
 
       setIepProgress("Clearing existing IEP data...");
       const existing = await fetchAllPages(base44.entities.IEPSystemData);
@@ -1328,13 +1311,13 @@ export default function ImportData() {
             </div>
             <div>
               <h2 className="font-semibold text-slate-900">Upload IEP Efficiency Report</h2>
-              <p className="text-sm text-slate-500">Globus Grid 6 Excel (.xlsx)</p>
+              <p className="text-sm text-slate-500">IEP Efficiency Scorecard Excel (.xlsx)</p>
             </div>
           </div>
 
           <div className="bg-slate-50 rounded-lg p-4 mb-6 text-xs text-slate-600 space-y-1">
-            <p className="font-medium text-slate-700 mb-1">Expected columns (Grid 6):</p>
-            <p>Name, Sys Cnt, Cons/Loaner Exp Usage, Proc Cmpl, Eff %, Eff Score, and Proj variants</p>
+            <p className="font-medium text-slate-700 mb-1">Expected columns:</p>
+            <p>NAME, SYS CNT, CONS USAGE, LOAN USAGE, TOT USAGE, PROC CMPL, EFF SCORE, EFF % (older Grid 6 exports also work)</p>
             <p className="text-slate-400 italic mt-1">Each import fully replaces all previous IEP system records.</p>
           </div>
 
