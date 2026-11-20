@@ -96,7 +96,8 @@ export default function ImportData() {
       const result = await base44.functions.invoke("autoImportFromGmail");
       setAutoImportResult({ success: true, ...(result || {}) });
       queryClient.invalidateQueries({ queryKey: ["loaners"] });
-      queryClient.invalidateQueries({ queryKey: ["appSetting", "import_metadata"] });
+      queryClient.invalidateQueries({ queryKey: ["missingParts"] });
+      queryClient.invalidateQueries({ queryKey: ["appSetting"] });
     } catch (err) {
       setAutoImportResult({ success: false, error: err?.message || "Auto-import failed." });
     } finally {
@@ -558,6 +559,7 @@ export default function ImportData() {
 
       setImportResult({ success: true, created, updated, skipped, deleted, total: created + updated + skipped });
       queryClient.invalidateQueries({ queryKey: ["loaners"] });
+      queryClient.invalidateQueries({ queryKey: ["missingParts"] });
       queryClient.invalidateQueries({ queryKey: ["appSetting"] });
       setFile(null);
 
@@ -801,6 +803,7 @@ export default function ImportData() {
 
       setPartsImportResult({ success: true, created, updated, deleted, total: created + updated });
       queryClient.invalidateQueries({ queryKey: ["missingParts"] });
+      queryClient.invalidateQueries({ queryKey: ["loaners"] });
       setPartsFile(null);
 
       // Archive snapshot for historical analysis
