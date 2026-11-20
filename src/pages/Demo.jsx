@@ -57,6 +57,12 @@ export default function Demo() {
             <h1 className="text-lg font-semibold text-slate-900 leading-tight" style={{ letterSpacing: "-0.03em" }}>Relay</h1>
             <p className="text-[10px] text-slate-400 uppercase tracking-[0.15em]">Loaner Operations · Demo</p>
           </div>
+          <button
+            onClick={() => base44.auth.redirectToLogin(window.location.href)}
+            className="ml-auto text-xs font-medium text-slate-500 hover:text-slate-900 underline underline-offset-2"
+          >
+            Team sign in
+          </button>
         </div>
         <div className="max-w-6xl mx-auto px-2">
           <nav className="flex gap-1 overflow-x-auto">

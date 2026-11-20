@@ -19,19 +19,9 @@ const LayoutWrapper = ({ children, currentPageName }) => Layout ?
   : <>{children}</>;
 
 const AuthenticatedApp = () => {
-  const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
+  const { isLoadingAuth, isLoadingPublicSettings, authError, isAuthenticated } = useAuth();
   const location = useLocation();
-  const isDemo = location.pathname === '/demo' || location.pathname.startsWith('/demo/');
-
-  // Public demo — renders without login
-  if (isDemo) {
-    return (
-      <Routes>
-        <Route path="/demo" element={<Demo />} />
-        <Route path="/demo/*" element={<Demo />} />
-      </Routes>
-    );
-  }
+  const isDemoPath = location.pathname === '/demo' || location.pathname.startsWith('/demo/');
 
   // Show loading spinner while checking app public settings or auth
   if (isLoadingPublicSettings || isLoadingAuth) {
@@ -42,43 +32,43 @@ const AuthenticatedApp = () => {
     );
   }
 
-  // Handle authentication errors
-  if (authError) {
-    if (authError.type === 'user_not_registered') {
-      return <UserNotRegisteredError />;
-    } else if (authError.type === 'auth_required') {
-      // Redirect to login automatically
-      navigateToLogin();
-      return null;
-    }
+  // A registered, signed-in team member gets the full app (unless viewing the public demo link)
+  const canUseApp = isAuthenticated && authError?.type !== 'user_not_registered';
+  if (canUseApp && !isDemoPath) {
+    return (
+      <Routes>
+        <Route path="/" element={
+          <LayoutWrapper currentPageName={mainPageKey}>
+            <MainPage />
+          </LayoutWrapper>
+        } />
+        {Object.entries(Pages).map(([path, Page]) => (
+          <Route
+            key={path}
+            path={`/${path}`}
+            element={
+              <LayoutWrapper currentPageName={path}>
+                <Page />
+              </LayoutWrapper>
+            }
+          />
+        ))}
+        <Route path="/IEPDashboard" element={
+          <LayoutWrapper currentPageName="IEPDashboard">
+            <IEPDashboard />
+          </LayoutWrapper>
+        } />
+        <Route path="*" element={<PageNotFound />} />
+      </Routes>
+    );
   }
 
-  // Render the main app
+  // Everyone else — anonymous visitors and the shared demo link — sees the read-only demo, no login required
   return (
     <Routes>
-      <Route path="/" element={
-        <LayoutWrapper currentPageName={mainPageKey}>
-          <MainPage />
-        </LayoutWrapper>
-      } />
-      {Object.entries(Pages).map(([path, Page]) => (
-        <Route
-          key={path}
-          path={`/${path}`}
-          element={
-            <LayoutWrapper currentPageName={path}>
-              <Page />
-            </LayoutWrapper>
-          }
-        />
-      ))}
-      <Route path="/IEPDashboard" element={
-        <LayoutWrapper currentPageName="IEPDashboard">
-          <IEPDashboard />
-        </LayoutWrapper>
-      } />
-
-      <Route path="*" element={<PageNotFound />} />
+      <Route path="/demo" element={<Demo />} />
+      <Route path="/demo/*" element={<Demo />} />
+      <Route path="*" element={<Demo />} />
     </Routes>
   );
 };
