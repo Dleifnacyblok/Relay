@@ -873,6 +873,7 @@ export default function ImportData() {
       setIepImportResult(records.length);
       setIepFile(null);
       queryClient.invalidateQueries({ queryKey: ["iepSystemData"] });
+      queryClient.invalidateQueries({ queryKey: ["iepImportSnapshots"] });
 
       // Save analytics snapshot
       saveAnalyticsSnapshot('iep').catch(() => {});

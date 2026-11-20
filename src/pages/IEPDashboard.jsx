@@ -8,6 +8,7 @@ import IEPConsignmentTable from "@/components/iep/IEPConsignmentTable";
 import IEPLoanerTable from "@/components/iep/IEPLoanerTable";
 import IEPReferenceGuide from "@/components/iep/IEPReferenceGuide";
 import TrackedESCConsignments from "@/components/iep/TrackedESCConsignments";
+import IEPAnalyticsSection from "@/components/iep/IEPAnalyticsSection";
 
 function StatCard({ label, value, sub, icon: Icon, color = "blue", onClick, active }) {
   const colors = {
@@ -283,6 +284,9 @@ export default function IEPDashboard() {
             <p className="text-xs text-slate-400 mt-1">end of period projection</p>
           </div>
         </div>
+
+        {/* IEP Analytics & History */}
+        <IEPAnalyticsSection systems={systems} />
 
         {/* Tracked ESC Consignments */}
         <TrackedESCConsignments />

@@ -255,6 +255,7 @@ function FileImportCard({ typeKey, onSuccess }) {
       queryClient.invalidateQueries({ queryKey: ["iepSystemData"] });
       queryClient.invalidateQueries({ queryKey: ["iepLoanerData"] });
       queryClient.invalidateQueries({ queryKey: ["iepConsignmentData"] });
+      queryClient.invalidateQueries({ queryKey: ["iepImportSnapshots"] });
       if (onSuccess) onSuccess(typeKey, count);
     } catch (err) {
       setError(err.message || "Import failed. Please try again.");
