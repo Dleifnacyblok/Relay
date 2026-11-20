@@ -83,6 +83,14 @@ export default function AdminSettings() {
     onSuccess: invalidate,
   });
 
+  const updateUserRoleMutation = useMutation({
+    mutationFn: ({ id, role }) => base44.entities.User.update(id, { role }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["allUsers"] });
+      qc.invalidateQueries({ queryKey: ["currentUser"] });
+    },
+  });
+
   // ── Invitations (P2-12 manager-driven onboarding) ──────────────
   const [invName, setInvName] = useState("");
   const [invEmail, setInvEmail] = useState("");
@@ -94,6 +102,9 @@ export default function AdminSettings() {
     queryKey: ["currentUser"],
     queryFn: () => base44.auth.me(),
   });
+
+  // Only real admins can change another user's role (platform rule)
+  const isRealAdmin = currentUser?.role === "admin";
 
   const { data: invitations = [] } = useQuery({
     queryKey: ["repInvitations"],
@@ -490,13 +501,26 @@ export default function AdminSettings() {
                     {/* Role */}
                     <div className="col-span-3">
                       {appUser ? (
-                        <span className={`inline-block text-xs font-semibold px-2 py-0.5 rounded-full ${
-                          appUser.role === "admin" ? "bg-purple-100 text-purple-700" :
-                          appUser.role === "manager" ? "bg-blue-100 text-blue-700" :
-                          "bg-gray-100 text-gray-600"
-                        }`}>
-                          {appUser.role || "user"}
-                        </span>
+                        isRealAdmin ? (
+                          <select
+                            value={appUser.role || "user"}
+                            onChange={(e) => updateUserRoleMutation.mutate({ id: appUser.id, role: e.target.value })}
+                            disabled={updateUserRoleMutation.isPending}
+                            className="text-xs border border-gray-200 rounded-lg px-2 py-1 bg-white text-gray-700 min-h-[32px]"
+                          >
+                            <option value="user">User</option>
+                            <option value="manager">Manager</option>
+                            <option value="admin">Admin</option>
+                          </select>
+                        ) : (
+                          <span className={`inline-block text-xs font-semibold px-2 py-0.5 rounded-full ${
+                            appUser.role === "admin" ? "bg-purple-100 text-purple-700" :
+                            appUser.role === "manager" ? "bg-blue-100 text-blue-700" :
+                            "bg-gray-100 text-gray-600"
+                          }`}>
+                            {appUser.role || "user"}
+                          </span>
+                        )
                       ) : (
                         <span className="text-xs text-gray-400 italic">Not in app</span>
                       )}
