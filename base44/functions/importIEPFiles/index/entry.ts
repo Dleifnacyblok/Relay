@@ -135,8 +135,10 @@ Deno.serve(async (req) => {
       await bulkCreate(base44.asServiceRole.entities.IEPSystemData, records);
 
       // Archive snapshot
-      const effValues = records.map(r => r.effPct).filter(v => v != null);
-      const overallEffPct = effValues.length > 0 ? effValues.reduce((a, b) => a + b, 0) / effValues.length : null;
+      const totalUsage = records.reduce((a, r) => a + (r.totalExpUsage || 0), 0);
+      const overallEffPct = totalUsage > 0
+        ? (records.reduce((a, r) => a + (r.procCmpl || 0), 0) / totalUsage) * 100
+        : null;
       await base44.asServiceRole.entities.IEPImportSnapshot.create({
         importBatchId: importedAt,
         importedAt,

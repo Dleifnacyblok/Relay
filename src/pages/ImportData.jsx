@@ -854,8 +854,10 @@ export default function ImportData() {
 
       // Archive IEP snapshot for historical analysis
       const importedAtSnap = new Date().toISOString();
-      const effVals = records.map(r => r.effPct).filter(v => v != null);
-      const overallEffPct = effVals.length > 0 ? effVals.reduce((a, b) => a + b, 0) / effVals.length : null;
+      const totalUsage = records.reduce((a, r) => a + (r.totalExpUsage || 0), 0);
+      const overallEffPct = totalUsage > 0
+        ? (records.reduce((a, r) => a + (r.procCmpl || 0), 0) / totalUsage) * 100
+        : null;
       base44.entities.IEPImportSnapshot.create({
         importBatchId: importedAtSnap,
         importedAt: importedAtSnap,

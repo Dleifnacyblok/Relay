@@ -110,7 +110,13 @@ export default function IEPDashboard() {
     [systems]
   );
 
+  // Overall efficiency mirrors the spreadsheet's Grand Total: total procedures / total usage
   const avgEffPct = useMemo(() => {
+    const withTotals = systems.filter(s => s.procCmpl != null && s.totalExpUsage != null);
+    const totalUsage = withTotals.reduce((a, s) => a + s.totalExpUsage, 0);
+    if (totalUsage > 0) {
+      return (withTotals.reduce((a, s) => a + s.procCmpl, 0) / totalUsage) * 100;
+    }
     const vals = systems.map(s => getEff(s)).filter(v => v != null);
     return vals.length ? (vals.reduce((a, b) => a + b, 0) / vals.length) : null;
   }, [systems]);
