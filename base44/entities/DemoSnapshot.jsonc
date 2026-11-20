@@ -1,0 +1,46 @@
+{
+  "name": "DemoSnapshot",
+  "type": "object",
+  "properties": {
+    "capturedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When this demo snapshot was captured"
+    },
+    "loaners": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "description": "Frozen copy of loaner records at capture time"
+    },
+    "missingParts": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "description": "Frozen copy of missing part records at capture time"
+    }
+  },
+  "required": [
+    "capturedAt"
+  ],
+  "rls": {
+    "read": {},
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
