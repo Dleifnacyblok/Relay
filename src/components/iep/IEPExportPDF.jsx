@@ -26,22 +26,13 @@ const fit = (doc, text, maxW) => {
   return out + "…";
 };
 
-const sectionTitle = (doc, title, x, y) => {
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(11);
-  doc.setTextColor(30, 41, 59);
-  doc.text(title, x, y);
-  doc.setDrawColor(226, 232, 240);
-  doc.setLineWidth(0.3);
-  doc.line(x, y + 2, doc.internal.pageSize.getWidth() - x, y + 2);
-  return y + 8;
-};
-
 function buildReport({ systems, avgEffPct, avgEffPctProj, lastImport, territory }) {
-  const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
+  // Portrait, single column — built to be read on a phone screen
+  const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
   const W = doc.internal.pageSize.getWidth();
   const H = doc.internal.pageSize.getHeight();
-  const m = 12;
+  const m = 14;
+  const contentW = W - m * 2;
 
   const rows = systems.map((s) => ({
     name: s.systemName || "—",
@@ -69,17 +60,34 @@ function buildReport({ systems, avgEffPct, avgEffPctProj, lastImport, territory 
     .filter((r) => r.pts > 0.001)
     .sort((a, b) => b.pts - a.pts);
 
+  const sectionTitle = (title, top) => {
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(12);
+    doc.setTextColor(30, 41, 59);
+    doc.text(title, m, top);
+    doc.setDrawColor(226, 232, 240);
+    doc.setLineWidth(0.3);
+    doc.line(m, top + 2, W - m, top + 2);
+    return top + 9;
+  };
+
+  const hairline = (top) => {
+    doc.setDrawColor(241, 245, 249);
+    doc.setLineWidth(0.2);
+    doc.line(m, top, W - m, top);
+  };
+
   // ---- Header ----
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(18);
+  doc.setFontSize(17);
   doc.setTextColor(30, 41, 59);
-  doc.text("IEP Efficiency Report", m, 16);
+  doc.text("IEP Efficiency Report", m, 20);
 
   doc.setFont("helvetica", "normal");
-  doc.setFontSize(9);
+  doc.setFontSize(8.5);
   doc.setTextColor(100, 116, 139);
   const stamp = lastImport
-    ? `  ·  Data as of ${lastImport.toLocaleString("en-US", {
+    ? ` · Data as of ${lastImport.toLocaleString("en-US", {
         month: "short",
         day: "numeric",
         year: "numeric",
@@ -87,153 +95,167 @@ function buildReport({ systems, avgEffPct, avgEffPctProj, lastImport, territory 
         minute: "2-digit",
       })}`
     : "";
-  doc.text(`Generated ${getNow()}${stamp}  ·  ${rows.length} systems tracked`, m, 22.5);
+  doc.text(`Generated ${getNow()}${stamp}`, m, 26);
+  doc.text(`${rows.length} systems tracked`, m, 31);
 
-  // ---- Stat boxes ----
-  const stats = [
-    { label: "CURRENT IEP SCORE", value: overall != null ? `${overall.toFixed(1)}%` : "—", color: [124, 58, 237] },
-    { label: "PROJECTED SCORE", value: avgEffPctProj != null ? `${avgEffPctProj.toFixed(1)}%` : "—", color: [59, 130, 246] },
-    { label: "TOTAL EXPECTED USAGE", value: n1(totalUsage), color: [30, 41, 59] },
-    { label: "PROCEDURES COMPLETED", value: n1(totalProc), color: [30, 41, 59] },
-    { label: "ABOVE TARGET / BELOW 70%", value: `${above} / ${below}`, color: [30, 41, 59] },
-  ];
-  let y = 28;
-  const boxGap = 4;
-  const boxW = (W - m * 2 - boxGap * (stats.length - 1)) / stats.length;
-  let bx = m;
-  stats.forEach((s) => {
+  // ---- Score blocks ----
+  const scoreY = 37;
+  const scoreH = 30;
+  const scoreGap = 5;
+  const scoreW = (contentW - scoreGap) / 2;
+  [
+    {
+      x: m,
+      label: "CURRENT IEP SCORE",
+      value: overall != null ? `${overall.toFixed(1)}%` : "—",
+      sub: "all systems",
+      color: [124, 58, 237],
+    },
+    {
+      x: m + scoreW + scoreGap,
+      label: "PROJECTED SCORE",
+      value: avgEffPctProj != null ? `${avgEffPctProj.toFixed(1)}%` : "—",
+      sub: "end of period",
+      color: [59, 130, 246],
+    },
+  ].forEach((b) => {
     doc.setFillColor(248, 250, 252);
     doc.setDrawColor(226, 232, 240);
     doc.setLineWidth(0.3);
-    doc.roundedRect(bx, y, boxW, 16, 2, 2, "FD");
+    doc.roundedRect(b.x, scoreY, scoreW, scoreH, 3, 3, "FD");
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(14);
-    doc.setTextColor(...s.color);
-    doc.text(s.value, bx + boxW / 2, y + 7.5, { align: "center" });
-    doc.setFont("helvetica", "normal");
     doc.setFontSize(7);
     doc.setTextColor(100, 116, 139);
-    doc.text(s.label, bx + boxW / 2, y + 12.5, { align: "center" });
-    bx += boxW + boxGap;
+    doc.text(b.label, b.x + scoreW / 2, scoreY + 8, { align: "center" });
+    doc.setFontSize(24);
+    doc.setTextColor(...b.color);
+    doc.text(b.value, b.x + scoreW / 2, scoreY + 20, { align: "center" });
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(7);
+    doc.setTextColor(148, 163, 184);
+    doc.text(b.sub, b.x + scoreW / 2, scoreY + 26, { align: "center" });
   });
-  y += 23;
+
+  // ---- Compact stats ----
+  let y = scoreY + scoreH + 8;
+  const smallStats = [
+    { label: "TOTAL EXPECTED USAGE", value: n1(totalUsage) },
+    { label: "PROCEDURES COMPLETED", value: n1(totalProc) },
+    { label: "ABOVE TARGET (≥100%)", value: `${above} systems` },
+    { label: "BELOW 70%", value: `${below} systems` },
+  ];
+  const statGap = 4;
+  const statW = (contentW - statGap) / 2;
+  const statH = 15;
+  smallStats.forEach((s, i) => {
+    const col = i % 2;
+    const row = Math.floor(i / 2);
+    const x = m + col * (statW + statGap);
+    const top = y + row * (statH + statGap);
+    doc.setFillColor(255, 255, 255);
+    doc.setDrawColor(226, 232, 240);
+    doc.setLineWidth(0.3);
+    doc.roundedRect(x, top, statW, statH, 2, 2, "FD");
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(6.5);
+    doc.setTextColor(100, 116, 139);
+    doc.text(s.label, x + 4, top + 5.5);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(12);
+    doc.setTextColor(30, 41, 59);
+    doc.text(s.value, x + 4, top + 11.8);
+  });
+  y += statH * 2 + statGap + 9;
 
   if (territory && territory.total) {
     doc.setFont("helvetica", "normal");
     doc.setFontSize(8);
     doc.setTextColor(100, 116, 139);
     doc.text(
-      `IEP-tracked sets in territory: ${territory.total} active  ·  ${territory.overdue} overdue  ·  ${territory.dueSoon} due within 7 days`,
+      `IEP-tracked sets in territory: ${territory.total} active · ${territory.overdue} overdue · ${territory.dueSoon} due within 7 days`,
       m,
       y
     );
-    y += 7;
+    y += 8;
   }
 
   // ---- Where to Improve ----
-  y = sectionTitle(doc, "Where to Improve", m, y);
+  y = sectionTitle("Where to Improve", y);
   doc.setFont("helvetica", "normal");
   doc.setFontSize(7.5);
   doc.setTextColor(148, 163, 184);
-  doc.text("Systems ranked by the points they could add to the overall score by reaching 100% efficiency.", m, y);
-  y += 6;
+  doc.text("Ranked by points each system could add by reaching 100%.", m, y);
+  y += 7;
 
   if (!opportunities.length) {
-    doc.setFontSize(8.5);
+    doc.setFontSize(9);
     doc.setTextColor(100, 116, 139);
-    doc.text("Every system is at or above its expected usage. No gaps to close.", m, y);
-    y += 9;
+    doc.text("Every system is at or above its expected usage.", m, y + 3);
+    y += 12;
   } else {
-    opportunities.slice(0, 8).forEach((r, i) => {
-      const rowY = y + i * 6.5;
+    opportunities.slice(0, 6).forEach((r, i) => {
       doc.setFont("helvetica", "bold");
-      doc.setFontSize(8);
-      doc.setTextColor(148, 163, 184);
-      doc.text(`${i + 1}`, m, rowY);
-
+      doc.setFontSize(9.5);
       doc.setTextColor(15, 23, 42);
-      doc.text(fit(doc, r.name, 92), m + 6, rowY);
+      doc.text(`${i + 1}. ${fit(doc, r.name, contentW - 28)}`, m, y + 4.5);
+
+      doc.setFontSize(9.5);
+      doc.setTextColor(...effColor(r.eff));
+      doc.text(r.eff != null ? `${r.eff.toFixed(1)}%` : "—", W - m, y + 4.5, { align: "right" });
 
       doc.setFont("helvetica", "normal");
+      doc.setFontSize(7.5);
       doc.setTextColor(100, 116, 139);
-      doc.text(`${n1(r.gap)} procedures below expected`, m + 104, rowY);
+      doc.text(
+        `${n1(r.gap)} procedures below expected  ·  +${r.pts.toFixed(2)} pts potential`,
+        m,
+        y + 9.8
+      );
 
-      doc.setFont("helvetica", "bold");
-      doc.setTextColor(124, 58, 237);
-      doc.text(`+${r.pts.toFixed(2)} pts`, m + 178, rowY);
-
-      doc.setTextColor(...effColor(r.eff));
-      doc.text(r.eff != null ? `${r.eff.toFixed(1)}%` : "—", W - m, rowY, { align: "right" });
+      hairline(y + 12);
+      y += 14;
     });
-    y += Math.min(opportunities.length, 8) * 6.5 + 5;
+    y += 4;
   }
 
-  // ---- System table ----
-  if (y > H - 45) {
+  // ---- Systems, one card per system ----
+  if (y > H - 40) {
     doc.addPage();
     y = 20;
   }
-  y = sectionTitle(doc, "Set Usage & Efficiency by System", m, y);
-
-  const cols = [
-    { key: "name", label: "SYSTEM", x: m + 2, align: "left", w: 78 },
-    { key: "sets", label: "SETS", x: 112, align: "right" },
-    { key: "cons", label: "CONS USAGE", x: 144, align: "right" },
-    { key: "loaner", label: "LOANER USAGE", x: 178, align: "right" },
-    { key: "usage", label: "TOTAL USAGE", x: 212, align: "right" },
-    { key: "proc", label: "PROCS DONE", x: 244, align: "right" },
-    { key: "eff", label: "EFF %", x: 266, align: "right" },
-    { key: "effProj", label: "PROJ %", x: W - m, align: "right" },
-  ];
-
-  const drawHead = (top) => {
-    doc.setFillColor(248, 250, 252);
-    doc.rect(m, top, W - m * 2, 6.5, "F");
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(7);
-    doc.setTextColor(100, 116, 139);
-    cols.forEach((c) => doc.text(c.label, c.x, top + 4.3, { align: c.align }));
-    return top + 6.5;
-  };
-
-  y = drawHead(y);
+  y = sectionTitle("Set Usage & Efficiency", y);
 
   const tableRows = [...rows].sort((a, b) => (b.usage || 0) - (a.usage || 0));
-  tableRows.forEach((r, i) => {
-    if (y > H - 20) {
+  tableRows.forEach((r) => {
+    if (y > H - 26) {
       doc.addPage();
       y = 20;
-      y = drawHead(y);
+      y = sectionTitle("Set Usage & Efficiency (cont.)", y);
     }
-    if (i % 2 === 1) {
-      doc.setFillColor(252, 252, 253);
-      doc.rect(m, y, W - m * 2, 5.6, "F");
-    }
+
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(7.5);
+    doc.setFontSize(9.5);
     doc.setTextColor(15, 23, 42);
-    doc.text(fit(doc, r.name, 78), m + 2, y + 3.9);
+    doc.text(fit(doc, r.name, contentW - 26), m, y + 4.5);
 
-    doc.setFont("helvetica", "normal");
-    doc.setTextColor(71, 85, 105);
-    doc.text(n1(r.sets), 112, y + 3.9, { align: "right" });
-    doc.text(n1(r.cons), 144, y + 3.9, { align: "right" });
-    doc.text(n1(r.loaner), 178, y + 3.9, { align: "right" });
-    doc.text(n1(r.usage), 212, y + 3.9, { align: "right" });
-    doc.text(n1(r.proc), 244, y + 3.9, { align: "right" });
-
-    doc.setFont("helvetica", "bold");
     doc.setTextColor(...effColor(r.eff));
-    doc.text(r.eff != null ? `${r.eff.toFixed(1)}%` : "—", 266, y + 3.9, { align: "right" });
+    doc.text(r.eff != null ? `${r.eff.toFixed(1)}%` : "—", W - m, y + 4.5, { align: "right" });
 
     doc.setFont("helvetica", "normal");
-    doc.setTextColor(...effColor(r.effProj));
-    doc.text(r.effProj != null ? `${r.effProj.toFixed(1)}%` : "—", W - m, y + 3.9, { align: "right" });
+    doc.setFontSize(7.5);
+    doc.setTextColor(100, 116, 139);
+    const detail = [
+      `${n1(r.sets)} sets`,
+      `Cons ${n1(r.cons)}`,
+      `Loaner ${n1(r.loaner)}`,
+      `Total ${n1(r.usage)}`,
+      `Done ${n1(r.proc)}`,
+      `Proj ${r.effProj != null ? `${r.effProj.toFixed(1)}%` : "—"}`,
+    ].join("  ·  ");
+    doc.text(fit(doc, detail, contentW), m, y + 9.8);
 
-    doc.setDrawColor(241, 245, 249);
-    doc.setLineWidth(0.2);
-    doc.line(m, y + 5.6, W - m, y + 5.6);
-    y += 5.6;
+    hairline(y + 12);
+    y += 14;
   });
 
   // ---- Footers ----
@@ -243,8 +265,8 @@ function buildReport({ systems, avgEffPct, avgEffPctProj, lastImport, territory 
     doc.setFont("helvetica", "normal");
     doc.setFontSize(7.5);
     doc.setTextColor(148, 163, 184);
-    doc.text("Relay  ·  IEP Efficiency Report", m, H - 7);
-    doc.text(`Page ${p} of ${pages}`, W / 2, H - 7, { align: "center" });
+    doc.text("Relay · IEP Efficiency Report", m, H - 10);
+    doc.text(`Page ${p} of ${pages}`, W - m, H - 10, { align: "right" });
   }
 
   return doc;
