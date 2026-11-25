@@ -5,52 +5,37 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { MapPin, Search, Package, AlertTriangle, CheckCircle2, Clock } from "lucide-react";
+import { MapPin, Search, Pencil } from "lucide-react";
 import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
+import EditLocationsDialog from "@/components/territory/EditLocationsDialog";
 
 const MANUFACTURER_COLORS = {
   Globus: "bg-blue-100 text-blue-700 border-blue-200",
   Nuvasive: "bg-purple-100 text-purple-700 border-purple-200"
 };
 
-const StatusBadge = ({ status }) => {
-  if (status === "overdue") return (
-    <span className="inline-flex items-center gap-1 text-xs font-semibold text-red-700 bg-red-50 border border-red-200 px-2 py-0.5 rounded-full">
-      <AlertTriangle className="w-3 h-3" /> Overdue
-    </span>);
-
-  if (status === "due_soon") return (
-    <span className="inline-flex items-center gap-1 text-xs font-semibold text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">
-      <Clock className="w-3 h-3" /> Due Soon
-    </span>);
-
-  if (status === "out") return (
-    <span className="inline-flex items-center gap-1 text-xs font-semibold text-blue-700 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-full">
-      <Package className="w-3 h-3" /> Out on Loan
-    </span>);
-
-  if (status === "returned") return (
-    <span className="inline-flex items-center gap-1 text-xs font-semibold text-green-700 bg-green-50 border border-green-200 px-2 py-0.5 rounded-full">
-      <CheckCircle2 className="w-3 h-3" /> Returned
-    </span>);
-
-  return (
-    <span className="text-xs font-medium text-slate-400 bg-slate-50 border border-slate-200 px-2 py-0.5 rounded-full">
-      No Activity
-    </span>);
-
-};
-
 export default function TerritoryInventory() {
   const [search, setSearch] = useState("");
   const [filterMfr, setFilterMfr] = useState("All");
+  const [editingSet, setEditingSet] = useState(null);
 
   const { data: consignedSets = [], isLoading: loadingSets } = useQuery({
     queryKey: ["consignedSets"],
     queryFn: () => base44.entities.ConsignedSet.list()
   });
+
+  const knownLocations = useMemo(() => {
+    const seen = new Set();
+    consignedSets.forEach((cs) =>
+      (cs.homeAccounts || []).forEach((a) => {
+        const v = (a || "").trim();
+        if (v) seen.add(v);
+      })
+    );
+    return [...seen].sort((a, b) => a.localeCompare(b));
+  }, [consignedSets]);
 
   const { data: rawLoaners = [], isLoading: loadingLoaners } = useQuery({
     queryKey: ["loaners"],
@@ -190,6 +175,11 @@ export default function TerritoryInventory() {
                   </div>
                 </div>
                 <div className="flex items-center gap-2 text-xs">
+                  <button
+                    onClick={() => setEditingSet(cs)}
+                    className="inline-flex items-center gap-1 font-semibold text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 px-2 py-1 rounded-lg">
+                    <Pencil className="w-3 h-3" /> Edit locations
+                  </button>
                   {cs.overdueCount > 0 &&
                 <span className="font-semibold text-red-600 bg-red-50 border border-red-100 px-2 py-1 rounded-lg">{cs.overdueCount} overdue</span>
                 }
@@ -217,20 +207,21 @@ export default function TerritoryInventory() {
                   <div key={idx} className={`flex flex-wrap items-center justify-between px-4 py-2.5 gap-2 ${status === "overdue" ? "bg-red-50/50" : status === "due_soon" ? "bg-amber-50/30" : ""}`}>
                         <div className="flex items-center gap-3">
                           <span className="font-mono text-sm text-slate-700 font-medium">{tag}</span>
-                          {homeAccount &&
-                      <span className="text-xs text-slate-400 flex items-center gap-1">
-                              <MapPin className="w-3 h-3" /> {homeAccount}
-                            </span>
-                      }
                         </div>
-                        <div className="flex items-center gap-3">
+                        <div className="flex flex-wrap items-center gap-2">
                           {loaner && isActive &&
                       <span className="text-xs text-slate-500">
                               @ <span className="font-medium text-slate-700">{loaner.accountName}</span>
                               {loaner.repName && <span className="ml-1 text-slate-400">· {loaner.repName}</span>}
                             </span>
                       }
-                          <StatusBadge status={status} />
+                          <button
+                            onClick={() => setEditingSet(cs)}
+                            className={homeAccount ?
+                            "inline-flex items-center gap-1 text-xs font-medium text-slate-700 bg-slate-50 border border-slate-200 px-2 py-1 rounded-full hover:bg-slate-100" :
+                            "inline-flex items-center gap-1 text-xs font-medium text-blue-600 bg-blue-50 border border-dashed border-blue-300 px-2 py-1 rounded-full hover:bg-blue-100"}>
+                            <MapPin className="w-3 h-3" /> {homeAccount || "Add location"}
+                          </button>
                           {loaner &&
                       <Link to={`${createPageUrl("LoanerDetail")}?id=${loaner.id}`}
                       className="text-xs text-blue-600 hover:underline font-medium">
@@ -247,6 +238,13 @@ export default function TerritoryInventory() {
           )}
         </div>
       </div>
+
+      <EditLocationsDialog
+        set={editingSet}
+        open={!!editingSet}
+        onOpenChange={(o) => !o && setEditingSet(null)}
+        knownLocations={knownLocations}
+      />
     </div>);
 
 }
