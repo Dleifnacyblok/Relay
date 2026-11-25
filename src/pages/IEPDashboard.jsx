@@ -93,6 +93,14 @@ export default function IEPDashboard() {
     queryFn: () => base44.entities.ConsignedSet.list(),
   });
 
+  const { data: iepSnapshots = [] } = useQuery({
+    queryKey: ["iepImportSnapshots"],
+    queryFn: async () => {
+      const res = await base44.entities.IEPImportSnapshot.filter({}, { sort: "-importedAt", limit: 24 });
+      return res?.items || [];
+    },
+  });
+
   // Build lookup: normalized setName → manufacturer ("Globus" | "Nuvasive")
   const mfrBySetName = useMemo(() => {
     const map = {};
@@ -276,6 +284,7 @@ export default function IEPDashboard() {
               overdue: iepOverdue.length,
               dueSoon: iepDueSoon.length,
             }}
+            snapshots={iepSnapshots}
           />
         </div>
 
