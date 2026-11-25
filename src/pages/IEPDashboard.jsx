@@ -9,6 +9,7 @@ import IEPLoanerTable from "@/components/iep/IEPLoanerTable";
 import IEPReferenceGuide from "@/components/iep/IEPReferenceGuide";
 import TrackedESCConsignments from "@/components/iep/TrackedESCConsignments";
 import IEPAnalyticsSection from "@/components/iep/IEPAnalyticsSection";
+import IEPExportPDF from "@/components/iep/IEPExportPDF";
 
 function StatCard({ label, value, sub, icon: Icon, color = "blue", onClick, active }) {
   const colors = {
@@ -264,7 +265,18 @@ export default function IEPDashboard() {
               )}
             </div>
           </div>
-          
+
+          <IEPExportPDF
+            systems={systems}
+            avgEffPct={avgEffPct}
+            avgEffPctProj={avgEffPctProj}
+            lastImport={lastImport}
+            territory={{
+              total: iepAffectedLoaners.length,
+              overdue: iepOverdue.length,
+              dueSoon: iepDueSoon.length,
+            }}
+          />
         </div>
 
         {/* Score Banners */}
