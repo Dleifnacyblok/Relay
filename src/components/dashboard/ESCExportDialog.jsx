@@ -5,6 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { createDoc, addReportHeader, addFooters, drawLoanerRow, drawPartRow, checkPageBreak, getNow, getFilename } from "@/lib/pdfUtils";
 import ExportLoanersPDF from "@/components/loaners/ExportLoanersPDF";
 import ExportIEPReport from "@/components/iep/ExportIEPReport";
+import ExportMissingPartsReport from "@/components/missingparts/ExportMissingPartsReport";
 
 function FilterButton({ active, onClick, children }) {
   return (
@@ -170,6 +171,12 @@ function MissingPartsExport({ parts, onClose }) {
 
   return (
     <div className="space-y-4">
+      <div className="rounded-xl border border-purple-100 bg-purple-50/60 p-3 space-y-2">
+        <p className="text-sm font-semibold text-slate-800">Weekly missing parts report</p>
+        <p className="text-xs text-slate-500">Exposure summary, then every open part oldest first.</p>
+        <ExportMissingPartsReport parts={parts} />
+      </div>
+
       <div>
         <p className="text-sm font-medium text-slate-700 mb-2">Filter by</p>
         <div className="flex gap-2 flex-wrap">
