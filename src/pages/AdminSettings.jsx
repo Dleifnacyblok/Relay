@@ -7,39 +7,12 @@ import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import TerritoryInventoryPanel from "@/components/territory/TerritoryInventoryPanel";
-
-// ── SUFFIX → REP AUTO-MATCH ──────────────────────────────────
-const SUFFIX_MAP = {
-  "GB":  ["Graham Brown"],
-  "JR":  ["Joshua Raptis"],
-  "SM":  ["Sara Marion"],
-  "RB":  ["Reid Butcher"],
-  "RB1": ["Reid Butcher", "Grant Ellis", "Zachary Kuta", "Preston Swigart", "Madison Raak"],
-  "JD":  ["John DeLeon"],
-  "EM1": ["Hunter Mills"],
-};
-
-function getSuffix(name = "") {
-  const m = name.match(/[-–]\s*([A-Z0-9]+)\s*$/);
-  return m ? m[1].toUpperCase() : null;
-}
-
-function autoMatchReps(accountName, userNames) {
-  const suffix = getSuffix(accountName);
-  if (!suffix || !SUFFIX_MAP[suffix]) return [];
-  return SUFFIX_MAP[suffix].filter(n => userNames.includes(n));
-}
-
-function getAssignedReps(row) {
-  if (Array.isArray(row.assignedReps)) return row.assignedReps;
-  if (row.assignedRep) return [row.assignedRep];
-  return [];
-}
+import AccountsManager from "@/components/admin/AccountsManager";
+import { getAssignedReps } from "@/lib/accounts";
 
 export default function AdminSettings() {
   const qc = useQueryClient();
   const [activeTab, setActiveTab] = useState("assignments");
-  const [search, setSearch] = useState("");
   const [repSearch, setRepSearch] = useState("");
   const [newRepName, setNewRepName] = useState("");
   const [expandedRep, setExpandedRep] = useState(null);
@@ -276,14 +249,6 @@ export default function AdminSettings() {
     setAddingRep(false);
   }
 
-  const filteredAssignments = useMemo(() =>
-    assignments.filter(a =>
-      !a.accountName?.startsWith("__rep_placeholder__") &&
-      a.accountName?.toLowerCase().includes(search.toLowerCase())
-    ),
-    [assignments, search]
-  );
-
   const filteredReps = useMemo(() =>
     allRepNames
       .filter(n => n.toLowerCase().includes(repSearch.toLowerCase()))
@@ -318,93 +283,10 @@ export default function AdminSettings() {
         ))}
       </div>
 
-      {/* ══ TAB 1 — ASSIGNMENTS ══ */}
-      {activeTab === "assignments" && (
-        <div>
-          <Input
-            placeholder="🔍 Search accounts..."
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            className="mb-4 text-base"
-          />
+      {/* ══ TAB 1 — ACCOUNTS ══ */}
+      {activeTab === "assignments" && <AccountsManager />}
 
-          {isLoading ? (
-            <div className="text-center py-12 text-gray-400">Loading...</div>
-          ) : (
-            <div className="space-y-3">
-              {filteredAssignments.length === 0 && (
-                <div className="text-center py-8 text-gray-400 text-sm">No accounts found.</div>
-              )}
-              {filteredAssignments.map(row => {
-                const assignedReps = getAssignedReps(row);
-                const autoMatched = autoMatchReps(row.accountName, userNames);
-                const hasAutoSuggestion = autoMatched.some(r => !assignedReps.includes(r));
-                const unassigned = allRepNames.filter(r => !assignedReps.includes(r));
-                const isSaving = savingRows[row.id];
-
-                return (
-                  <div key={row.id} className="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
-                    {/* Account header */}
-                    <div className="flex items-start justify-between mb-3">
-                      <div>
-                        <p className="font-semibold text-sm text-gray-800">{row.accountName}</p>
-                        {hasAutoSuggestion && (
-                          <button
-                            onClick={() => autoMatched.forEach(r => addRep(row, r))}
-                            className="text-xs text-blue-500 hover:text-blue-700 mt-0.5"
-                          >
-                            ✨ Auto-assign {autoMatched.join(", ")}
-                          </button>
-                        )}
-                      </div>
-                      {isSaving && <span className="text-xs text-gray-400">Saving...</span>}
-                    </div>
-
-                    {/* Assigned reps chips */}
-                    <div className="flex flex-wrap gap-1.5 mb-3">
-                      {assignedReps.length === 0 ? (
-                        <span className="text-xs text-orange-400 font-medium">⚠ No rep assigned</span>
-                      ) : (
-                        assignedReps.map(repName => (
-                          <span
-                            key={repName}
-                            className="inline-flex items-center bg-blue-50 text-blue-700 border border-blue-200 text-xs px-2.5 py-1 rounded-full"
-                          >
-                            {repName}
-                            <button
-                              onClick={() => removeRep(row, repName)}
-                              className="ml-1.5 text-blue-300 hover:text-red-500"
-                            >
-                              <X size={11} />
-                            </button>
-                          </span>
-                        ))
-                      )}
-                    </div>
-
-                    {/* Add rep dropdown */}
-                    <select
-                      onChange={e => {
-                        if (e.target.value) addRep(row, e.target.value);
-                        e.target.value = "";
-                      }}
-                      defaultValue=""
-                      className="text-xs border border-gray-200 rounded-lg px-3 py-2 text-gray-500 bg-white w-full md:w-auto min-h-[36px]"
-                    >
-                      <option value="" disabled>+ Add rep...</option>
-                      {unassigned.map(name => (
-                        <option key={name} value={name}>{name}</option>
-                      ))}
-                    </select>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* ══ TAB 2 — REP MANAGEMENT ══ */}
+      {/* ══ TAB 2 — TEAM ══ */}
       {activeTab === "reps" && (
         <div>
           {/* Add Rep */}
