@@ -5,7 +5,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { MapPin, Search, Pencil, Trash2, Loader2 } from "lucide-react";
+import { MapPin, Search, Pencil, Trash2, Loader2, Plus } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import SetDialog from "@/components/territory/SetDialog";
+import ExportConsignedInventoryPDF from "@/components/admin/ExportConsignedInventoryPDF";
 import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -31,6 +34,8 @@ export default function TerritoryInventory() {
   const [filterMfr, setFilterMfr] = useState("All");
   const [editingSet, setEditingSet] = useState(null);
   const [confirmDelete, setConfirmDelete] = useState(null);
+  const [addingSet, setAddingSet] = useState(false);
+  const [editingDetails, setEditingDetails] = useState(null);
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState(null);
   const queryClient = useQueryClient();
@@ -132,13 +137,21 @@ export default function TerritoryInventory() {
     <div className="min-h-screen bg-slate-50 pb-24">
       <div className="max-w-5xl mx-auto px-4 py-6">
         {/* Header */}
-        <div className="flex items-center gap-3 mb-1">
-          <div className="p-2 rounded-lg bg-blue-100">
-            <MapPin className="w-5 h-5 text-blue-600" />
+        <div className="flex flex-wrap items-start justify-between gap-3 mb-1">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-blue-100">
+              <MapPin className="w-5 h-5 text-blue-600" />
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">Territory Inventory</h1>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">Territory Inventory</h1>
+          <div className="flex items-center gap-2">
+            <ExportConsignedInventoryPDF consignedSets={filtered} />
+            <Button onClick={() => setAddingSet(true)} className="bg-blue-600 hover:bg-blue-700 h-10">
+              <Plus className="w-4 h-4 mr-1" /> Add set
+            </Button>
+          </div>
         </div>
-        <p className="text-slate-500 ml-12 mb-6">Consigned sets tracked in territory — cross-referenced with active loaners</p>
+        <p className="text-slate-500 ml-12 mb-6">Consigned sets tracked in territory — cross-referenced with active loaners. This is the only place sets and their locations change.</p>
 
         {/* KPIs */}
         <div className="grid grid-cols-3 gap-3 mb-6">
@@ -210,6 +223,11 @@ export default function TerritoryInventory() {
                     <Pencil className="w-3 h-3" /> Edit locations
                   </button>
                   <button
+                    onClick={() => setEditingDetails(cs)}
+                    className="inline-flex items-center gap-1 font-semibold text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 px-2 py-1 rounded-lg">
+                    <Pencil className="w-3 h-3" /> Edit set
+                  </button>
+                  <button
                     onClick={() => { setDeleteError(null); setConfirmDelete(cs); }}
                     className="inline-flex items-center gap-1 font-semibold text-red-600 bg-white border border-red-200 hover:bg-red-50 px-2 py-1 rounded-lg">
                     <Trash2 className="w-3 h-3" /> Remove set
@@ -278,6 +296,13 @@ export default function TerritoryInventory() {
         open={!!editingSet}
         onOpenChange={(o) => !o && setEditingSet(null)}
         knownLocations={knownLocations}
+      />
+
+      <SetDialog open={addingSet} onOpenChange={setAddingSet} />
+      <SetDialog
+        open={!!editingDetails}
+        onOpenChange={(o) => !o && setEditingDetails(null)}
+        set={editingDetails}
       />
 
       <AlertDialog open={!!confirmDelete} onOpenChange={(o) => !o && setConfirmDelete(null)}>

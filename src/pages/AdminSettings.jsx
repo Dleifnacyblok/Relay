@@ -4,7 +4,9 @@ import { base44 } from "@/api/base44Client";
 import { Input } from "@/components/ui/input";
 import { X, ChevronDown, ChevronUp, Trash2, UserPlus, Pencil, Check, Mail, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import ConsignmentInventoryManager from "@/components/admin/ConsignmentInventoryManager";
+import { Link } from "react-router-dom";
+import { createPageUrl } from "@/utils";
+import { MapPin } from "lucide-react";
 
 // ── SUFFIX → REP AUTO-MATCH ──────────────────────────────────
 const SUFFIX_MAP = {
@@ -708,7 +710,18 @@ export default function AdminSettings() {
 
       {/* ══ TAB 4 — CONSIGNMENT INVENTORY ══ */}
       {activeTab === "consignment" && (
-        <ConsignmentInventoryManager />
+        <div className="bg-white border border-gray-200 rounded-xl p-6 text-center">
+          <div className="w-11 h-11 rounded-lg bg-blue-50 flex items-center justify-center mx-auto mb-3">
+            <MapPin className="w-5 h-5 text-blue-600" />
+          </div>
+          <h3 className="font-semibold text-gray-900 mb-1">Consigned sets live on the Territory page</h3>
+          <p className="text-sm text-gray-500 mb-4 max-w-md mx-auto">
+            Add or remove sets and set their account locations there. Every other page reads from that same list.
+          </p>
+          <Link to={createPageUrl("TerritoryInventory")}>
+            <Button className="min-h-[44px]">Open Territory Inventory</Button>
+          </Link>
+        </div>
       )}
 
       {/* CONFIRM REMOVE DIALOG */}
