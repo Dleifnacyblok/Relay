@@ -15,7 +15,7 @@ import { Plus, X, Loader2, Package } from "lucide-react";
 
 const MANUFACTURERS = ["Globus", "Nuvasive"];
 
-export default function SetDialog({ open, onOpenChange, set = null }) {
+export default function SetDialog({ open, onOpenChange, set = null, knownLocations = [] }) {
   const isEdit = !!set;
   const [form, setForm] = useState({ setName: "", setId: "", manufacturer: "Globus", notes: "" });
   const [tags, setTags] = useState([]);
@@ -91,8 +91,8 @@ export default function SetDialog({ open, onOpenChange, set = null }) {
           </DialogTitle>
           <DialogDescription>
             {isEdit
-              ? "Rename the set or change its tracked tags. Locations are edited separately."
-              : "Add a consigned set to the territory, then place each tag with Edit locations."}
+              ? "Rename the set, add or remove tags, and set where each tag sits."
+              : "Add a consigned set with its tags and where each tag sits."}
           </DialogDescription>
         </DialogHeader>
 
@@ -154,21 +154,34 @@ export default function SetDialog({ open, onOpenChange, set = null }) {
               </Button>
             </div>
             {tags.length > 0 && (
-              <div className="flex flex-wrap gap-2 mt-2">
+              <div className="space-y-2 mt-2">
+                <datalist id="set-known-locations">
+                  {knownLocations.map((l) => (
+                    <option key={l} value={l} />
+                  ))}
+                </datalist>
                 {tags.map((t, i) => (
-                  <span
-                    key={t.tag}
-                    className="inline-flex items-center gap-1 font-mono text-xs bg-slate-50 border border-slate-200 px-2 py-1 rounded-full"
-                  >
-                    {t.tag}
+                  <div key={t.tag} className="flex items-center gap-2">
+                    <span className="font-mono text-xs font-semibold text-slate-700 bg-slate-50 border border-slate-200 px-2 py-1.5 rounded-lg shrink-0 min-w-[72px] text-center">
+                      {t.tag}
+                    </span>
+                    <Input
+                      value={t.location}
+                      list="set-known-locations"
+                      onChange={(e) =>
+                        setTags((p) => p.map((x, idx) => (idx === i ? { ...x, location: e.target.value } : x)))
+                      }
+                      placeholder="Location (account)"
+                      className="h-9"
+                    />
                     <button
                       type="button"
                       onClick={() => setTags((p) => p.filter((_, idx) => idx !== i))}
-                      className="text-slate-400 hover:text-red-600"
+                      className="text-slate-400 hover:text-red-600 shrink-0"
                     >
-                      <X className="w-3 h-3" />
+                      <X className="w-4 h-4" />
                     </button>
-                  </span>
+                  </div>
                 ))}
               </div>
             )}

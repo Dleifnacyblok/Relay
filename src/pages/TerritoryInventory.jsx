@@ -318,11 +318,12 @@ export default function TerritoryInventory() {
         onRemove={removeTag}
       />
 
-      <SetDialog open={addingSet} onOpenChange={setAddingSet} />
+      <SetDialog open={addingSet} onOpenChange={setAddingSet} knownLocations={knownLocations} />
       <SetDialog
         open={!!editingDetails}
         onOpenChange={(o) => !o && setEditingDetails(null)}
         set={editingDetails}
+        knownLocations={knownLocations}
       />
 
       <AlertDialog open={!!confirmDelete} onOpenChange={(o) => !o && setConfirmDelete(null)}>
