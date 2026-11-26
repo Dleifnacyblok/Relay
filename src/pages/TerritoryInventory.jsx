@@ -9,6 +9,7 @@ import { MapPin, Search, Loader2, Plus, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import SetDialog from "@/components/territory/SetDialog";
 import SetActionsDialog from "@/components/territory/SetActionsDialog";
+import TagActionsDialog from "@/components/territory/TagActionsDialog";
 import ExportConsignedInventoryPDF from "@/components/admin/ExportConsignedInventoryPDF";
 import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
@@ -38,6 +39,14 @@ export default function TerritoryInventory() {
   const [addingSet, setAddingSet] = useState(false);
   const [editingDetails, setEditingDetails] = useState(null);
   const [actionSet, setActionSet] = useState(null);
+  const [actionTag, setActionTag] = useState(null);
+
+  const removeTag = async (cs, idx) => {
+    const tagNumbers = (cs.tagNumbers || []).filter((_, i) => i !== idx);
+    const homeAccounts = (cs.homeAccounts || []).filter((_, i) => i !== idx);
+    await base44.entities.ConsignedSet.update(cs.id, { tagNumbers, homeAccounts });
+    await queryClient.invalidateQueries({ queryKey: ["consignedSets"] });
+  };
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState(null);
   const queryClient = useQueryClient();
@@ -246,7 +255,9 @@ export default function TerritoryInventory() {
                 "out";
 
                 return (
-                  <div key={idx} className={`flex flex-wrap items-center justify-between px-4 py-2.5 gap-2 ${status === "overdue" ? "bg-red-50/50" : status === "due_soon" ? "bg-amber-50/30" : ""}`}>
+                  <div key={idx}
+                    onClick={() => setActionTag({ set: cs, index: idx })}
+                    className={`flex flex-wrap items-center justify-between px-4 py-2.5 gap-2 cursor-pointer hover:bg-slate-50 transition-colors ${status === "overdue" ? "bg-red-50/50" : status === "due_soon" ? "bg-amber-50/30" : ""}`}>
                         <div className="flex items-center gap-3">
                           <span className="font-mono text-sm text-slate-700 font-medium">{tag}</span>
                         </div>
@@ -258,7 +269,7 @@ export default function TerritoryInventory() {
                             </span>
                       }
                           <button
-                            onClick={() => setEditingSet(cs)}
+                            onClick={(e) => { e.stopPropagation(); setEditingSet(cs); }}
                             className={homeAccount ?
                             "inline-flex items-center gap-1 text-xs font-medium text-slate-700 bg-slate-50 border border-slate-200 px-2 py-1 rounded-full hover:bg-slate-100" :
                             "inline-flex items-center gap-1 text-xs font-medium text-blue-600 bg-blue-50 border border-dashed border-blue-300 px-2 py-1 rounded-full hover:bg-blue-100"}>
@@ -266,6 +277,7 @@ export default function TerritoryInventory() {
                           </button>
                           {loaner &&
                       <Link to={`${createPageUrl("LoanerDetail")}?id=${loaner.id}`}
+                      onClick={(e) => e.stopPropagation()}
                       className="text-xs text-blue-600 hover:underline font-medium">
                               View →
                             </Link>
@@ -295,6 +307,15 @@ export default function TerritoryInventory() {
         onEditLocations={setEditingSet}
         onEditSet={setEditingDetails}
         onRemove={(cs) => { setDeleteError(null); setConfirmDelete(cs); }}
+      />
+
+      <TagActionsDialog
+        open={!!actionTag}
+        onOpenChange={(o) => !o && setActionTag(null)}
+        set={actionTag?.set}
+        tagIndex={actionTag?.index}
+        onEditLocations={setEditingSet}
+        onRemove={removeTag}
       />
 
       <SetDialog open={addingSet} onOpenChange={setAddingSet} />
