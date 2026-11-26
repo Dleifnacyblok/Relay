@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import SetDialog from "@/components/territory/SetDialog";
 import SetActionsDialog from "@/components/territory/SetActionsDialog";
 import TagActionsDialog from "@/components/territory/TagActionsDialog";
+import AddTagDialog from "@/components/territory/AddTagDialog";
 import ExportConsignedInventoryPDF from "@/components/admin/ExportConsignedInventoryPDF";
 import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
@@ -40,6 +41,7 @@ export default function TerritoryInventory() {
   const [editingDetails, setEditingDetails] = useState(null);
   const [actionSet, setActionSet] = useState(null);
   const [actionTag, setActionTag] = useState(null);
+  const [addingTag, setAddingTag] = useState(null);
 
   const removeTag = async (cs, idx) => {
     const tagNumbers = (cs.tagNumbers || []).filter((_, i) => i !== idx);
@@ -239,6 +241,11 @@ export default function TerritoryInventory() {
                   {cs.activeCount > 0 &&
                 <span className="font-semibold text-blue-600 bg-blue-50 border border-blue-100 px-2 py-1 rounded-lg">{cs.activeCount} out</span>
                 }
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setAddingTag(cs); }}
+                    className="inline-flex items-center gap-1 font-semibold text-blue-600 bg-blue-50 border border-blue-100 px-2 py-1 rounded-lg hover:bg-blue-100 transition-colors">
+                    <Plus className="w-3 h-3" /> Tag
+                  </button>
                   <ChevronRight className="w-4 h-4 text-slate-300" />
                 </div>
               </div>
@@ -307,6 +314,13 @@ export default function TerritoryInventory() {
         onEditLocations={setEditingSet}
         onEditSet={setEditingDetails}
         onRemove={(cs) => { setDeleteError(null); setConfirmDelete(cs); }}
+      />
+
+      <AddTagDialog
+        open={!!addingTag}
+        onOpenChange={(o) => !o && setAddingTag(null)}
+        set={addingTag}
+        knownLocations={knownLocations}
       />
 
       <TagActionsDialog
