@@ -1,15 +1,25 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { computeLoanerData } from "@/components/loaners/loanerUtils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { MapPin, Search, Pencil } from "lucide-react";
+import { MapPin, Search, Pencil, Trash2, Loader2 } from "lucide-react";
 import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import EditLocationsDialog from "@/components/territory/EditLocationsDialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const MANUFACTURER_COLORS = {
   Globus: "bg-blue-100 text-blue-700 border-blue-200",
@@ -20,6 +30,25 @@ export default function TerritoryInventory() {
   const [search, setSearch] = useState("");
   const [filterMfr, setFilterMfr] = useState("All");
   const [editingSet, setEditingSet] = useState(null);
+  const [confirmDelete, setConfirmDelete] = useState(null);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState(null);
+  const queryClient = useQueryClient();
+
+  const handleDelete = async () => {
+    if (!confirmDelete) return;
+    setDeleting(true);
+    setDeleteError(null);
+    try {
+      await base44.entities.ConsignedSet.delete(confirmDelete.id);
+      await queryClient.invalidateQueries({ queryKey: ["consignedSets"] });
+      setConfirmDelete(null);
+    } catch (e) {
+      setDeleteError(e?.message || "Could not remove this set.");
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   const { data: consignedSets = [], isLoading: loadingSets } = useQuery({
     queryKey: ["consignedSets"],
@@ -180,6 +209,11 @@ export default function TerritoryInventory() {
                     className="inline-flex items-center gap-1 font-semibold text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 px-2 py-1 rounded-lg">
                     <Pencil className="w-3 h-3" /> Edit locations
                   </button>
+                  <button
+                    onClick={() => { setDeleteError(null); setConfirmDelete(cs); }}
+                    className="inline-flex items-center gap-1 font-semibold text-red-600 bg-white border border-red-200 hover:bg-red-50 px-2 py-1 rounded-lg">
+                    <Trash2 className="w-3 h-3" /> Remove set
+                  </button>
                   {cs.overdueCount > 0 &&
                 <span className="font-semibold text-red-600 bg-red-50 border border-red-100 px-2 py-1 rounded-lg">{cs.overdueCount} overdue</span>
                 }
@@ -245,6 +279,29 @@ export default function TerritoryInventory() {
         onOpenChange={(o) => !o && setEditingSet(null)}
         knownLocations={knownLocations}
       />
+
+      <AlertDialog open={!!confirmDelete} onOpenChange={(o) => !o && setConfirmDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remove this set?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This removes <span className="font-semibold">{confirmDelete?.setName}</span> and its{" "}
+              {(confirmDelete?.tagNumbers || []).length} tracked tags from the territory. Loaner records are not deleted.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          {deleteError && <p className="text-sm text-red-600">{deleteError}</p>}
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => { e.preventDefault(); handleDelete(); }}
+              disabled={deleting}
+              className="bg-red-600 hover:bg-red-700">
+              {deleting ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
+              {deleting ? "Removing…" : "Remove set"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>);
 
 }
