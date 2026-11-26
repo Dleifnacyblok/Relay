@@ -1,9 +1,10 @@
 import { useState, useMemo } from "react";
-import { Download, Loader2, Package, AlertTriangle } from "lucide-react";
+import { Download, Loader2, Package, AlertTriangle, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { createDoc, addReportHeader, addFooters, drawLoanerRow, drawPartRow, checkPageBreak, getNow, getFilename } from "@/lib/pdfUtils";
 import ExportLoanersPDF from "@/components/loaners/ExportLoanersPDF";
+import ExportIEPReport from "@/components/iep/ExportIEPReport";
 
 function FilterButton({ active, onClick, children }) {
   return (
@@ -239,13 +240,26 @@ export default function ESCExportDialog({ open, onClose, loaners, missingParts }
             <AlertTriangle className="w-3.5 h-3.5" />
             Missing Parts
           </button>
+          <button
+            onClick={() => setTab("iep")}
+            className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-sm font-medium transition-colors ${
+              tab === "iep" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700"
+            }`}
+          >
+            <TrendingUp className="w-3.5 h-3.5" />
+            IEP
+          </button>
         </div>
 
         <div className="pt-1">
-          {tab === "loaners" ? (
-            <LoanersExport loaners={loaners} onClose={onClose} />
-          ) : (
-            <MissingPartsExport parts={missingParts} onClose={onClose} />
+          {tab === "loaners" && <LoanersExport loaners={loaners} onClose={onClose} />}
+          {tab === "parts" && <MissingPartsExport parts={missingParts} onClose={onClose} />}
+          {tab === "iep" && (
+            <div className="rounded-xl border border-purple-100 bg-purple-50/60 p-3 space-y-2">
+              <p className="text-sm font-semibold text-slate-800">Weekly IEP report</p>
+              <p className="text-xs text-slate-500">Efficiency summary, then set usage worst score first.</p>
+              <ExportIEPReport />
+            </div>
           )}
         </div>
       </DialogContent>
