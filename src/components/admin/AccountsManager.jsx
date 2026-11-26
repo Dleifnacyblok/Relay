@@ -4,7 +4,7 @@ import { base44 } from "@/api/base44Client";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Plus, X, Trash2, Pencil, Check, Building2 } from "lucide-react";
-import { getAssignedReps } from "@/lib/accounts";
+import { getAssignedReps, getHiddenReps, HIDDEN_REP_PREFIX, REP_PLACEHOLDER_PREFIX } from "@/lib/accounts";
 
 export default function AccountsManager() {
   const qc = useQueryClient();
@@ -32,20 +32,26 @@ export default function AccountsManager() {
   };
 
   const accounts = useMemo(
-    () => assignments.filter((a) => !a.accountName?.startsWith("__rep_placeholder__")),
+    () =>
+      assignments.filter(
+        (a) =>
+          !a.accountName?.startsWith(REP_PLACEHOLDER_PREFIX) &&
+          !a.accountName?.startsWith(HIDDEN_REP_PREFIX)
+      ),
     [assignments]
   );
 
-  const repNames = useMemo(
-    () =>
-      [
-        ...new Set([
-          ...users.map((u) => u.full_name).filter(Boolean),
-          ...assignments.flatMap((a) => getAssignedReps(a)),
-        ]),
-      ].sort(),
-    [users, assignments]
-  );
+  const repNames = useMemo(() => {
+    const hidden = getHiddenReps(assignments);
+    return [
+      ...new Set([
+        ...users.map((u) => u.full_name).filter(Boolean),
+        ...assignments.flatMap((a) => getAssignedReps(a)),
+      ]),
+    ]
+      .filter((n) => !hidden.includes(n))
+      .sort();
+  }, [users, assignments]);
 
   const filtered = useMemo(
     () =>

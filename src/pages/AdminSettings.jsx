@@ -8,7 +8,12 @@ import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import TerritoryInventoryPanel from "@/components/territory/TerritoryInventoryPanel";
 import AccountsManager from "@/components/admin/AccountsManager";
-import { getAssignedReps } from "@/lib/accounts";
+import {
+  getAssignedReps,
+  getHiddenReps,
+  REP_PLACEHOLDER_PREFIX,
+  HIDDEN_REP_PREFIX,
+} from "@/lib/accounts";
 
 export default function AdminSettings() {
   const qc = useQueryClient();
@@ -45,7 +50,10 @@ export default function AdminSettings() {
 
   const allRepNames = useMemo(() => {
     const fromAssignments = assignments.flatMap(a => getAssignedReps(a)).filter(Boolean);
-    return [...new Set([...userNames, ...fromAssignments])].sort();
+    const hidden = getHiddenReps(assignments);
+    return [...new Set([...userNames, ...fromAssignments])]
+      .filter(n => !hidden.includes(n))
+      .sort();
   }, [userNames, assignments]);
 
   const updateMutation = useMutation({
@@ -120,7 +128,7 @@ export default function AdminSettings() {
     () =>
       [...new Set(
         assignments
-          .filter((a) => !a.accountName?.startsWith("__rep_placeholder__"))
+          .filter((a) => !a.accountName?.startsWith(REP_PLACEHOLDER_PREFIX) && !a.accountName?.startsWith(HIDDEN_REP_PREFIX))
           .map((a) => a.accountName)
           .filter(Boolean)
       )].sort(),
@@ -206,11 +214,24 @@ export default function AdminSettings() {
   async function handleRemoveRep(repName) {
     const affected = getRepAccounts(repName);
     for (const row of affected) {
-      await base44.entities.RepAccountAssignment.update(row.id, {
-        ...row,
-        assignedReps: getAssignedReps(row).filter(r => r !== repName),
+      if (row.accountName?.startsWith(REP_PLACEHOLDER_PREFIX)) {
+        // Placeholder rows only exist to carry a name — remove them entirely
+        await base44.entities.RepAccountAssignment.delete(row.id);
+      } else {
+        await base44.entities.RepAccountAssignment.update(row.id, {
+          assignedReps: getAssignedReps(row).filter(r => r !== repName),
+        });
+      }
+    }
+    // App users stay in the User table, so remember that this name is off the team
+    const isAppUser = allUsers.some(u => u.full_name === repName);
+    if (isAppUser && !getHiddenReps(assignments).includes(repName)) {
+      await base44.entities.RepAccountAssignment.create({
+        accountName: `${HIDDEN_REP_PREFIX}${repName}`,
+        assignedReps: [repName],
       });
     }
+    if (expandedRep === repName) setExpandedRep(null);
     invalidate();
     setConfirmRemove(null);
   }
@@ -218,6 +239,13 @@ export default function AdminSettings() {
   async function handleRenameRep(oldName, newName) {
     const trimmed = newName.trim();
     if (!trimmed || trimmed === oldName) { setEditingRep(null); return; }
+    const appUser = allUsers.find(u => u.full_name === oldName);
+    if (appUser) {
+      if (!isRealAdmin) { setEditingRep(null); return; }
+      // Only a real admin can rename another app user
+      await base44.entities.User.update(appUser.id, { full_name: trimmed });
+      qc.invalidateQueries({ queryKey: ["allUsers"] });
+    }
     // Update all assignment records that reference the old name
     const affected = assignments.filter(a => getAssignedReps(a).includes(oldName));
     for (const row of affected) {
@@ -239,9 +267,20 @@ export default function AdminSettings() {
   async function handleAddNewRep(name) {
     const trimmed = name.trim();
     if (!trimmed) return;
+    if (allRepNames.includes(trimmed)) {
+      setNewRepName("");
+      setAddingRep(false);
+      return;
+    }
+    // Bring back a rep who was previously removed with this name
+    for (const row of assignments) {
+      if (row.accountName === `${HIDDEN_REP_PREFIX}${trimmed}`) {
+        await base44.entities.RepAccountAssignment.delete(row.id);
+      }
+    }
     // Create a placeholder assignment so the rep appears in the system
     await base44.entities.RepAccountAssignment.create({
-      accountName: `__rep_placeholder__${trimmed}`,
+      accountName: `${REP_PLACEHOLDER_PREFIX}${trimmed}`,
       assignedReps: [trimmed],
     });
     invalidate();
@@ -368,8 +407,8 @@ export default function AdminSettings() {
                       ) : (
                         <div className="flex items-center gap-1.5">
                           <p className="font-medium text-sm text-gray-800">{repName}</p>
-                          {/* Only allow renaming reps who are NOT app users */}
-                          {!appUser ? (
+                          {/* App users can only be renamed by a real admin */}
+                          {!appUser || isRealAdmin ? (
                             <button
                               onClick={() => setEditingRep({ oldName: repName, newName: repName })}
                               className="text-gray-300 hover:text-blue-500 transition-colors"
@@ -615,10 +654,11 @@ export default function AdminSettings() {
       {confirmRemove && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-xl max-w-sm w-full p-6">
-            <h2 className="font-bold text-lg mb-2">Remove {confirmRemove.repName}?</h2>
+            <h2 className="font-bold text-lg mb-2">Remove {confirmRemove.repName} from the team?</h2>
             <p className="text-sm text-gray-600 mb-3">
-              This will remove them from{" "}
-              <span className="font-semibold">{confirmRemove.accounts.length} account{confirmRemove.accounts.length !== 1 ? "s" : ""}</span>.
+              They'll be taken off{" "}
+              <span className="font-semibold">{confirmRemove.accounts.length} account{confirmRemove.accounts.length !== 1 ? "s" : ""}</span>{" "}
+              and hidden from the team list. Their app login is not deleted.
             </p>
             {confirmRemove.accounts.length > 0 && (
               <ul className="text-xs text-gray-500 mb-4 max-h-40 overflow-y-auto space-y-1 border rounded p-2 bg-gray-50">

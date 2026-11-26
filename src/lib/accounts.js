@@ -19,6 +19,15 @@ export function autoMatchReps(accountName, userNames) {
   return SUFFIX_MAP[suffix].filter((n) => userNames.includes(n));
 }
 
+export const REP_PLACEHOLDER_PREFIX = "__rep_placeholder__";
+export const HIDDEN_REP_PREFIX = "__hidden_rep__";
+
+export function getHiddenReps(assignments = []) {
+  return assignments
+    .filter((a) => a.accountName?.startsWith(HIDDEN_REP_PREFIX))
+    .map((a) => a.accountName.slice(HIDDEN_REP_PREFIX.length));
+}
+
 export function getAssignedReps(row) {
   if (Array.isArray(row.assignedReps)) return row.assignedReps;
   if (row.assignedRep) return [row.assignedRep];
