@@ -5,9 +5,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { MapPin, Search, Pencil, Trash2, Loader2, Plus } from "lucide-react";
+import { MapPin, Search, Loader2, Plus, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import SetDialog from "@/components/territory/SetDialog";
+import SetActionsDialog from "@/components/territory/SetActionsDialog";
 import ExportConsignedInventoryPDF from "@/components/admin/ExportConsignedInventoryPDF";
 import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
@@ -36,6 +37,7 @@ export default function TerritoryInventory() {
   const [confirmDelete, setConfirmDelete] = useState(null);
   const [addingSet, setAddingSet] = useState(false);
   const [editingDetails, setEditingDetails] = useState(null);
+  const [actionSet, setActionSet] = useState(null);
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState(null);
   const queryClient = useQueryClient();
@@ -200,7 +202,9 @@ export default function TerritoryInventory() {
           }
           {filtered.map((cs) =>
           <Card key={cs.id} className="bg-white border-slate-200 overflow-hidden">
-              <div className="p-4 border-b border-slate-100 flex flex-wrap items-center justify-between gap-2">
+              <div
+                onClick={() => setActionSet(cs)}
+                className="p-4 border-b border-slate-100 flex flex-wrap items-center justify-between gap-2 cursor-pointer hover:bg-slate-50 transition-colors">
                 <div className="flex items-center gap-3">
                   <div>
                     <div className="flex items-center gap-2">
@@ -217,21 +221,6 @@ export default function TerritoryInventory() {
                   </div>
                 </div>
                 <div className="flex items-center gap-2 text-xs">
-                  <button
-                    onClick={() => setEditingSet(cs)}
-                    className="inline-flex items-center gap-1 font-semibold text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 px-2 py-1 rounded-lg">
-                    <Pencil className="w-3 h-3" /> Edit locations
-                  </button>
-                  <button
-                    onClick={() => setEditingDetails(cs)}
-                    className="inline-flex items-center gap-1 font-semibold text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 px-2 py-1 rounded-lg">
-                    <Pencil className="w-3 h-3" /> Edit set
-                  </button>
-                  <button
-                    onClick={() => { setDeleteError(null); setConfirmDelete(cs); }}
-                    className="inline-flex items-center gap-1 font-semibold text-red-600 bg-white border border-red-200 hover:bg-red-50 px-2 py-1 rounded-lg">
-                    <Trash2 className="w-3 h-3" /> Remove set
-                  </button>
                   {cs.overdueCount > 0 &&
                 <span className="font-semibold text-red-600 bg-red-50 border border-red-100 px-2 py-1 rounded-lg">{cs.overdueCount} overdue</span>
                 }
@@ -241,6 +230,7 @@ export default function TerritoryInventory() {
                   {cs.activeCount > 0 &&
                 <span className="font-semibold text-blue-600 bg-blue-50 border border-blue-100 px-2 py-1 rounded-lg">{cs.activeCount} out</span>
                 }
+                  <ChevronRight className="w-4 h-4 text-slate-300" />
                 </div>
               </div>
 
@@ -296,6 +286,15 @@ export default function TerritoryInventory() {
         open={!!editingSet}
         onOpenChange={(o) => !o && setEditingSet(null)}
         knownLocations={knownLocations}
+      />
+
+      <SetActionsDialog
+        set={actionSet}
+        open={!!actionSet}
+        onOpenChange={(o) => !o && setActionSet(null)}
+        onEditLocations={setEditingSet}
+        onEditSet={setEditingDetails}
+        onRemove={(cs) => { setDeleteError(null); setConfirmDelete(cs); }}
       />
 
       <SetDialog open={addingSet} onOpenChange={setAddingSet} />
