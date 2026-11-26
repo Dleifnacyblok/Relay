@@ -289,15 +289,15 @@ export default function AdminSettings() {
 
   return (
     <div className="p-4 md:p-6 max-w-4xl mx-auto pb-16">
-      <h1 className="text-2xl font-bold mb-1">Admin Settings</h1>
-      <p className="text-gray-500 mb-6 text-sm">Manage rep–account assignments. Changes save automatically.</p>
+      <h1 className="text-2xl font-bold mb-1">Manager Settings</h1>
+      <p className="text-gray-500 mb-6 text-sm">Invitations, accounts, team, and territory inventory. Changes save automatically.</p>
 
       {/* TABS */}
       <div className="flex gap-0 mb-6 border-b border-gray-200">
         {[
-          { key: "assignments", label: "Rep–Account Assignments" },
-          { key: "reps", label: "Rep Management" },
           { key: "invitations", label: "Invitations" },
+          { key: "assignments", label: "Accounts" },
+          { key: "reps", label: "Team" },
           { key: "consignment", label: "Territory Inventory" },
         ].map(tab => (
           <button
