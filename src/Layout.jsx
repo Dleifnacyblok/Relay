@@ -58,7 +58,6 @@ export default function Layout({ children, currentPageName }) {
   ];
 
   const moreNavigation = [
-    { name: "Territory", page: "TerritoryInventory", icon: MapPin },
     { name: "Calendar", page: "Calendar", icon: CalendarDays },
     { name: "Track Log", page: "SendBackLog", icon: FileText },
     { name: "My Account", page: "MyAccount", icon: User },

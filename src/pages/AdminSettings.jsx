@@ -6,7 +6,7 @@ import { X, ChevronDown, ChevronUp, Trash2, UserPlus, Pencil, Check, Mail, Loade
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { MapPin } from "lucide-react";
+import TerritoryInventoryPanel from "@/components/territory/TerritoryInventoryPanel";
 
 // ── SUFFIX → REP AUTO-MATCH ──────────────────────────────────
 const SUFFIX_MAP = {
@@ -298,7 +298,7 @@ export default function AdminSettings() {
           { key: "assignments", label: "Rep–Account Assignments" },
           { key: "reps", label: "Rep Management" },
           { key: "invitations", label: "Invitations" },
-          { key: "consignment", label: "Consignment Inventory" },
+          { key: "consignment", label: "Territory Inventory" },
         ].map(tab => (
           <button
             key={tab.key}
@@ -708,21 +708,8 @@ export default function AdminSettings() {
         </div>
       )}
 
-      {/* ══ TAB 4 — CONSIGNMENT INVENTORY ══ */}
-      {activeTab === "consignment" && (
-        <div className="bg-white border border-gray-200 rounded-xl p-6 text-center">
-          <div className="w-11 h-11 rounded-lg bg-blue-50 flex items-center justify-center mx-auto mb-3">
-            <MapPin className="w-5 h-5 text-blue-600" />
-          </div>
-          <h3 className="font-semibold text-gray-900 mb-1">Consigned sets live on the Territory page</h3>
-          <p className="text-sm text-gray-500 mb-4 max-w-md mx-auto">
-            Add or remove sets and set their account locations there. Every other page reads from that same list.
-          </p>
-          <Link to={createPageUrl("TerritoryInventory")}>
-            <Button className="min-h-[44px]">Open Territory Inventory</Button>
-          </Link>
-        </div>
-      )}
+      {/* ══ TAB 4 — TERRITORY INVENTORY ══ */}
+      {activeTab === "consignment" && <TerritoryInventoryPanel />}
 
       {/* CONFIRM REMOVE DIALOG */}
       {confirmRemove && (
