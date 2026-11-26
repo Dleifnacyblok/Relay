@@ -17,6 +17,21 @@
       },
       "description": "Account names the rep is assigned to"
     },
+    "role": {
+      "type": "string",
+      "enum": [
+        "user",
+        "manager",
+        "admin"
+      ],
+      "enumColors": [
+        "gray",
+        "blue",
+        "purple"
+      ],
+      "default": "user",
+      "description": "App role the rep gets when they accept the invitation"
+    },
     "createdBy": {
       "type": "string",
       "description": "Email of the admin who created this invitation"

@@ -99,6 +99,7 @@ export default function AdminSettings() {
   const [invSelectedAccounts, setInvSelectedAccounts] = useState([]);
   const [invAccountSearch, setInvAccountSearch] = useState("");
   const [invError, setInvError] = useState("");
+  const [invRole, setInvRole] = useState("user");
 
   const { data: currentUser } = useQuery({
     queryKey: ["currentUser"],
@@ -114,12 +115,13 @@ export default function AdminSettings() {
   });
 
   const createInvitationMutation = useMutation({
-    mutationFn: async ({ name, email, accounts }) => {
+    mutationFn: async ({ name, email, accounts, role }) => {
       const now = new Date().toISOString();
       const invitation = await base44.entities.RepInvitation.create({
         name,
         email,
         accounts,
+        role,
         createdBy: currentUser?.email || "",
         createdByName: currentUser?.full_name || "",
         createdAt: now,
@@ -131,7 +133,7 @@ export default function AdminSettings() {
         actorName: currentUser?.full_name || "",
         targetEmail: email,
         targetName: name,
-        details: { accounts, invitationId: invitation.id },
+        details: { accounts, role, invitationId: invitation.id },
         timestamp: now,
       });
       return invitation;
@@ -194,9 +196,11 @@ export default function AdminSettings() {
         name,
         email,
         accounts: invSelectedAccounts,
+        role: invRole,
       });
       setInvName("");
       setInvEmail("");
+      setInvRole("user");
       setInvSelectedAccounts([]);
       setInvAccountSearch("");
     } catch (e) {
@@ -612,6 +616,19 @@ export default function AdminSettings() {
               </div>
 
               <div>
+                <label className="text-xs font-semibold text-gray-600 mb-1 block">Role</label>
+                <select
+                  value={invRole}
+                  onChange={e => setInvRole(e.target.value)}
+                  className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 bg-white text-gray-700 min-h-[44px]"
+                >
+                  <option value="user">User — standard rep access</option>
+                  <option value="manager">Manager — can invite and manage the team</option>
+                  <option value="admin">Admin — full access, including user roles</option>
+                </select>
+              </div>
+
+              <div>
                 <label className="text-xs font-semibold text-gray-600 mb-1 block">
                   Accounts ({invSelectedAccounts.length} selected)
                 </label>
@@ -694,6 +711,7 @@ export default function AdminSettings() {
                     }`}>
                       {inv.status}
                     </span>
+                    <div className="text-[10px] text-gray-400 capitalize mt-0.5">{inv.role || "user"}</div>
                   </div>
                   <div className="col-span-3 text-xs text-gray-400 text-right">
                     {inv.createdAt ? new Date(inv.createdAt).toLocaleDateString() : "—"}

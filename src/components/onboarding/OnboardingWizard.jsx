@@ -34,6 +34,11 @@ export default function OnboardingWizard({ user, onComplete }) {
         managedAccounts: Array.isArray(invitation.accounts) ? invitation.accounts : [],
         onboardingComplete: true,
       });
+      try {
+        await base44.functions.invoke("applyInvitationRole", { invitationId: invitation.id });
+      } catch (roleError) {
+        console.error("Could not apply the invited role", roleError);
+      }
       await base44.entities.RepInvitation.update(invitation.id, {
         status: "accepted",
         acceptedAt: now,
@@ -47,6 +52,7 @@ export default function OnboardingWizard({ user, onComplete }) {
         details: {
           invitationId: invitation.id,
           accounts: invitation.accounts || [],
+          role: invitation.role || "user",
         },
         timestamp: now,
       });
@@ -104,6 +110,10 @@ export default function OnboardingWizard({ user, onComplete }) {
                 <div>
                   <p className="text-xs text-gray-500 uppercase font-semibold mb-1">Email</p>
                   <p className="text-sm text-gray-700">{invitation.email}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500 uppercase font-semibold mb-1">Role</p>
+                  <p className="text-sm text-gray-700 capitalize">{invitation.role || "user"}</p>
                 </div>
                 <div>
                   <p className="text-xs text-gray-500 uppercase font-semibold mb-2">
